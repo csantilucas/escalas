@@ -2,13 +2,14 @@ import { externalTokenRepo } from "../containers/externalToken.container.js";
 
 export async function syncExternalTokens(): Promise<void> {
   try {
-    // 1. Tomticket Token
+    // 1. Tomticket Token & API URL
     if (process.env.TOMTICKET_BEARER_TOKEN) {
       const existing = await externalTokenRepo.findByServiceName("tomticket");
       if (!existing) {
         await externalTokenRepo.upsertByServiceName({
           serviceName: "tomticket",
           token: process.env.TOMTICKET_BEARER_TOKEN,
+          apiUrl: process.env.TOMTICKET_API_URL || "https://api.tomticket.com/v2.0/ticket/list",
           description: "Token de autenticação para a API do Tomticket (definido via .env)",
           isActive: true,
         });
@@ -16,7 +17,7 @@ export async function syncExternalTokens(): Promise<void> {
       }
     }
 
-    // 2. Alpha Software / Dash API Token
+    // 2. Alpha Software / Dash API Token & URL
     const alphaToken = process.env.ALPHA_API_TOKEN || process.env.EXTERNAL_API_TOKEN;
     if (alphaToken) {
       const existing = await externalTokenRepo.findByServiceName("alpha_dash");
@@ -24,6 +25,9 @@ export async function syncExternalTokens(): Promise<void> {
         await externalTokenRepo.upsertByServiceName({
           serviceName: "alpha_dash",
           token: alphaToken,
+          apiUrl:
+            process.env.ALPHA_API_URL ||
+            "https://api.alphasoftware.com.br/v2/api/external/9c27a2a0-d676-4aea-a0ed-8da908a4acb6/dash",
           description: "Token de autenticação para a API Alpha Dash (definido via .env)",
           isActive: true,
         });
@@ -31,7 +35,7 @@ export async function syncExternalTokens(): Promise<void> {
       }
     }
 
-    // 3. Z-PRO Token
+    // 3. Z-PRO Token & URL
     const zproToken = process.env.ZPRO_API_TOKEN || process.env.ZPRO_TOKEN;
     if (zproToken) {
       const existing = await externalTokenRepo.findByServiceName("zpro");
@@ -39,6 +43,9 @@ export async function syncExternalTokens(): Promise<void> {
         await externalTokenRepo.upsertByServiceName({
           serviceName: "zpro",
           token: zproToken,
+          apiUrl:
+            process.env.ZPRO_API_URL ||
+            "https://api.alphasoftware.com.br/v2/api/external/9c27a2a0-d676-4aea-a0ed-8da908a4acb6",
           description: "Token de autenticação para o serviço Z-PRO (definido via .env)",
           isActive: true,
         });

@@ -48,6 +48,11 @@ class RegistroServices {
     return response.data;
   }
 
+  async create(data: any) {
+    const response = await api.post("/register", data);
+    return response.data;
+  }
+
   // POST /register/gerar -> Geração automática e distribuída de escalas
   async autoGenerate(data: GerarEscalaModel) {
     const response = await api.post("/register/gerar", data);

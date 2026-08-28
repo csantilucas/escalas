@@ -28,7 +28,6 @@ export interface UpdateAtendimentoInput {
     ticketTomticket?: string;
     tipoAtendimento?: string;
     atendente?: string;
-    status?: string;
     protocolo?: string;
     clienteId?: string;
     cnpj?: string;
@@ -104,7 +103,6 @@ export class AtendimentoService {
         if (data.ticketTomticket !== undefined) updateData.ticketTomticket = data.ticketTomticket ? String(data.ticketTomticket) : null;
         if (data.tipoAtendimento !== undefined) updateData.tipoAtendimento = data.tipoAtendimento;
         if (data.atendente !== undefined) updateData.atendente = data.atendente;
-        if (data.status !== undefined) updateData.status = data.status;
         if (data.protocolo !== undefined) updateData.protocolo = data.protocolo;
         if (data.clienteId !== undefined) updateData.clienteId = data.clienteId;
         if (data.cnpj !== undefined) updateData.cnpj = data.cnpj;

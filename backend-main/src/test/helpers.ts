@@ -30,14 +30,15 @@ export async function setupTestUsers(prefix: string = "test") {
       email: adminEmail,
       password: "password_123",
       id_atendente: `ATEND-ADM-${uid}`,
-      typeUser: "admin",
+      role: "admin",
+      typeUser: "atendente",
     });
 
   const adminCookie = adminRes.headers["set-cookie"];
 
   const admin = await prisma.user.update({
     where: { email: adminEmail },
-    data: { typeUser: "admin" },
+    data: { role: "admin", typeUser: "atendente" },
   });
 
   // 2. Cadastra Atendente via rota oficial Better Auth

@@ -6,11 +6,27 @@ export interface LoginModel {
   pass: string;
 }
 
+export interface UserItem {
+  id: string;
+  name: string;
+  email: string;
+  role?: "admin" | "comum" | string;
+  typeUser?: "atendente" | "comum" | string;
+  id_atendente?: string | null;
+  isPlantonista?: boolean;
+  posicao?: number;
+  createdAt?: string;
+}
+
 export interface CreateUserModel {
   name: string;
   email: string;
   pass: string;
+  role?: "admin" | "comum" | string;
+  typeUser?: "atendente" | "comum" | string;
   id_atendente?: string;
+  isPlantonista?: boolean;
+  posicao?: number;
 }
 
 class UserServices {
@@ -27,9 +43,13 @@ class UserServices {
   }
 
   // GET /users -> Listar usuários (ID e Nome)
-  async listAll() {
-    const response = await api.get("/users");
+  async listAll(): Promise<UserItem[]> {
+    const response = await api.get<UserItem[]>("/users");
     return response.data;
+  }
+
+  async getAll(): Promise<UserItem[]> {
+    return this.listAll();
   }
 }
 

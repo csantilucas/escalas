@@ -2,6 +2,7 @@ model ExternalToken {
   id          String   @id @default(uuid())
   serviceName String   @unique
   token       String
+  apiUrl      String?  // URL customizada da API do serviço
   description String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())

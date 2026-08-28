@@ -33,14 +33,6 @@ export interface RelatorioUsuarioTomticket {
 }
 
 class ExternalApiService {
-  private baseUrl =
-    process.env.ALPHA_API_URL ||
-    "https://api.alphasoftware.com.br/v2/api/external/9c27a2a0-d676-4aea-a0ed-8da908a4acb6/dash";
-
-  private tomticketBaseUrl =
-    process.env.TOMTICKET_API_URL ||
-    "https://api.tomticket.com/v2.0/ticket/list";
-
   private pausaMs = 500; // Meio segundo de pausa entre requisições
 
   private departamentosPermitidos = [
@@ -65,55 +57,24 @@ class ExternalApiService {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  private async getTomticketToken(): Promise<string> {
-    const token = await externalTokenService.getActiveToken(
-      "tomticket",
-      "TOMTICKET_BEARER_TOKEN"
-    );
-    if (!token) {
-      throw new Error(
-        "Token do Tomticket não configurado. Verifique a tabela de tokens ou o .env TOMTICKET_BEARER_TOKEN."
-      );
-    }
-    return token;
-  }
-
-  private async getAlphaToken(): Promise<string> {
-    const token = await externalTokenService.getActiveToken(
-      "alpha_dash",
-      "ALPHA_API_TOKEN"
-    );
-    if (!token) {
-      return process.env.EXTERNAL_API_TOKEN || "";
-    }
-    return token;
-  }
-
-  private async getZproToken(): Promise<string> {
-    const token = await externalTokenService.getActiveToken(
-      "zpro",
-      "ZPRO_API_TOKEN"
-    );
-    if (!token) {
-      return process.env.ZPRO_TOKEN || process.env.ALPHA_API_TOKEN || "";
-    }
-    return token;
-  }
-
   async listZproUsers(): Promise<any[]> {
-    const zproBase =
-      process.env.ZPRO_API_URL ||
-      "https://api.alphasoftware.com.br/v2/api/external/9c27a2a0-d676-4aea-a0ed-8da908a4acb6";
-    const url = `${zproBase}/listUsers`;
+    const config = await externalTokenService.getActiveServiceConfig(
+      "zpro",
+      "ZPRO_API_TOKEN",
+      "ZPRO_API_URL",
+      "https://api.alphasoftware.com.br/v2/api/external/9c27a2a0-d676-4aea-a0ed-8da908a4acb6"
+    );
+
+    const baseUrl = config.apiUrl.replace(/\/$/, "");
+    const url = baseUrl.endsWith("/listUsers") ? baseUrl : `${baseUrl}/listUsers`;
 
     try {
-      const zproToken = await this.getZproToken();
       console.log(`🌐 [ExternalApi - Z-PRO] Conectando a ${url}...`);
 
       const response = await axios.get(url, {
         params: { pageNumber: 1 },
         headers: {
-          ...(zproToken && { Authorization: `Bearer ${zproToken}` }),
+          ...(config.token && { Authorization: `Bearer ${config.token}` }),
         },
         timeout: 10000,
       });
@@ -137,16 +98,23 @@ class ExternalApiService {
   }
 
   async getTicketsPerUser(startDate: string, endDate: string): Promise<TicketUserData[]> {
-    const url = `${this.baseUrl}/ticketsPerUser`;
+    const config = await externalTokenService.getActiveServiceConfig(
+      "alpha_dash",
+      "ALPHA_API_TOKEN",
+      "ALPHA_API_URL",
+      "https://api.alphasoftware.com.br/v2/api/external/9c27a2a0-d676-4aea-a0ed-8da908a4acb6/dash"
+    );
+
+    const baseUrl = config.apiUrl.replace(/\/$/, "");
+    const url = baseUrl.endsWith("/ticketsPerUser") ? baseUrl : `${baseUrl}/ticketsPerUser`;
 
     try {
-      const alphaToken = await this.getAlphaToken();
       console.log(`🌐 [ExternalApi - Alpha Dash] Conectando a ${url} (${startDate} a ${endDate})...`);
 
       const response = await axios.get(url, {
         params: { startDate, endDate },
         headers: {
-          ...(alphaToken && { Authorization: `Bearer ${alphaToken}` }),
+          ...(config.token && { Authorization: `Bearer ${config.token}` }),
         },
         timeout: 15000,
       });
@@ -172,7 +140,17 @@ class ExternalApiService {
   ): Promise<RelatorioUsuarioTomticket[]> {
     console.log(`🚀 [Tomticket] Iniciando varredura entre ${dataInicioStr} e ${dataFimStr}...`);
 
-    const tomticketToken = await this.getTomticketToken();
+    const config = await externalTokenService.getActiveServiceConfig(
+      "tomticket",
+      "TOMTICKET_BEARER_TOKEN",
+      "TOMTICKET_API_URL",
+      "https://api.tomticket.com/v2.0/ticket/list"
+    );
+
+    if (!config.token) {
+      throw new Error("Token do Tomticket não configurado.");
+    }
+
     const relatorioUsuarios: Record<string, any> = {};
 
     Object.keys(this.operadoresPermitidos).forEach((opId) => {
@@ -203,12 +181,12 @@ class ExternalApiService {
         try {
           console.log(` ↳ Solicitando página ${pagina} de ${totalPaginas}...`);
 
-          const response = await axios.get(this.tomticketBaseUrl, {
+          const response = await axios.get(config.apiUrl, {
             params: {
               page: pagina,
               department_id: deptoId,
             },
-            headers: { Authorization: `Bearer ${tomticketToken}` },
+            headers: { Authorization: `Bearer ${config.token}` },
             timeout: 15000,
           });
 
@@ -235,14 +213,10 @@ class ExternalApiService {
           for (const ticket of ticketsPage) {
             const dataTicketStr = ticket.creation_date ? ticket.creation_date.substring(0, 10) : "";
 
-            // Se o ticket for mais novo do que o endDate, ignora e continua navegando
             if (dataTicketStr > dataFimStr) {
               continue;
             }
 
-            // 🟢 CRÍTICO: Como a ordenação vem do MAIS RECENTE para o MAIS ANTIGO,
-            // assim que encontrarmos um ticket com data MENOR que a dataInicioStr,
-            // significa que saímos do intervalo desejado. Todos os próximos serão ainda mais antigos!
             if (dataTicketStr < dataInicioStr) {
               alcancouTicketMaisAntigo = true;
               break;
@@ -280,7 +254,6 @@ class ExternalApiService {
             `  ✅ Página ${pagina}/${totalPaginas} concluída (${ticketsProcessadosNaPagina} tickets do período encontrados).`
           );
 
-          // 🟢 SE ENCONTROU UM TICKET COM DATA ANTERIOR AO PERÍODO, PARAR A BUSCA DESTE DEPARTAMENTO IMEDIATAMENTE
           if (alcancouTicketMaisAntigo) {
             console.log(
               ` 🛑 [Fim do período] Tickets da página ${pagina} alcançaram datas anteriores a ${dataInicioStr}. Encerrando varredura deste departamento.`

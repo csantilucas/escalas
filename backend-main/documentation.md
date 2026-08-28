@@ -229,7 +229,6 @@ Módulo que centraliza a inteligência de triagem e distribuição de atendiment
   {
     "ticket_zpro": 17733,
     "ticket_tomticket": "TT-98421",
-    "status": "Resolvido",
     "tipo_atendimento": "Fiscal",
     "atendente": "Pedro"
   }

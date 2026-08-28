@@ -1,22 +1,28 @@
-// src/contexts/AuthContext.tsx
+// contexts/AuthContext.tsx
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import api from "../lib/api"; 
+import api from "../lib/api";
 
-
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;
-  typeUser: string;
+  role?: "admin" | "comum" | string;
+  typeUser?: "atendente" | "comum" | string;
+  id_atendente?: string | null;
+  zproId?: number | null;
+  slackId?: string | null;
+  isPlantonista?: boolean;
+  posicao?: number;
 }
 
-interface SignInCredentials {
+export interface SignInCredentials {
   email: string;
-  pass: string;
+  pass?: string;
+  password?: string;
 }
 
 interface AuthContextType {
@@ -24,7 +30,8 @@ interface AuthContextType {
   isAuthenticated: boolean;
   loading: boolean;
   signIn: (credentials: SignInCredentials) => Promise<void>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
@@ -34,65 +41,105 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    // Recupera os dados do usuário salvos no cookie ao iniciar a aplicação
-    const savedUser = Cookies.get("user");
-    const token = Cookies.get("token");
-
-    if (savedUser && token) {
-      try {
-        
-        setUser(JSON.parse(decodeURIComponent(savedUser)));
-      } catch (error) {
-        signOut();
+  const refreshSession = async () => {
+    try {
+      // 1. Tenta validar a sessão ativa diretamente no Better Auth (/api/auth/get-session)
+      const response = await api.get("/api/auth/get-session");
+      if (response.data && response.data.user) {
+        const userData = response.data.user;
+        setUser(userData);
+        Cookies.set("user", encodeURIComponent(JSON.stringify(userData)), { expires: 7, path: "/" });
+        if (response.data.session?.token) {
+          Cookies.set("better-auth.session_token", response.data.session.token, { expires: 7, path: "/" });
+        }
+        return;
+      }
+    } catch {
+      // Fallback para usuário salvo em cookie se offline momentâneo
+      const savedUser = Cookies.get("user");
+      if (savedUser) {
+        try {
+          setUser(JSON.parse(decodeURIComponent(savedUser)));
+        } catch {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
       }
     }
-    setLoading(false);
+  };
+
+  useEffect(() => {
+    refreshSession().finally(() => setLoading(false));
   }, []);
 
-  async function signIn({ email, pass }: SignInCredentials) {
+  async function signIn({ email, pass, password }: SignInCredentials) {
     try {
-      // Faz a chamada para a rota de login que mapeamos [/auth/login]
-      const response = await api.post("/auth/login", { email, pass }); //
-      
-      const { accessToken, user: userData } = response.data; //
+      const senha = password || pass || "";
+      if (!email || !senha) {
+        throw new Error("E-mail e senha são obrigatórios.");
+      }
 
-      // 1. Salva o Token e os dados do Usuário nos Cookies
-      // 'expires: 7' mantém o usuário logado por 7 dias
-      Cookies.set("token", accessToken, { expires: 7, path: "/" });
-      Cookies.set("user", encodeURIComponent(JSON.stringify(userData)), { expires: 7, path: "/" });
+      // Chamada nativa ao endpoint do Better Auth
+      const response = await api.post("/api/auth/sign-in/email", {
+        email,
+        password: senha,
+      });
 
-      // 2. Atualiza o estado
-      setUser(userData);
+      const userData = response.data?.user;
+      const sessionToken = response.data?.session?.token || response.data?.token;
 
-      // 3. Redireciona para a Dashboard
+      if (sessionToken) {
+        Cookies.set("better-auth.session_token", sessionToken, { expires: 7, path: "/" });
+        Cookies.set("token", sessionToken, { expires: 7, path: "/" });
+      }
+
+      if (userData) {
+        Cookies.set("user", encodeURIComponent(JSON.stringify(userData)), { expires: 7, path: "/" });
+        setUser(userData);
+      }
+
       window.location.href = "/dashboard";
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || "Falha ao realizar o login.";
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Falha ao realizar login. Verifique suas credenciais.";
       throw new Error(errorMessage);
     }
   }
 
-  function signOut() {
-    // Remove os cookies
-    Cookies.remove("token", { path: "/" });
-    Cookies.remove("user", { path: "/" });
-
-    // Reseta o estado
-    setUser(null);
-
-    // Manda de volta para o login
-    router.push("/login");
+  async function signOut() {
+    try {
+      await api.post("/api/auth/sign-out", {});
+    } catch {
+      // Continua logout local mesmo com erro de rede
+    } finally {
+      Cookies.remove("better-auth.session_token", { path: "/" });
+      Cookies.remove("token", { path: "/" });
+      Cookies.remove("user", { path: "/" });
+      setUser(null);
+      router.push("/login");
+    }
   }
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, loading, signIn, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        loading,
+        signIn,
+        signOut,
+        refreshSession,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 }
 
-// Hook personalizado para facilitar o uso nos componentes e páginas
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

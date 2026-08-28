@@ -29,6 +29,7 @@ export class PlantonistaService {
     const plantonistaData = {
       nome: userExists.name,
       userId: data.userId,
+      posicao: userExists.posicao ?? 0,
       proxima_data: new Date(),
     };
 

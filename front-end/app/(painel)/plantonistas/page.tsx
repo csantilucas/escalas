@@ -18,7 +18,7 @@ export default function PlantonistasPage() {
   const [loading, setLoading] = useState(true);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [totalPaginas, setTotalPaginas] = useState(1);
-  const [listaUsuarios, setListaUsuarios] = useState([]);
+  const [listaUsuarios, setListaUsuarios] = useState<any[]>([]);
 
   const [activeCard, setActiveCard] = useState<"vincular" | "gerar" | "criar" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,7 +32,7 @@ export default function PlantonistasPage() {
     endTime: ""
   });
 
-  const isAdmin = user?.typeUser === "admin";
+  const isAdmin = user?.role === "admin" || user?.typeUser === "admin";
 
   async function carregarEscalas(page: number) {
     try {

@@ -42,7 +42,7 @@ export class ExternalTokenController {
 
   createOrUpsert = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { serviceName, token, description, isActive } = req.body;
+      const { serviceName, token, apiUrl, description, isActive } = req.body;
 
       if (!serviceName || !token) {
         return res.status(400).json({ error: "Os campos 'serviceName' e 'token' são obrigatórios." });
@@ -51,6 +51,7 @@ export class ExternalTokenController {
       const result = await externalTokenService.createOrUpsertToken({
         serviceName,
         token,
+        apiUrl,
         description,
         isActive,
       });
@@ -65,11 +66,12 @@ export class ExternalTokenController {
   update = async (req: Request, res: Response): Promise<Response> => {
     try {
       const id = req.params.id as string;
-      const { serviceName, token, description, isActive } = req.body;
+      const { serviceName, token, apiUrl, description, isActive } = req.body;
 
       const result = await externalTokenService.updateToken(id, {
         serviceName,
         token,
+        apiUrl,
         description,
         isActive,
       });

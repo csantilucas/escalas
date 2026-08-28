@@ -16,13 +16,15 @@ export class ExternalTokenRepository extends BaseRepository<ExternalToken> {
   async upsertByServiceName(data: {
     serviceName: string;
     token: string;
-    description?: string;
+    apiUrl?: string | null;
+    description?: string | null;
     isActive?: boolean;
   }): Promise<ExternalToken> {
     return await prisma.externalToken.upsert({
       where: { serviceName: data.serviceName },
       update: {
         token: data.token,
+        ...(data.apiUrl !== undefined && { apiUrl: data.apiUrl }),
         ...(data.description !== undefined && { description: data.description }),
         ...(data.isActive !== undefined && { isActive: data.isActive }),
         updatedAt: new Date(),
@@ -30,6 +32,7 @@ export class ExternalTokenRepository extends BaseRepository<ExternalToken> {
       create: {
         serviceName: data.serviceName,
         token: data.token,
+        apiUrl: data.apiUrl || null,
         description: data.description || null,
         isActive: data.isActive !== undefined ? data.isActive : true,
       },

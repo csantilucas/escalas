@@ -3,6 +3,7 @@ import type { ExternalTokenRepository } from "../repository/tokenRepo.js";
 export interface CreateTokenInput {
   serviceName: string;
   token: string;
+  apiUrl?: string | null;
   description?: string;
   isActive?: boolean;
 }
@@ -10,6 +11,7 @@ export interface CreateTokenInput {
 export interface UpdateTokenInput {
   serviceName?: string;
   token?: string;
+  apiUrl?: string | null;
   description?: string;
   isActive?: boolean;
 }
@@ -54,6 +56,34 @@ export class ExternalTokenService {
     return null;
   }
 
+  async getActiveServiceConfig(
+    serviceName: string,
+    envTokenKey?: string,
+    envUrlKey?: string,
+    defaultUrl?: string
+  ): Promise<{ token: string; apiUrl: string }> {
+    let token = "";
+    let apiUrl = defaultUrl || "";
+
+    try {
+      const record = await this.tokenRepo.findByServiceName(serviceName);
+      if (record && record.isActive) {
+        if (record.token) token = record.token;
+        if (record.apiUrl) apiUrl = record.apiUrl;
+      }
+    } catch {}
+
+    if (!token && envTokenKey && process.env[envTokenKey]) {
+      token = process.env[envTokenKey] || "";
+    }
+
+    if (!apiUrl && envUrlKey && process.env[envUrlKey]) {
+      apiUrl = process.env[envUrlKey] || defaultUrl || "";
+    }
+
+    return { token, apiUrl };
+  }
+
   async createOrUpsertToken(data: CreateTokenInput) {
     if (!data.serviceName) throw new Error("O campo 'serviceName' é obrigatório.");
     if (!data.token) throw new Error("O campo 'token' é obrigatório.");
@@ -61,6 +91,7 @@ export class ExternalTokenService {
     return await this.tokenRepo.upsertByServiceName({
       serviceName: data.serviceName.trim().toLowerCase(),
       token: data.token.trim(),
+      apiUrl: data.apiUrl !== undefined ? data.apiUrl : null,
       description: data.description,
       isActive: data.isActive !== undefined ? data.isActive : true,
     });
@@ -75,6 +106,7 @@ export class ExternalTokenService {
     return await this.tokenRepo.update(id, {
       ...(data.serviceName && { serviceName: data.serviceName.trim().toLowerCase() }),
       ...(data.token && { token: data.token.trim() }),
+      ...(data.apiUrl !== undefined && { apiUrl: data.apiUrl }),
       ...(data.description !== undefined && { description: data.description }),
       ...(data.isActive !== undefined && { isActive: data.isActive }),
     });

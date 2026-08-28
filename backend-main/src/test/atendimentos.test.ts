@@ -61,7 +61,6 @@ describe("Testes de Atendimentos", () => {
         ticket_tomticket: "TOM-8854",
         tipo_atendimento: "Suporte Técnico N2",
         atendente: "Pedro Mittmann",
-        status: "EM_ANDAMENTO",
       });
 
     expect(response.status).toBe(200);

@@ -73,19 +73,30 @@ export type User = $Result.DefaultSelection<Prisma.$UserPayload>
  * Enums
  */
 export namespace $Enums {
-  export const TypeUsers: {
-  atendente: 'atendente',
+  export const NivelAcesso: {
   admin: 'admin',
-  gestor: 'gestor'
+  comum: 'comum'
 };
 
-export type TypeUsers = (typeof TypeUsers)[keyof typeof TypeUsers]
+export type NivelAcesso = (typeof NivelAcesso)[keyof typeof NivelAcesso]
+
+
+export const TipoUsuario: {
+  atendente: 'atendente',
+  comum: 'comum'
+};
+
+export type TipoUsuario = (typeof TipoUsuario)[keyof typeof TipoUsuario]
 
 }
 
-export type TypeUsers = $Enums.TypeUsers
+export type NivelAcesso = $Enums.NivelAcesso
 
-export const TypeUsers: typeof $Enums.TypeUsers
+export const NivelAcesso: typeof $Enums.NivelAcesso
+
+export type TipoUsuario = $Enums.TipoUsuario
+
+export const TipoUsuario: typeof $Enums.TipoUsuario
 
 /**
  * ##  Prisma Client ʲˢ
@@ -1934,7 +1945,6 @@ export namespace Prisma {
     protocolo: string | null
     nomeContato: string | null
     tipoAtendimento: string | null
-    status: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -1950,7 +1960,6 @@ export namespace Prisma {
     protocolo: string | null
     nomeContato: string | null
     tipoAtendimento: string | null
-    status: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -1966,7 +1975,6 @@ export namespace Prisma {
     protocolo: number
     nomeContato: number
     tipoAtendimento: number
-    status: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -1984,7 +1992,6 @@ export namespace Prisma {
     protocolo?: true
     nomeContato?: true
     tipoAtendimento?: true
-    status?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2000,7 +2007,6 @@ export namespace Prisma {
     protocolo?: true
     nomeContato?: true
     tipoAtendimento?: true
-    status?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -2016,7 +2022,6 @@ export namespace Prisma {
     protocolo?: true
     nomeContato?: true
     tipoAtendimento?: true
-    status?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -2105,7 +2110,6 @@ export namespace Prisma {
     protocolo: string | null
     nomeContato: string | null
     tipoAtendimento: string | null
-    status: string
     createdAt: Date
     updatedAt: Date
     _count: AtendimentoCountAggregateOutputType | null
@@ -2138,7 +2142,6 @@ export namespace Prisma {
     protocolo?: boolean
     nomeContato?: boolean
     tipoAtendimento?: boolean
-    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["atendimento"]>
@@ -2154,7 +2157,6 @@ export namespace Prisma {
     protocolo?: boolean
     nomeContato?: boolean
     tipoAtendimento?: boolean
-    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["atendimento"]>
@@ -2170,7 +2172,6 @@ export namespace Prisma {
     protocolo?: boolean
     nomeContato?: boolean
     tipoAtendimento?: boolean
-    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["atendimento"]>
@@ -2186,12 +2187,11 @@ export namespace Prisma {
     protocolo?: boolean
     nomeContato?: boolean
     tipoAtendimento?: boolean
-    status?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type AtendimentoOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "ticketZpro" | "ticketTomticket" | "sincronizado" | "clienteId" | "cnpj" | "atendente" | "protocolo" | "nomeContato" | "tipoAtendimento" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["atendimento"]>
+  export type AtendimentoOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "ticketZpro" | "ticketTomticket" | "sincronizado" | "clienteId" | "cnpj" | "atendente" | "protocolo" | "nomeContato" | "tipoAtendimento" | "createdAt" | "updatedAt", ExtArgs["result"]["atendimento"]>
 
   export type $AtendimentoPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Atendimento"
@@ -2207,7 +2207,6 @@ export namespace Prisma {
       protocolo: string | null
       nomeContato: string | null
       tipoAtendimento: string | null
-      status: string
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["atendimento"]>
@@ -2643,7 +2642,6 @@ export namespace Prisma {
     readonly protocolo: FieldRef<"Atendimento", 'String'>
     readonly nomeContato: FieldRef<"Atendimento", 'String'>
     readonly tipoAtendimento: FieldRef<"Atendimento", 'String'>
-    readonly status: FieldRef<"Atendimento", 'String'>
     readonly createdAt: FieldRef<"Atendimento", 'DateTime'>
     readonly updatedAt: FieldRef<"Atendimento", 'DateTime'>
   }
@@ -10989,6 +10987,7 @@ export namespace Prisma {
     id: string | null
     serviceName: string | null
     token: string | null
+    apiUrl: string | null
     description: string | null
     isActive: boolean | null
     createdAt: Date | null
@@ -10999,6 +10998,7 @@ export namespace Prisma {
     id: string | null
     serviceName: string | null
     token: string | null
+    apiUrl: string | null
     description: string | null
     isActive: boolean | null
     createdAt: Date | null
@@ -11009,6 +11009,7 @@ export namespace Prisma {
     id: number
     serviceName: number
     token: number
+    apiUrl: number
     description: number
     isActive: number
     createdAt: number
@@ -11021,6 +11022,7 @@ export namespace Prisma {
     id?: true
     serviceName?: true
     token?: true
+    apiUrl?: true
     description?: true
     isActive?: true
     createdAt?: true
@@ -11031,6 +11033,7 @@ export namespace Prisma {
     id?: true
     serviceName?: true
     token?: true
+    apiUrl?: true
     description?: true
     isActive?: true
     createdAt?: true
@@ -11041,6 +11044,7 @@ export namespace Prisma {
     id?: true
     serviceName?: true
     token?: true
+    apiUrl?: true
     description?: true
     isActive?: true
     createdAt?: true
@@ -11124,6 +11128,7 @@ export namespace Prisma {
     id: string
     serviceName: string
     token: string
+    apiUrl: string | null
     description: string | null
     isActive: boolean
     createdAt: Date
@@ -11151,6 +11156,7 @@ export namespace Prisma {
     id?: boolean
     serviceName?: boolean
     token?: boolean
+    apiUrl?: boolean
     description?: boolean
     isActive?: boolean
     createdAt?: boolean
@@ -11161,6 +11167,7 @@ export namespace Prisma {
     id?: boolean
     serviceName?: boolean
     token?: boolean
+    apiUrl?: boolean
     description?: boolean
     isActive?: boolean
     createdAt?: boolean
@@ -11171,6 +11178,7 @@ export namespace Prisma {
     id?: boolean
     serviceName?: boolean
     token?: boolean
+    apiUrl?: boolean
     description?: boolean
     isActive?: boolean
     createdAt?: boolean
@@ -11181,13 +11189,14 @@ export namespace Prisma {
     id?: boolean
     serviceName?: boolean
     token?: boolean
+    apiUrl?: boolean
     description?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type ExternalTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "serviceName" | "token" | "description" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["externalToken"]>
+  export type ExternalTokenOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "serviceName" | "token" | "apiUrl" | "description" | "isActive" | "createdAt" | "updatedAt", ExtArgs["result"]["externalToken"]>
 
   export type $ExternalTokenPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ExternalToken"
@@ -11196,6 +11205,7 @@ export namespace Prisma {
       id: string
       serviceName: string
       token: string
+      apiUrl: string | null
       description: string | null
       isActive: boolean
       createdAt: Date
@@ -11626,6 +11636,7 @@ export namespace Prisma {
     readonly id: FieldRef<"ExternalToken", 'String'>
     readonly serviceName: FieldRef<"ExternalToken", 'String'>
     readonly token: FieldRef<"ExternalToken", 'String'>
+    readonly apiUrl: FieldRef<"ExternalToken", 'String'>
     readonly description: FieldRef<"ExternalToken", 'String'>
     readonly isActive: FieldRef<"ExternalToken", 'Boolean'>
     readonly createdAt: FieldRef<"ExternalToken", 'DateTime'>
@@ -13024,10 +13035,12 @@ export namespace Prisma {
 
   export type UserAvgAggregateOutputType = {
     zproId: number | null
+    posicao: number | null
   }
 
   export type UserSumAggregateOutputType = {
     zproId: number | null
+    posicao: number | null
   }
 
   export type UserMinAggregateOutputType = {
@@ -13039,10 +13052,13 @@ export namespace Prisma {
     pass: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    role: $Enums.NivelAcesso | null
+    typeUser: $Enums.TipoUsuario | null
     id_atendente: string | null
     zproId: number | null
     slackId: string | null
-    typeUser: $Enums.TypeUsers | null
+    isPlantonista: boolean | null
+    posicao: number | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -13054,10 +13070,13 @@ export namespace Prisma {
     pass: string | null
     createdAt: Date | null
     updatedAt: Date | null
+    role: $Enums.NivelAcesso | null
+    typeUser: $Enums.TipoUsuario | null
     id_atendente: string | null
     zproId: number | null
     slackId: string | null
-    typeUser: $Enums.TypeUsers | null
+    isPlantonista: boolean | null
+    posicao: number | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -13069,20 +13088,25 @@ export namespace Prisma {
     pass: number
     createdAt: number
     updatedAt: number
+    role: number
+    typeUser: number
     id_atendente: number
     zproId: number
     slackId: number
-    typeUser: number
+    isPlantonista: number
+    posicao: number
     _all: number
   }
 
 
   export type UserAvgAggregateInputType = {
     zproId?: true
+    posicao?: true
   }
 
   export type UserSumAggregateInputType = {
     zproId?: true
+    posicao?: true
   }
 
   export type UserMinAggregateInputType = {
@@ -13094,10 +13118,13 @@ export namespace Prisma {
     pass?: true
     createdAt?: true
     updatedAt?: true
+    role?: true
+    typeUser?: true
     id_atendente?: true
     zproId?: true
     slackId?: true
-    typeUser?: true
+    isPlantonista?: true
+    posicao?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -13109,10 +13136,13 @@ export namespace Prisma {
     pass?: true
     createdAt?: true
     updatedAt?: true
+    role?: true
+    typeUser?: true
     id_atendente?: true
     zproId?: true
     slackId?: true
-    typeUser?: true
+    isPlantonista?: true
+    posicao?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -13124,10 +13154,13 @@ export namespace Prisma {
     pass?: true
     createdAt?: true
     updatedAt?: true
+    role?: true
+    typeUser?: true
     id_atendente?: true
     zproId?: true
     slackId?: true
-    typeUser?: true
+    isPlantonista?: true
+    posicao?: true
     _all?: true
   }
 
@@ -13226,10 +13259,13 @@ export namespace Prisma {
     pass: string | null
     createdAt: Date
     updatedAt: Date
+    role: $Enums.NivelAcesso
+    typeUser: $Enums.TipoUsuario
     id_atendente: string | null
     zproId: number | null
     slackId: string | null
-    typeUser: $Enums.TypeUsers
+    isPlantonista: boolean
+    posicao: number | null
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -13260,10 +13296,13 @@ export namespace Prisma {
     pass?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    role?: boolean
+    typeUser?: boolean
     id_atendente?: boolean
     zproId?: boolean
     slackId?: boolean
-    typeUser?: boolean
+    isPlantonista?: boolean
+    posicao?: boolean
     plantao?: boolean | User$plantaoArgs<ExtArgs>
     registros?: boolean | User$registrosArgs<ExtArgs>
     membrosEquipe?: boolean | User$membrosEquipeArgs<ExtArgs>
@@ -13281,10 +13320,13 @@ export namespace Prisma {
     pass?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    role?: boolean
+    typeUser?: boolean
     id_atendente?: boolean
     zproId?: boolean
     slackId?: boolean
-    typeUser?: boolean
+    isPlantonista?: boolean
+    posicao?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -13296,10 +13338,13 @@ export namespace Prisma {
     pass?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    role?: boolean
+    typeUser?: boolean
     id_atendente?: boolean
     zproId?: boolean
     slackId?: boolean
-    typeUser?: boolean
+    isPlantonista?: boolean
+    posicao?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
@@ -13311,13 +13356,16 @@ export namespace Prisma {
     pass?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    role?: boolean
+    typeUser?: boolean
     id_atendente?: boolean
     zproId?: boolean
     slackId?: boolean
-    typeUser?: boolean
+    isPlantonista?: boolean
+    posicao?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "pass" | "createdAt" | "updatedAt" | "id_atendente" | "zproId" | "slackId" | "typeUser", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "email" | "emailVerified" | "image" | "pass" | "createdAt" | "updatedAt" | "role" | "typeUser" | "id_atendente" | "zproId" | "slackId" | "isPlantonista" | "posicao", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     plantao?: boolean | User$plantaoArgs<ExtArgs>
     registros?: boolean | User$registrosArgs<ExtArgs>
@@ -13347,10 +13395,13 @@ export namespace Prisma {
       pass: string | null
       createdAt: Date
       updatedAt: Date
+      role: $Enums.NivelAcesso
+      typeUser: $Enums.TipoUsuario
       id_atendente: string | null
       zproId: number | null
       slackId: string | null
-      typeUser: $Enums.TypeUsers
+      isPlantonista: boolean
+      posicao: number | null
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -13787,10 +13838,13 @@ export namespace Prisma {
     readonly pass: FieldRef<"User", 'String'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
+    readonly role: FieldRef<"User", 'NivelAcesso'>
+    readonly typeUser: FieldRef<"User", 'TipoUsuario'>
     readonly id_atendente: FieldRef<"User", 'String'>
     readonly zproId: FieldRef<"User", 'Int'>
     readonly slackId: FieldRef<"User", 'String'>
-    readonly typeUser: FieldRef<"User", 'TypeUsers'>
+    readonly isPlantonista: FieldRef<"User", 'Boolean'>
+    readonly posicao: FieldRef<"User", 'Int'>
   }
     
 
@@ -14342,7 +14396,6 @@ export namespace Prisma {
     protocolo: 'protocolo',
     nomeContato: 'nomeContato',
     tipoAtendimento: 'tipoAtendimento',
-    status: 'status',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -14463,6 +14516,7 @@ export namespace Prisma {
     id: 'id',
     serviceName: 'serviceName',
     token: 'token',
+    apiUrl: 'apiUrl',
     description: 'description',
     isActive: 'isActive',
     createdAt: 'createdAt',
@@ -14493,10 +14547,13 @@ export namespace Prisma {
     pass: 'pass',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
+    role: 'role',
+    typeUser: 'typeUser',
     id_atendente: 'id_atendente',
     zproId: 'zproId',
     slackId: 'slackId',
-    typeUser: 'typeUser'
+    isPlantonista: 'isPlantonista',
+    posicao: 'posicao'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -14619,16 +14676,30 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'TypeUsers'
+   * Reference to a field of type 'NivelAcesso'
    */
-  export type EnumTypeUsersFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TypeUsers'>
+  export type EnumNivelAcessoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NivelAcesso'>
     
 
 
   /**
-   * Reference to a field of type 'TypeUsers[]'
+   * Reference to a field of type 'NivelAcesso[]'
    */
-  export type ListEnumTypeUsersFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TypeUsers[]'>
+  export type ListEnumNivelAcessoFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'NivelAcesso[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'TipoUsuario'
+   */
+  export type EnumTipoUsuarioFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TipoUsuario'>
+    
+
+
+  /**
+   * Reference to a field of type 'TipoUsuario[]'
+   */
+  export type ListEnumTipoUsuarioFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TipoUsuario[]'>
     
 
 
@@ -14663,7 +14734,6 @@ export namespace Prisma {
     protocolo?: StringNullableFilter<"Atendimento"> | string | null
     nomeContato?: StringNullableFilter<"Atendimento"> | string | null
     tipoAtendimento?: StringNullableFilter<"Atendimento"> | string | null
-    status?: StringFilter<"Atendimento"> | string
     createdAt?: DateTimeFilter<"Atendimento"> | Date | string
     updatedAt?: DateTimeFilter<"Atendimento"> | Date | string
   }
@@ -14679,7 +14749,6 @@ export namespace Prisma {
     protocolo?: SortOrderInput | SortOrder
     nomeContato?: SortOrderInput | SortOrder
     tipoAtendimento?: SortOrderInput | SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -14698,7 +14767,6 @@ export namespace Prisma {
     protocolo?: StringNullableFilter<"Atendimento"> | string | null
     nomeContato?: StringNullableFilter<"Atendimento"> | string | null
     tipoAtendimento?: StringNullableFilter<"Atendimento"> | string | null
-    status?: StringFilter<"Atendimento"> | string
     createdAt?: DateTimeFilter<"Atendimento"> | Date | string
     updatedAt?: DateTimeFilter<"Atendimento"> | Date | string
   }, "id">
@@ -14714,7 +14782,6 @@ export namespace Prisma {
     protocolo?: SortOrderInput | SortOrder
     nomeContato?: SortOrderInput | SortOrder
     tipoAtendimento?: SortOrderInput | SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: AtendimentoCountOrderByAggregateInput
@@ -14736,7 +14803,6 @@ export namespace Prisma {
     protocolo?: StringNullableWithAggregatesFilter<"Atendimento"> | string | null
     nomeContato?: StringNullableWithAggregatesFilter<"Atendimento"> | string | null
     tipoAtendimento?: StringNullableWithAggregatesFilter<"Atendimento"> | string | null
-    status?: StringWithAggregatesFilter<"Atendimento"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Atendimento"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Atendimento"> | Date | string
   }
@@ -15306,6 +15372,7 @@ export namespace Prisma {
     id?: StringFilter<"ExternalToken"> | string
     serviceName?: StringFilter<"ExternalToken"> | string
     token?: StringFilter<"ExternalToken"> | string
+    apiUrl?: StringNullableFilter<"ExternalToken"> | string | null
     description?: StringNullableFilter<"ExternalToken"> | string | null
     isActive?: BoolFilter<"ExternalToken"> | boolean
     createdAt?: DateTimeFilter<"ExternalToken"> | Date | string
@@ -15316,6 +15383,7 @@ export namespace Prisma {
     id?: SortOrder
     serviceName?: SortOrder
     token?: SortOrder
+    apiUrl?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -15329,6 +15397,7 @@ export namespace Prisma {
     OR?: ExternalTokenWhereInput[]
     NOT?: ExternalTokenWhereInput | ExternalTokenWhereInput[]
     token?: StringFilter<"ExternalToken"> | string
+    apiUrl?: StringNullableFilter<"ExternalToken"> | string | null
     description?: StringNullableFilter<"ExternalToken"> | string | null
     isActive?: BoolFilter<"ExternalToken"> | boolean
     createdAt?: DateTimeFilter<"ExternalToken"> | Date | string
@@ -15339,6 +15408,7 @@ export namespace Prisma {
     id?: SortOrder
     serviceName?: SortOrder
     token?: SortOrder
+    apiUrl?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -15355,6 +15425,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter<"ExternalToken"> | string
     serviceName?: StringWithAggregatesFilter<"ExternalToken"> | string
     token?: StringWithAggregatesFilter<"ExternalToken"> | string
+    apiUrl?: StringNullableWithAggregatesFilter<"ExternalToken"> | string | null
     description?: StringNullableWithAggregatesFilter<"ExternalToken"> | string | null
     isActive?: BoolWithAggregatesFilter<"ExternalToken"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"ExternalToken"> | Date | string
@@ -15431,10 +15502,13 @@ export namespace Prisma {
     pass?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
+    role?: EnumNivelAcessoFilter<"User"> | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFilter<"User"> | $Enums.TipoUsuario
     id_atendente?: StringNullableFilter<"User"> | string | null
     zproId?: IntNullableFilter<"User"> | number | null
     slackId?: StringNullableFilter<"User"> | string | null
-    typeUser?: EnumTypeUsersFilter<"User"> | $Enums.TypeUsers
+    isPlantonista?: BoolFilter<"User"> | boolean
+    posicao?: IntNullableFilter<"User"> | number | null
     plantao?: XOR<PlantonistasNullableScalarRelationFilter, PlantonistasWhereInput> | null
     registros?: RegistrosListRelationFilter
     membrosEquipe?: MembroEquipeListRelationFilter
@@ -15451,10 +15525,13 @@ export namespace Prisma {
     pass?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    role?: SortOrder
+    typeUser?: SortOrder
     id_atendente?: SortOrderInput | SortOrder
     zproId?: SortOrderInput | SortOrder
     slackId?: SortOrderInput | SortOrder
-    typeUser?: SortOrder
+    isPlantonista?: SortOrder
+    posicao?: SortOrderInput | SortOrder
     plantao?: PlantonistasOrderByWithRelationInput
     registros?: RegistrosOrderByRelationAggregateInput
     membrosEquipe?: MembroEquipeOrderByRelationAggregateInput
@@ -15476,8 +15553,11 @@ export namespace Prisma {
     pass?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
+    role?: EnumNivelAcessoFilter<"User"> | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFilter<"User"> | $Enums.TipoUsuario
     slackId?: StringNullableFilter<"User"> | string | null
-    typeUser?: EnumTypeUsersFilter<"User"> | $Enums.TypeUsers
+    isPlantonista?: BoolFilter<"User"> | boolean
+    posicao?: IntNullableFilter<"User"> | number | null
     plantao?: XOR<PlantonistasNullableScalarRelationFilter, PlantonistasWhereInput> | null
     registros?: RegistrosListRelationFilter
     membrosEquipe?: MembroEquipeListRelationFilter
@@ -15494,10 +15574,13 @@ export namespace Prisma {
     pass?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    role?: SortOrder
+    typeUser?: SortOrder
     id_atendente?: SortOrderInput | SortOrder
     zproId?: SortOrderInput | SortOrder
     slackId?: SortOrderInput | SortOrder
-    typeUser?: SortOrder
+    isPlantonista?: SortOrder
+    posicao?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -15517,10 +15600,13 @@ export namespace Prisma {
     pass?: StringNullableWithAggregatesFilter<"User"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+    role?: EnumNivelAcessoWithAggregatesFilter<"User"> | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioWithAggregatesFilter<"User"> | $Enums.TipoUsuario
     id_atendente?: StringNullableWithAggregatesFilter<"User"> | string | null
     zproId?: IntNullableWithAggregatesFilter<"User"> | number | null
     slackId?: StringNullableWithAggregatesFilter<"User"> | string | null
-    typeUser?: EnumTypeUsersWithAggregatesFilter<"User"> | $Enums.TypeUsers
+    isPlantonista?: BoolWithAggregatesFilter<"User"> | boolean
+    posicao?: IntNullableWithAggregatesFilter<"User"> | number | null
   }
 
   export type AtendimentoCreateInput = {
@@ -15534,7 +15620,6 @@ export namespace Prisma {
     protocolo?: string | null
     nomeContato?: string | null
     tipoAtendimento?: string | null
-    status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -15550,7 +15635,6 @@ export namespace Prisma {
     protocolo?: string | null
     nomeContato?: string | null
     tipoAtendimento?: string | null
-    status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -15566,7 +15650,6 @@ export namespace Prisma {
     protocolo?: NullableStringFieldUpdateOperationsInput | string | null
     nomeContato?: NullableStringFieldUpdateOperationsInput | string | null
     tipoAtendimento?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -15582,7 +15665,6 @@ export namespace Prisma {
     protocolo?: NullableStringFieldUpdateOperationsInput | string | null
     nomeContato?: NullableStringFieldUpdateOperationsInput | string | null
     tipoAtendimento?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -15598,7 +15680,6 @@ export namespace Prisma {
     protocolo?: string | null
     nomeContato?: string | null
     tipoAtendimento?: string | null
-    status?: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -15614,7 +15695,6 @@ export namespace Prisma {
     protocolo?: NullableStringFieldUpdateOperationsInput | string | null
     nomeContato?: NullableStringFieldUpdateOperationsInput | string | null
     tipoAtendimento?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -15630,7 +15710,6 @@ export namespace Prisma {
     protocolo?: NullableStringFieldUpdateOperationsInput | string | null
     nomeContato?: NullableStringFieldUpdateOperationsInput | string | null
     tipoAtendimento?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -16256,6 +16335,7 @@ export namespace Prisma {
     id?: string
     serviceName: string
     token: string
+    apiUrl?: string | null
     description?: string | null
     isActive?: boolean
     createdAt?: Date | string
@@ -16266,6 +16346,7 @@ export namespace Prisma {
     id?: string
     serviceName: string
     token: string
+    apiUrl?: string | null
     description?: string | null
     isActive?: boolean
     createdAt?: Date | string
@@ -16276,6 +16357,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     serviceName?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
+    apiUrl?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -16286,6 +16368,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     serviceName?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
+    apiUrl?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -16296,6 +16379,7 @@ export namespace Prisma {
     id?: string
     serviceName: string
     token: string
+    apiUrl?: string | null
     description?: string | null
     isActive?: boolean
     createdAt?: Date | string
@@ -16306,6 +16390,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     serviceName?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
+    apiUrl?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -16316,6 +16401,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     serviceName?: StringFieldUpdateOperationsInput | string
     token?: StringFieldUpdateOperationsInput | string
+    apiUrl?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -16394,10 +16480,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     plantao?: PlantonistasCreateNestedOneWithoutUserInput
     registros?: RegistrosCreateNestedManyWithoutUserInput
     membrosEquipe?: MembroEquipeCreateNestedManyWithoutUserInput
@@ -16414,10 +16503,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     plantao?: PlantonistasUncheckedCreateNestedOneWithoutUserInput
     registros?: RegistrosUncheckedCreateNestedManyWithoutUserInput
     membrosEquipe?: MembroEquipeUncheckedCreateNestedManyWithoutUserInput
@@ -16434,10 +16526,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     plantao?: PlantonistasUpdateOneWithoutUserNestedInput
     registros?: RegistrosUpdateManyWithoutUserNestedInput
     membrosEquipe?: MembroEquipeUpdateManyWithoutUserNestedInput
@@ -16454,10 +16549,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     plantao?: PlantonistasUncheckedUpdateOneWithoutUserNestedInput
     registros?: RegistrosUncheckedUpdateManyWithoutUserNestedInput
     membrosEquipe?: MembroEquipeUncheckedUpdateManyWithoutUserNestedInput
@@ -16474,10 +16572,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
   }
 
   export type UserUpdateManyMutationInput = {
@@ -16489,10 +16590,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type UserUncheckedUpdateManyInput = {
@@ -16504,10 +16608,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -16572,7 +16679,6 @@ export namespace Prisma {
     protocolo?: SortOrder
     nomeContato?: SortOrder
     tipoAtendimento?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -16588,7 +16694,6 @@ export namespace Prisma {
     protocolo?: SortOrder
     nomeContato?: SortOrder
     tipoAtendimento?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -16604,7 +16709,6 @@ export namespace Prisma {
     protocolo?: SortOrder
     nomeContato?: SortOrder
     tipoAtendimento?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -17137,6 +17241,7 @@ export namespace Prisma {
     id?: SortOrder
     serviceName?: SortOrder
     token?: SortOrder
+    apiUrl?: SortOrder
     description?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -17147,6 +17252,7 @@ export namespace Prisma {
     id?: SortOrder
     serviceName?: SortOrder
     token?: SortOrder
+    apiUrl?: SortOrder
     description?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -17157,6 +17263,7 @@ export namespace Prisma {
     id?: SortOrder
     serviceName?: SortOrder
     token?: SortOrder
+    apiUrl?: SortOrder
     description?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -17242,11 +17349,18 @@ export namespace Prisma {
     _max?: NestedJsonFilter<$PrismaModel>
   }
 
-  export type EnumTypeUsersFilter<$PrismaModel = never> = {
-    equals?: $Enums.TypeUsers | EnumTypeUsersFieldRefInput<$PrismaModel>
-    in?: $Enums.TypeUsers[] | ListEnumTypeUsersFieldRefInput<$PrismaModel>
-    notIn?: $Enums.TypeUsers[] | ListEnumTypeUsersFieldRefInput<$PrismaModel>
-    not?: NestedEnumTypeUsersFilter<$PrismaModel> | $Enums.TypeUsers
+  export type EnumNivelAcessoFilter<$PrismaModel = never> = {
+    equals?: $Enums.NivelAcesso | EnumNivelAcessoFieldRefInput<$PrismaModel>
+    in?: $Enums.NivelAcesso[] | ListEnumNivelAcessoFieldRefInput<$PrismaModel>
+    notIn?: $Enums.NivelAcesso[] | ListEnumNivelAcessoFieldRefInput<$PrismaModel>
+    not?: NestedEnumNivelAcessoFilter<$PrismaModel> | $Enums.NivelAcesso
+  }
+
+  export type EnumTipoUsuarioFilter<$PrismaModel = never> = {
+    equals?: $Enums.TipoUsuario | EnumTipoUsuarioFieldRefInput<$PrismaModel>
+    in?: $Enums.TipoUsuario[] | ListEnumTipoUsuarioFieldRefInput<$PrismaModel>
+    notIn?: $Enums.TipoUsuario[] | ListEnumTipoUsuarioFieldRefInput<$PrismaModel>
+    not?: NestedEnumTipoUsuarioFilter<$PrismaModel> | $Enums.TipoUsuario
   }
 
   export type PlantonistasNullableScalarRelationFilter = {
@@ -17283,14 +17397,18 @@ export namespace Prisma {
     pass?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    role?: SortOrder
+    typeUser?: SortOrder
     id_atendente?: SortOrder
     zproId?: SortOrder
     slackId?: SortOrder
-    typeUser?: SortOrder
+    isPlantonista?: SortOrder
+    posicao?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
     zproId?: SortOrder
+    posicao?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -17302,10 +17420,13 @@ export namespace Prisma {
     pass?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    role?: SortOrder
+    typeUser?: SortOrder
     id_atendente?: SortOrder
     zproId?: SortOrder
     slackId?: SortOrder
-    typeUser?: SortOrder
+    isPlantonista?: SortOrder
+    posicao?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -17317,24 +17438,38 @@ export namespace Prisma {
     pass?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    role?: SortOrder
+    typeUser?: SortOrder
     id_atendente?: SortOrder
     zproId?: SortOrder
     slackId?: SortOrder
-    typeUser?: SortOrder
+    isPlantonista?: SortOrder
+    posicao?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
     zproId?: SortOrder
+    posicao?: SortOrder
   }
 
-  export type EnumTypeUsersWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.TypeUsers | EnumTypeUsersFieldRefInput<$PrismaModel>
-    in?: $Enums.TypeUsers[] | ListEnumTypeUsersFieldRefInput<$PrismaModel>
-    notIn?: $Enums.TypeUsers[] | ListEnumTypeUsersFieldRefInput<$PrismaModel>
-    not?: NestedEnumTypeUsersWithAggregatesFilter<$PrismaModel> | $Enums.TypeUsers
+  export type EnumNivelAcessoWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.NivelAcesso | EnumNivelAcessoFieldRefInput<$PrismaModel>
+    in?: $Enums.NivelAcesso[] | ListEnumNivelAcessoFieldRefInput<$PrismaModel>
+    notIn?: $Enums.NivelAcesso[] | ListEnumNivelAcessoFieldRefInput<$PrismaModel>
+    not?: NestedEnumNivelAcessoWithAggregatesFilter<$PrismaModel> | $Enums.NivelAcesso
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumTypeUsersFilter<$PrismaModel>
-    _max?: NestedEnumTypeUsersFilter<$PrismaModel>
+    _min?: NestedEnumNivelAcessoFilter<$PrismaModel>
+    _max?: NestedEnumNivelAcessoFilter<$PrismaModel>
+  }
+
+  export type EnumTipoUsuarioWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.TipoUsuario | EnumTipoUsuarioFieldRefInput<$PrismaModel>
+    in?: $Enums.TipoUsuario[] | ListEnumTipoUsuarioFieldRefInput<$PrismaModel>
+    notIn?: $Enums.TipoUsuario[] | ListEnumTipoUsuarioFieldRefInput<$PrismaModel>
+    not?: NestedEnumTipoUsuarioWithAggregatesFilter<$PrismaModel> | $Enums.TipoUsuario
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumTipoUsuarioFilter<$PrismaModel>
+    _max?: NestedEnumTipoUsuarioFilter<$PrismaModel>
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -17632,8 +17767,12 @@ export namespace Prisma {
     connect?: AccountWhereUniqueInput | AccountWhereUniqueInput[]
   }
 
-  export type EnumTypeUsersFieldUpdateOperationsInput = {
-    set?: $Enums.TypeUsers
+  export type EnumNivelAcessoFieldUpdateOperationsInput = {
+    set?: $Enums.NivelAcesso
+  }
+
+  export type EnumTipoUsuarioFieldUpdateOperationsInput = {
+    set?: $Enums.TipoUsuario
   }
 
   export type PlantonistasUpdateOneWithoutUserNestedInput = {
@@ -18015,21 +18154,38 @@ export namespace Prisma {
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
-  export type NestedEnumTypeUsersFilter<$PrismaModel = never> = {
-    equals?: $Enums.TypeUsers | EnumTypeUsersFieldRefInput<$PrismaModel>
-    in?: $Enums.TypeUsers[] | ListEnumTypeUsersFieldRefInput<$PrismaModel>
-    notIn?: $Enums.TypeUsers[] | ListEnumTypeUsersFieldRefInput<$PrismaModel>
-    not?: NestedEnumTypeUsersFilter<$PrismaModel> | $Enums.TypeUsers
+  export type NestedEnumNivelAcessoFilter<$PrismaModel = never> = {
+    equals?: $Enums.NivelAcesso | EnumNivelAcessoFieldRefInput<$PrismaModel>
+    in?: $Enums.NivelAcesso[] | ListEnumNivelAcessoFieldRefInput<$PrismaModel>
+    notIn?: $Enums.NivelAcesso[] | ListEnumNivelAcessoFieldRefInput<$PrismaModel>
+    not?: NestedEnumNivelAcessoFilter<$PrismaModel> | $Enums.NivelAcesso
   }
 
-  export type NestedEnumTypeUsersWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.TypeUsers | EnumTypeUsersFieldRefInput<$PrismaModel>
-    in?: $Enums.TypeUsers[] | ListEnumTypeUsersFieldRefInput<$PrismaModel>
-    notIn?: $Enums.TypeUsers[] | ListEnumTypeUsersFieldRefInput<$PrismaModel>
-    not?: NestedEnumTypeUsersWithAggregatesFilter<$PrismaModel> | $Enums.TypeUsers
+  export type NestedEnumTipoUsuarioFilter<$PrismaModel = never> = {
+    equals?: $Enums.TipoUsuario | EnumTipoUsuarioFieldRefInput<$PrismaModel>
+    in?: $Enums.TipoUsuario[] | ListEnumTipoUsuarioFieldRefInput<$PrismaModel>
+    notIn?: $Enums.TipoUsuario[] | ListEnumTipoUsuarioFieldRefInput<$PrismaModel>
+    not?: NestedEnumTipoUsuarioFilter<$PrismaModel> | $Enums.TipoUsuario
+  }
+
+  export type NestedEnumNivelAcessoWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.NivelAcesso | EnumNivelAcessoFieldRefInput<$PrismaModel>
+    in?: $Enums.NivelAcesso[] | ListEnumNivelAcessoFieldRefInput<$PrismaModel>
+    notIn?: $Enums.NivelAcesso[] | ListEnumNivelAcessoFieldRefInput<$PrismaModel>
+    not?: NestedEnumNivelAcessoWithAggregatesFilter<$PrismaModel> | $Enums.NivelAcesso
     _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedEnumTypeUsersFilter<$PrismaModel>
-    _max?: NestedEnumTypeUsersFilter<$PrismaModel>
+    _min?: NestedEnumNivelAcessoFilter<$PrismaModel>
+    _max?: NestedEnumNivelAcessoFilter<$PrismaModel>
+  }
+
+  export type NestedEnumTipoUsuarioWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.TipoUsuario | EnumTipoUsuarioFieldRefInput<$PrismaModel>
+    in?: $Enums.TipoUsuario[] | ListEnumTipoUsuarioFieldRefInput<$PrismaModel>
+    notIn?: $Enums.TipoUsuario[] | ListEnumTipoUsuarioFieldRefInput<$PrismaModel>
+    not?: NestedEnumTipoUsuarioWithAggregatesFilter<$PrismaModel> | $Enums.TipoUsuario
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumTipoUsuarioFilter<$PrismaModel>
+    _max?: NestedEnumTipoUsuarioFilter<$PrismaModel>
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -18041,10 +18197,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     plantao?: PlantonistasCreateNestedOneWithoutUserInput
     registros?: RegistrosCreateNestedManyWithoutUserInput
     membrosEquipe?: MembroEquipeCreateNestedManyWithoutUserInput
@@ -18060,10 +18219,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     plantao?: PlantonistasUncheckedCreateNestedOneWithoutUserInput
     registros?: RegistrosUncheckedCreateNestedManyWithoutUserInput
     membrosEquipe?: MembroEquipeUncheckedCreateNestedManyWithoutUserInput
@@ -18095,10 +18257,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     plantao?: PlantonistasUpdateOneWithoutUserNestedInput
     registros?: RegistrosUpdateManyWithoutUserNestedInput
     membrosEquipe?: MembroEquipeUpdateManyWithoutUserNestedInput
@@ -18114,10 +18279,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     plantao?: PlantonistasUncheckedUpdateOneWithoutUserNestedInput
     registros?: RegistrosUncheckedUpdateManyWithoutUserNestedInput
     membrosEquipe?: MembroEquipeUncheckedUpdateManyWithoutUserNestedInput
@@ -18133,10 +18301,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     plantao?: PlantonistasCreateNestedOneWithoutUserInput
     registros?: RegistrosCreateNestedManyWithoutUserInput
     membrosEquipe?: MembroEquipeCreateNestedManyWithoutUserInput
@@ -18152,10 +18323,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     plantao?: PlantonistasUncheckedCreateNestedOneWithoutUserInput
     registros?: RegistrosUncheckedCreateNestedManyWithoutUserInput
     membrosEquipe?: MembroEquipeUncheckedCreateNestedManyWithoutUserInput
@@ -18187,10 +18361,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     plantao?: PlantonistasUpdateOneWithoutUserNestedInput
     registros?: RegistrosUpdateManyWithoutUserNestedInput
     membrosEquipe?: MembroEquipeUpdateManyWithoutUserNestedInput
@@ -18206,10 +18383,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     plantao?: PlantonistasUncheckedUpdateOneWithoutUserNestedInput
     registros?: RegistrosUncheckedUpdateManyWithoutUserNestedInput
     membrosEquipe?: MembroEquipeUncheckedUpdateManyWithoutUserNestedInput
@@ -18333,10 +18513,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     plantao?: PlantonistasCreateNestedOneWithoutUserInput
     registros?: RegistrosCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
@@ -18352,10 +18535,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     plantao?: PlantonistasUncheckedCreateNestedOneWithoutUserInput
     registros?: RegistrosUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -18426,10 +18612,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     plantao?: PlantonistasUpdateOneWithoutUserNestedInput
     registros?: RegistrosUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
@@ -18445,10 +18634,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     plantao?: PlantonistasUncheckedUpdateOneWithoutUserNestedInput
     registros?: RegistrosUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -18464,10 +18656,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     registros?: RegistrosCreateNestedManyWithoutUserInput
     membrosEquipe?: MembroEquipeCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
@@ -18483,10 +18678,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     registros?: RegistrosUncheckedCreateNestedManyWithoutUserInput
     membrosEquipe?: MembroEquipeUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -18548,10 +18746,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     registros?: RegistrosUpdateManyWithoutUserNestedInput
     membrosEquipe?: MembroEquipeUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
@@ -18567,10 +18768,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     registros?: RegistrosUncheckedUpdateManyWithoutUserNestedInput
     membrosEquipe?: MembroEquipeUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
@@ -18641,10 +18845,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     plantao?: PlantonistasCreateNestedOneWithoutUserInput
     membrosEquipe?: MembroEquipeCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
@@ -18660,10 +18867,13 @@ export namespace Prisma {
     pass?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    role?: $Enums.NivelAcesso
+    typeUser?: $Enums.TipoUsuario
     id_atendente?: string | null
     zproId?: number | null
     slackId?: string | null
-    typeUser?: $Enums.TypeUsers
+    isPlantonista?: boolean
+    posicao?: number | null
     plantao?: PlantonistasUncheckedCreateNestedOneWithoutUserInput
     membrosEquipe?: MembroEquipeUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
@@ -18726,10 +18936,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     plantao?: PlantonistasUpdateOneWithoutUserNestedInput
     membrosEquipe?: MembroEquipeUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
@@ -18745,10 +18958,13 @@ export namespace Prisma {
     pass?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    role?: EnumNivelAcessoFieldUpdateOperationsInput | $Enums.NivelAcesso
+    typeUser?: EnumTipoUsuarioFieldUpdateOperationsInput | $Enums.TipoUsuario
     id_atendente?: NullableStringFieldUpdateOperationsInput | string | null
     zproId?: NullableIntFieldUpdateOperationsInput | number | null
     slackId?: NullableStringFieldUpdateOperationsInput | string | null
-    typeUser?: EnumTypeUsersFieldUpdateOperationsInput | $Enums.TypeUsers
+    isPlantonista?: BoolFieldUpdateOperationsInput | boolean
+    posicao?: NullableIntFieldUpdateOperationsInput | number | null
     plantao?: PlantonistasUncheckedUpdateOneWithoutUserNestedInput
     membrosEquipe?: MembroEquipeUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput

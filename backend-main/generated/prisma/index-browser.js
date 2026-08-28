@@ -131,7 +131,6 @@ exports.Prisma.AtendimentoScalarFieldEnum = {
   protocolo: 'protocolo',
   nomeContato: 'nomeContato',
   tipoAtendimento: 'tipoAtendimento',
-  status: 'status',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -228,6 +227,7 @@ exports.Prisma.ExternalTokenScalarFieldEnum = {
   id: 'id',
   serviceName: 'serviceName',
   token: 'token',
+  apiUrl: 'apiUrl',
   description: 'description',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -252,10 +252,13 @@ exports.Prisma.UserScalarFieldEnum = {
   pass: 'pass',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  role: 'role',
+  typeUser: 'typeUser',
   id_atendente: 'id_atendente',
   zproId: 'zproId',
   slackId: 'slackId',
-  typeUser: 'typeUser'
+  isPlantonista: 'isPlantonista',
+  posicao: 'posicao'
 };
 
 exports.Prisma.SortOrder = {
@@ -287,10 +290,14 @@ exports.Prisma.JsonNullValueFilter = {
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
-exports.TypeUsers = exports.$Enums.TypeUsers = {
-  atendente: 'atendente',
+exports.NivelAcesso = exports.$Enums.NivelAcesso = {
   admin: 'admin',
-  gestor: 'gestor'
+  comum: 'comum'
+};
+
+exports.TipoUsuario = exports.$Enums.TipoUsuario = {
+  atendente: 'atendente',
+  comum: 'comum'
 };
 
 exports.Prisma.ModelName = {

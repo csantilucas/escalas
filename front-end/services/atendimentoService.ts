@@ -12,7 +12,6 @@ export interface AtendimentoModel {
   protocolo?: string | null;
   nomeContato?: string | null;
   tipoAtendimento?: string | null;
-  status: string;
   createdAt: string;
   updatedAt: string;
 }

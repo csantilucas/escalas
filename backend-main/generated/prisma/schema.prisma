@@ -9,7 +9,6 @@ model Atendimento {
   protocolo       String?
   nomeContato     String?
   tipoAtendimento String?
-  status          String  @default("EM_ANDAMENTO") // Ex: EM_ANDAMENTO, FINALIZADO
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -152,6 +151,7 @@ model ExternalToken {
   id          String   @id @default(uuid())
   serviceName String   @unique
   token       String
+  apiUrl      String? // URL customizada da API do serviço
   description String?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -175,18 +175,27 @@ model TomticketReportCache {
 }
 
 model User {
-  id            String    @id @default(uuid())
+  id            String   @id @default(uuid())
   name          String
-  email         String    @unique
-  emailVerified Boolean   @default(false)
+  email         String   @unique
+  emailVerified Boolean  @default(false)
   image         String?
   pass          String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  id_atendente  String?   @unique
-  zproId        Int?      @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // 1. Nível de Acesso (Permissões no Sistema)
+  role NivelAcesso @default(comum)
+
+  // 2. Tipo de Usuário (Função Operacional: Atendente ou Comum)
+  typeUser TipoUsuario @default(atendente)
+
+  // 3. Campos exclusivos para quem é Atendente
+  id_atendente  String? @unique
+  zproId        Int?    @unique
   slackId       String?
-  typeUser      TypeUsers @default(atendente)
+  isPlantonista Boolean @default(false)
+  posicao       Int?    @default(0)
 
   plantao       Plantonistas?
   registros     Registros[]
@@ -197,8 +206,12 @@ model User {
   @@map("user")
 }
 
-enum TypeUsers {
-  atendente
+enum NivelAcesso {
   admin
-  gestor
+  comum
+}
+
+enum TipoUsuario {
+  atendente
+  comum
 }
