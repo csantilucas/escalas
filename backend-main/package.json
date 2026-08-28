@@ -1,0 +1,55 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "diretório responsável pelo gerenciamento do backend",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx index.ts",
+    "dev": "npx tsx --watch index.ts",
+    "test": "vitest run"
+  },
+  "prisma": {
+    "seed": "npx tsx ./src/seed/seed.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/projeto-revalida/backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/projeto-revalida/backend/issues"
+  },
+  "homepage": "https://github.com/projeto-revalida/backend#readme",
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^26.1.1",
+    "@types/pg": "^8.20.0",
+    "@types/supertest": "^7.2.1",
+    "dotenv": "^17.4.2",
+    "prisma": "^7.8.0",
+    "supertest": "^7.2.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.23.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "axios": "^1.18.1",
+    "bcryptjs": "^3.0.3",
+    "better-auth": "^1.7.2",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.7.4",
+    "pg": "^8.22.0",
+    "reflect-metadata": "^0.2.2"
+  }
+}

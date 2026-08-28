@@ -1,0 +1,13 @@
+// prisma/schema.prisma
+
+model TomticketReportCache {
+  id          String   @id @default(uuid())
+  startDate   String   // Ex: "2026-07-01"
+  endDate     String   // Ex: "2026-07-27"
+  data        Json     // Salva o retorno completo (array de operadores e métricas)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([startDate, endDate]) // Garante um cache único por período
+  @@map("tomticket_report_caches")
+}

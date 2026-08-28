@@ -1,0 +1,76 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: alpha_db
+    restart: unless-stopped
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - alpha-net
+
+  backend:
+    build:
+      context: ./backend-main
+      dockerfile: Dockerfile
+    container_name: alpha_backend
+    extra_hosts:
+      - "api.alphasoftware.com.br:192.168.1.101"
+      - "app.alphasoftware.com.br:192.168.1.101"
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "0.0.0.0:5005:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      HOST: 0.0.0.0
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST: db
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      JWT_SECRET_ACCESS_TOKEN: ${JWT_SECRET_ACCESS_TOKEN}
+      JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-15d}
+      TOMTICKET_BEARER_TOKEN: ${TOMTICKET_BEARER_TOKEN}
+      RUN_SEED: ${RUN_SEED:-false}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://192.168.1.9:5004}
+    networks:
+      - alpha-net
+
+  frontend:
+    build:
+      context: ./front-end
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5005}
+    container_name: alpha_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "0.0.0.0:5004:3000"
+    environment:
+      - HOSTNAME=0.0.0.0
+      - PORT=3000
+    networks:
+      - alpha-net
+
+networks:
+  alpha-net:
+    driver: bridge
+
+volumes:
+  postgres_data:

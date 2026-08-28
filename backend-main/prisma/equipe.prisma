@@ -1,0 +1,46 @@
+model EquipePlantao {
+  id            String         @id @default(uuid())
+  nome          String
+  descricao     String?
+  cor           String?
+  ativo         Boolean        @default(true)
+  
+  // Roteamento e Filas do Z-PRO
+  queueId       Int?
+  queueName     String?
+  departamentos String[]       @default([])
+  isFallback    Boolean        @default(false)
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  membros       MembroEquipe[]
+
+  @@map("equipes_plantao")
+}
+
+model MembroEquipe {
+  id                  String        @id @default(uuid())
+  equipeId            String
+  userId              String
+  cargo               String?       @default("plantonista")
+  
+  // Fallback Sequencial & Prioridade
+  ordemSequencial     Int           @default(0)
+  ultimoAtendimentoEm DateTime?
+  pesoPrioridade      Int           @default(0)
+  
+  // Turnos de Trabalho (ex: [{"inicio": "08:10", "fim": "12:20"}, {"inicio": "14:00", "fim": "18:00"}])
+  turnos              Json?
+  margemInicioMinutos Int           @default(5)
+  margemFimMinutos    Int           @default(5)
+
+  ativo               Boolean       @default(true)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  equipe              EquipePlantao @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([equipeId, userId])
+  @@map("membros_equipe")
+}

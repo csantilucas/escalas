@@ -1,0 +1,38 @@
+/* style/globals.css */
+@import "tailwindcss";
+
+
+/* @theme {
+
+}
+ */
+
+
+
+body {
+  background-color: var(--color-zinc-950);
+  color: var(--color-zinc-300);
+  font-family: var(--font-sans);
+  font-size: 50px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Customização da barra de rolagem usando CSS padrão */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-zinc-800);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-zinc-700);
+}

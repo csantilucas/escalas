@@ -1,0 +1,28 @@
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique 
+  emailVerified Boolean   @default(false)
+  image         String?
+  pass          String?
+  createdAt     DateTime  @default(now()) 
+  updatedAt     DateTime  @updatedAt     
+  id_atendente  String?   @unique
+  zproId        Int?      @unique
+  slackId       String?
+  typeUser      TypeUsers @default(atendente)
+
+  plantao       Plantonistas?
+  registros     Registros[] 
+  membrosEquipe MembroEquipe[]
+  sessions      Session[]
+  accounts      Account[]
+
+  @@map("user")
+}
+  
+enum TypeUsers {
+  atendente
+  admin
+  gestor
+}

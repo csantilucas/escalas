@@ -1,0 +1,11 @@
+model ExternalToken {
+  id          String   @id @default(uuid())
+  serviceName String   @unique
+  token       String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("external_tokens")
+}

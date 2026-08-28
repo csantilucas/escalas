@@ -1,0 +1,15 @@
+model Registros {
+  id         String   @id @default(uuid())
+  plantao_id String   
+  user_id    String 
+  data       DateTime
+  startTime  DateTime
+  endTime    DateTime
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  plantao    Plantonistas  @relation(fields: [plantao_id], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
