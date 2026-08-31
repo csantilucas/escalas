@@ -37,7 +37,37 @@ export interface RelatorioTomticket {
   categorias_atendidas: string[];
 }
 
+export interface DashboardOverview {
+  atendimentos: {
+    totalGeral: number;
+    hoje: number;
+    sincronizadosHoje: number;
+    pendentesHoje: number;
+  };
+  equipes: {
+    total: number;
+    ativas: number;
+  };
+  usuarios: {
+    total: number;
+  };
+  plantonistas: {
+    total: number;
+    proximoPlantao: any | null;
+  };
+  sse: {
+    connectedClients: number;
+  };
+  timestamp: string;
+}
+
 class DashboardServices {
+  // GET /dashboard/overview -> Visão geral consolidada do sistema
+  async getOverview(): Promise<DashboardOverview> {
+    const response = await api.get("/dashboard/overview");
+    return response.data;
+  }
+
   // GET /dashboard/tickets -> Método original da Alpha Software
   async getTicketsReport(startDate: string, endDate: string): Promise<TicketUserData[]> {
     if (!startDate || !endDate) {

@@ -14,7 +14,9 @@ import {
   PrevisaoFila,
 } from "@/services";
 import { CalendarEscala } from "@/components/ui/CalendarEscala";
-import { GitFork, Zap, Radio, ArrowRight, Clock } from "lucide-react";
+import { ThemeToggle } from "@/components/common/ThemeToggle";
+import { GitFork, Zap, Radio, ArrowRight, Clock, Tv } from "lucide-react";
+import { obterHojeStr } from "@/lib/dateUtils";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -27,7 +29,7 @@ export default function DashboardPage() {
     async function carregarDadosDashboard() {
       try {
         setLoading(true);
-        const hojeStr = new Date().toISOString().split("T")[0];
+        const hojeStr = obterHojeStr();
 
         const [escalasData, metricsData, filasData] = await Promise.all([
           registroService.list(1).catch((err) => {
@@ -58,36 +60,46 @@ export default function DashboardPage() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-6 font-sans antialiased text-left max-w-7xl mx-auto">
+    <div className="flex flex-col gap-5 font-sans antialiased text-left max-w-7xl mx-auto">
       {/* Cabeçalho de Boas-vindas */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800/80 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/50 p-5 rounded-lg border border-zinc-800 shadow-xs">
         <div>
-          <h1 className="text-xl font-bold text-zinc-100">Painel Geral</h1>
-          <p className="text-sm text-zinc-400 mt-0.5">
-            Bem-vindo de volta, <span className="text-zinc-200 font-semibold">{user?.name}</span>.
+          <h1 className="text-base font-bold text-zinc-100 tracking-tight">Painel Operacional</h1>
+          <p className="text-xs text-zinc-400 mt-0.5 font-medium">
+            Sessão iniciada como <span className="text-zinc-200 font-semibold">{user?.name}</span>
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-center">
-          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
-            <Radio className="w-3.5 h-3.5 animate-pulse" />
-            Sistema Online
+          <ThemeToggle />
+
+          <Link
+            href="/tv"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 transition-all shadow-xs"
+          >
+            <Tv className="w-3.5 h-3.5 text-blue-400" />
+            <span>Modo TV</span>
+          </Link>
+
+          <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+            <Radio className="w-3 h-3 text-emerald-400" />
+            Online
           </span>
         </div>
       </div>
 
       {/* Grid de Cards Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
         {/* Card 1: Seu Perfil */}
-        <div className="p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-2xl flex flex-col justify-between">
-          <span className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
-            Seu Acesso
+        <div className="p-3.5 bg-zinc-900/40 border border-zinc-800 rounded-lg flex flex-col justify-between h-[90px] shadow-xs">
+          <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
+            Nível de Permissão
           </span>
-          <div className="flex flex-col gap-0.5 mt-3">
-            <p className="text-sm font-bold text-zinc-200 capitalize">
+          <div className="flex flex-col gap-0.5 mt-1">
+            <p className="text-xs font-semibold text-zinc-200 capitalize">
               {user?.role === "admin" ? "Administrador" : user?.typeUser === "atendente" ? "Atendente" : "Usuário Comum"}
             </p>
-            <p className="text-xs text-zinc-400 truncate">{user?.email}</p>
+            <p className="text-[11px] text-zinc-400 truncate">{user?.email}</p>
           </div>
         </div>
 
@@ -99,39 +111,39 @@ export default function DashboardPage() {
 
       {/* SEÇÃO: FILAS AO VIVO */}
       {previsoes.length > 0 && (
-        <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-5 space-y-4">
+        <div className="bg-zinc-900/40 border border-zinc-800 rounded-lg p-4 space-y-3 shadow-xs">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <GitFork className="w-4 h-4 text-emerald-400" />
-              <h2 className="text-sm font-bold text-zinc-200 uppercase tracking-wider">
-                Próximos Atendentes por Fila (WhatsApp)
+              <GitFork className="w-3.5 h-3.5 text-blue-400" />
+              <h2 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">
+                Próximos a Receber Chat por Fila (WhatsApp)
               </h2>
             </div>
             <Link
               href="/distribuicao"
-              className="flex items-center gap-1 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
+              className="flex items-center gap-1 text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors"
             >
-              <span>Ver painel ao vivo</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>Ver distribuição detalhada</span>
+              <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
             {previsoes.map((p) => (
               <div
                 key={p.equipeId}
-                className="p-3.5 bg-zinc-950/80 border border-zinc-800 rounded-xl flex items-center justify-between gap-3"
+                className="p-3 bg-zinc-950 border border-zinc-800 rounded-md flex items-center justify-between gap-2 shadow-xs"
               >
                 <div>
-                  <span className="text-xs font-bold text-zinc-300">{p.equipeNome}</span>
-                  <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold mt-1">
-                    <Zap className="w-3.5 h-3.5 fill-emerald-400" />
+                  <span className="text-xs font-semibold text-zinc-200">{p.equipeNome}</span>
+                  <div className="flex items-center gap-1 text-xs text-emerald-400 font-medium mt-0.5">
+                    <Zap className="w-3 h-3 text-emerald-400" />
                     <span>{p.proximoDaFila?.nome || "Aguardando"}</span>
                   </div>
                 </div>
                 {p.queueId && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-blue-500/10 border border-blue-500/20 text-blue-400">
-                    Fila #{p.queueId}
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-zinc-800 border border-zinc-700 text-zinc-300">
+                    #{p.queueId}
                   </span>
                 )}
               </div>
@@ -141,13 +153,13 @@ export default function DashboardPage() {
       )}
 
       {/* Seção da Tabela de Plantões */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
-          <Clock className="w-4 h-4 text-blue-400" />
+      <div className="space-y-2.5">
+        <h2 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+          <Clock className="w-3.5 h-3.5 text-blue-400" />
           <span>Plantões & Escalas Ativas</span>
         </h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3.5 items-start">
           <div className="lg:col-span-2">
             <EscalaTable registros={escalas} isLoading={loading} isAdmin={false} />
           </div>
@@ -159,19 +171,19 @@ export default function DashboardPage() {
       </div>
 
       {/* Seção: Métricas de Chamados */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-bold text-zinc-300 uppercase tracking-wider">
-          Métricas de Chamados (Hoje)
+      <div className="space-y-2.5">
+        <h2 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
+          Produtividade dos Analistas (Hoje)
         </h2>
 
         {loading ? (
-          <div className="text-xs text-zinc-500 animate-pulse">Buscando métricas externas...</div>
+          <div className="text-xs text-zinc-500 animate-pulse">Sincronizando métricas em tempo real...</div>
         ) : report.length === 0 ? (
-          <div className="text-xs text-zinc-500 italic p-4 border border-dashed border-zinc-800 rounded-xl bg-zinc-900/20">
+          <div className="text-xs text-zinc-500 p-4 border border-zinc-800 rounded-lg bg-zinc-900/20 text-center">
             Nenhuma atividade registrada no microsserviço até o momento.
           </div>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3.5 items-stretch">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 items-stretch">
             {report.map((analista: TicketUserData, index: number) => {
               const keyUnica = `analista-${analista.email || analista.name || "desconhecido"}-${index}`;
               return (

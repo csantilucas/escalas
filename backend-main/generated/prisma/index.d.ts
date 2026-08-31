@@ -75,6 +75,7 @@ export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 export namespace $Enums {
   export const NivelAcesso: {
   admin: 'admin',
+  gestor: 'gestor',
   comum: 'comum'
 };
 

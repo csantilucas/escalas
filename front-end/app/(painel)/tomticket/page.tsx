@@ -17,10 +17,10 @@ import {
   FileText
 } from "lucide-react";
 
-// Bibliotecas de Exportação
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { formatarData } from "@/lib/dateUtils";
 
 // Chart.js Setup
 import {
@@ -298,7 +298,7 @@ export default function TomticketPage() {
     doc.setFontSize(14);
     doc.text("Dashboard Analítico de Atendimentos - Tomticket", 14, 15);
     doc.setFontSize(9);
-    doc.text(`Período: ${startDate} até ${endDate} | Gerado em: ${new Date().toLocaleDateString("pt-BR")}`, 14, 21);
+    doc.text(`Período: ${startDate} até ${endDate} | Gerado em: ${formatarData(new Date())}`, 14, 21);
 
     const colsEquipe = [
       "Operador",
@@ -429,7 +429,7 @@ export default function TomticketPage() {
           <h1 className="text-xl font-bold tracking-tight text-zinc-100">Dashboard Analítico de Atendimentos</h1>
           <p className="text-xs text-zinc-400 mt-0.5">
             {startDate && endDate 
-              ? `Período: ${startDate} até ${endDate} | Gerado em: ${new Date().toLocaleDateString("pt-BR")}`
+              ? `Período: ${startDate} até ${endDate} | Gerado em: ${formatarData(new Date())}`
               : "Selecione o período e clique em Sincronizar para gerar o relatório."
             }
           </p>
@@ -460,32 +460,32 @@ export default function TomticketPage() {
       </div>
 
       {/* FILTROS E DATAS */}
-      <div className="bg-zinc-900/40 p-4 rounded-xl border border-zinc-800/80 flex flex-wrap gap-4 items-end justify-between">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="bg-zinc-900/40 p-3.5 rounded-lg border border-zinc-800 flex flex-wrap gap-3 items-end justify-between shadow-xs">
+        <div className="flex flex-wrap items-center gap-2.5">
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase">Data Início</label>
+            <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Data Início</label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="bg-zinc-900 border border-zinc-800 text-xs px-3 py-2 rounded-lg text-zinc-200 outline-none focus:border-zinc-700"
+              className="bg-zinc-950 border border-zinc-800 text-xs px-2.5 py-1.5 rounded-md text-zinc-200 outline-none focus:border-blue-500"
             />
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase">Data Fim</label>
+            <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Data Fim</label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="bg-zinc-900 border border-zinc-800 text-xs px-3 py-2 rounded-lg text-zinc-200 outline-none focus:border-zinc-700"
+              className="bg-zinc-950 border border-zinc-800 text-xs px-2.5 py-1.5 rounded-md text-zinc-200 outline-none focus:border-blue-500"
             />
           </div>
 
           <button
             onClick={() => loadData(false)}
             disabled={loading}
-            className="mt-auto bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium px-4 py-2 rounded-lg transition-all"
+            className="mt-auto bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold px-3 py-1.5 rounded-md transition-all cursor-pointer shadow-xs"
           >
             Buscar
           </button>
@@ -493,20 +493,20 @@ export default function TomticketPage() {
           <button
             onClick={() => loadData(true)}
             disabled={loading}
-            className="mt-auto flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-4 py-2 rounded-lg transition-all active:scale-95 disabled:opacity-50"
+            className="mt-auto flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded-md transition-all disabled:opacity-50 cursor-pointer shadow-xs"
           >
-            <RefreshCw size={14} className={loading ? "animate-spin" : ""} />
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
             {loading ? "Sincronizando..." : "Sincronizar Tomticket"}
           </button>
         </div>
 
-        <div className="flex flex-wrap gap-3 flex-1 max-w-xl">
-          <div className="flex flex-col gap-1 flex-1 min-w-[160px]">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase">Filtrar Operador</label>
+        <div className="flex flex-wrap gap-2.5 flex-1 max-w-xl">
+          <div className="flex flex-col gap-1 flex-1 min-w-[150px]">
+            <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Operador</label>
             <select
               value={filtroOperador}
               onChange={(e) => setFiltroOperador(e.target.value)}
-              className="bg-zinc-900 border border-zinc-800 text-xs px-3 py-2 rounded-lg text-zinc-200 outline-none focus:border-zinc-700"
+              className="bg-zinc-950 border border-zinc-800 text-xs px-2.5 py-1.5 rounded-md text-zinc-200 outline-none focus:border-blue-500"
             >
               <option value="ALL">Todos os Operadores</option>
               {rawData
@@ -519,17 +519,17 @@ export default function TomticketPage() {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1 flex-1 min-w-[180px]">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase">Pesquisar</label>
+          <div className="flex flex-col gap-1 flex-1 min-w-[170px]">
+            <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Pesquisar</label>
             <div className="relative">
               <input
                 type="text"
                 value={filtroBusca}
                 onChange={(e) => setFiltroBusca(e.target.value)}
                 placeholder="Nome ou Categoria..."
-                className="w-full bg-zinc-900 border border-zinc-800 text-xs px-3 py-2 pl-8 rounded-lg text-zinc-200 outline-none focus:border-zinc-700"
+                className="w-full bg-zinc-950 border border-zinc-800 text-xs px-2.5 py-1.5 pl-7 rounded-md text-zinc-200 outline-none focus:border-blue-500"
               />
-              <Search size={14} className="absolute left-2.5 top-2.5 text-zinc-500" />
+              <Search size={13} className="absolute left-2.5 top-2.5 text-zinc-500" />
             </div>
           </div>
         </div>
@@ -537,7 +537,7 @@ export default function TomticketPage() {
 
       {/* AVISO QUANDO NENHUM DADO FOI CARREGADO AINDA */}
       {!loading && rawData.length === 0 && (
-        <div className="bg-zinc-900/30 border border-dashed border-zinc-800 rounded-xl p-8 text-center text-zinc-500 text-xs">
+        <div className="bg-zinc-900/20 border border-zinc-800 rounded-lg p-6 text-center text-zinc-500 text-xs">
           Selecione o período de datas acima e clique em <strong className="text-blue-400 font-semibold">Sincronizar Tomticket</strong> ou <strong className="text-zinc-300 font-semibold">Buscar</strong> para gerar o relatório.
         </div>
       )}
@@ -545,56 +545,56 @@ export default function TomticketPage() {
       {/* KPIS GLOBAIS */}
       {rawData.length > 0 && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            <div className="p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-xl flex flex-col justify-between">
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Total Atendimentos</span>
-              <div className="text-2xl font-bold text-zinc-100 mt-2">{kpis.totalChamados}</div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="p-3 bg-zinc-900/40 border border-zinc-800 rounded-lg flex flex-col justify-between shadow-xs">
+              <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Total Atendimentos</span>
+              <div className="text-xl font-bold text-zinc-100 mt-1">{kpis.totalChamados}</div>
             </div>
 
-            <div className="p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-xl flex flex-col justify-between">
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Atendimentos Avaliados</span>
-              <div className="text-2xl font-bold text-zinc-100 mt-2">{kpis.totalAvaliados}</div>
+            <div className="p-3 bg-zinc-900/40 border border-zinc-800 rounded-lg flex flex-col justify-between shadow-xs">
+              <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Atendimentos Avaliados</span>
+              <div className="text-xl font-bold text-zinc-100 mt-1">{kpis.totalAvaliados}</div>
             </div>
 
-            <div className="p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-xl flex flex-col justify-between">
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Satisfação Média (NPS)</span>
-              <div className="text-2xl font-bold text-amber-400 mt-2 flex items-baseline gap-1">
-                <Star size={18} fill="currentColor" className="self-center" /> {kpis.mediaGeralSatisfacao}
+            <div className="p-3 bg-zinc-900/40 border border-zinc-800 rounded-lg flex flex-col justify-between shadow-xs">
+              <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Satisfação Média (NPS)</span>
+              <div className="text-xl font-bold text-amber-400 mt-1 flex items-baseline gap-1">
+                <Star size={16} fill="currentColor" className="self-center" /> {kpis.mediaGeralSatisfacao}
                 <span className="text-xs text-zinc-500 font-normal">/ 5.0</span>
               </div>
             </div>
 
-            <div className="p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-xl flex flex-col justify-between">
-              <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Tempo Médio Global</span>
-              <div className="text-2xl font-bold text-zinc-100 mt-2 flex items-baseline gap-1">
+            <div className="p-3 bg-zinc-900/40 border border-zinc-800 rounded-lg flex flex-col justify-between shadow-xs">
+              <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">Tempo Médio Global</span>
+              <div className="text-xl font-bold text-zinc-100 mt-1 flex items-baseline gap-1">
                 {kpis.tempoMedioEquipe} <span className="text-xs text-zinc-500 font-normal">min</span>
               </div>
             </div>
           </div>
 
           {/* GRÁFICOS */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 bg-zinc-900/40 p-4 rounded-xl border border-zinc-800/80">
-              <h3 className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider pb-2 border-b border-zinc-800/60 mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <div className="lg:col-span-2 bg-zinc-900/40 p-3.5 rounded-lg border border-zinc-800 shadow-xs">
+              <h3 className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider pb-1.5 border-b border-zinc-800 mb-3">
                 Volume de Atendimentos por Operador
               </h3>
-              <div className="h-60 flex items-center justify-center">
+              <div className="h-56 flex items-center justify-center">
                 <Bar data={chartDataBar} options={chartOptionsDark} />
               </div>
             </div>
 
-            <div className="bg-zinc-900/40 p-4 rounded-xl border border-zinc-800/80">
-              <h3 className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider pb-2 border-b border-zinc-800/60 mb-4">
+            <div className="bg-zinc-900/40 p-3.5 rounded-lg border border-zinc-800 shadow-xs">
+              <h3 className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider pb-1.5 border-b border-zinc-800 mb-3">
                 Distribuição Global de Notas
               </h3>
-              <div className="h-60 flex items-center justify-center">
+              <div className="h-56 flex items-center justify-center">
                 <Doughnut data={chartDataDoughnut} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#a1a1aa' } } } }} />
               </div>
             </div>
           </div>
 
           {/* TABELA DE DESEMPENHO */}
-          <div className="bg-zinc-900/40 rounded-xl border border-zinc-800/80 overflow-hidden">
+          <div className="bg-zinc-900/40 rounded-lg border border-zinc-800 overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-zinc-300 border-collapse table-fixed min-w-[900px]">
                 <thead>

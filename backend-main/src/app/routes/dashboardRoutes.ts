@@ -16,6 +16,6 @@ router.get("/overview", authMiddleware.auth, dashboardController.getOverview);
 router.get("/tickets", authMiddleware.auth, dashboardController.getTicketsReport);
 
 // Rota 2: Tomticket
-router.get("/tomticket", authMiddleware.auth, authMiddleware.authAdmin, dashboardController.getTomticketReport);
+router.get("/tomticket", authMiddleware.auth, authMiddleware.authAdminOrGestor, dashboardController.getTomticketReport);
 
 export default router;

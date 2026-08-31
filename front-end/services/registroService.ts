@@ -23,9 +23,9 @@ export interface GerarEscalaModel {
 }
 
 class RegistroServices {
-  // GET /register/find?page=1 -> Listar registros paginados e ordenados
-  async list(page: number = 1) {
-    const response = await api.get(`/register/find?page=${page}`);
+  // GET /register/find?page=1&limit=50 -> Listar registros paginados e ordenados
+  async list(page: number = 1, limit: number = 50) {
+    const response = await api.get(`/register/find?page=${page}&limit=${limit}`);
     return response.data; // Retorna { registros, total, pages }
   }
 

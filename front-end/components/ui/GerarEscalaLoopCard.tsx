@@ -22,8 +22,9 @@ export function GerarEscalaLoopCard({ isSubmitting, onSubmit }: GerarCardProps) 
     if (!dataInicio) return setError("Selecione a data de início.");
     setError("");
     try {
+      const cleanDate = dataInicio.split("T")[0];
       await onSubmit({
-        dataInicio: new Date(dataInicio).toISOString(),
+        dataInicio: `${cleanDate}T00:00:00.000Z`,
         diaSemana: Number(diaSemana),
         horarioInicio,
         horarioFim

@@ -333,7 +333,7 @@ export class DistributionService {
       return result;
     }
 
-    return {
+    const fallbackResult: DistribuirResult = {
       sucesso: true,
       status: "pending",
       userId: null,
@@ -343,31 +343,148 @@ export class DistributionService {
       equipeNome: equipe.nome,
       modoDistribuicao: "fallback_no_online",
     };
+
+    sseEventBus.notify("distribuicao", "create", {
+      ...fallbackResult,
+      ticketId: input.ticketId,
+      clienteId: input.clienteId,
+      numero: input.numero,
+      data: new Date().toISOString(),
+    });
+
+    return fallbackResult;
   }
 
   async getPrevisaoFilas(): Promise<any[]> {
     const equipes = await this.equipeRepo.findAllWithMembers();
+    const minutosAtuais = getCurrentManausMinutes();
+    const hojeStr = new Date().toISOString().substring(0, 10);
+
+    let usuariosZpro: any[] = [];
+    let cargasAlpha: TicketUserData[] = [];
+
+    try {
+      [usuariosZpro, cargasAlpha] = await Promise.all([
+        externalApiService.listZproUsers(),
+        externalApiService.getTicketsPerUser(hojeStr, hojeStr),
+      ]);
+    } catch (e) {}
+
+    const mapaCargas: Record<string, TicketUserData> = {};
+    for (const c of cargasAlpha) {
+      if (c.email) mapaCargas[c.email.toLowerCase().trim()] = c;
+      if (c.name) mapaCargas[c.name.toLowerCase().trim()] = c;
+    }
+
+    const onlineZproMap = new Map<number, any>();
+    for (const u of usuariosZpro) {
+      if (u.isOnline === true || u.isOnline === "true" || u.isOnline === 1) {
+        onlineZproMap.set(Number(u.id), u);
+      }
+    }
 
     return equipes.map((eq) => {
       const membros = eq.membros || [];
-      const ordenados = [...membros].sort((a: any, b: any) => {
-        if (!a.ultimoAtendimentoEm && b.ultimoAtendimentoEm) return -1;
-        if (a.ultimoAtendimentoEm && !b.ultimoAtendimentoEm) return 1;
-        if (a.ultimoAtendimentoEm && b.ultimoAtendimentoEm) {
-          return (
-            new Date(a.ultimoAtendimentoEm).getTime() - new Date(b.ultimoAtendimentoEm).getTime()
-          );
+      const membrosAtivos = membros.filter((m: any) => m.ativo);
+
+      // 1. Filtrar membros dentro do turno
+      const membrosNoTurno = membrosAtivos.filter((m: any) =>
+        isWithinShift(minutosAtuais, m.turnos, m.margemInicioMinutos, m.margemFimMinutos)
+      );
+
+      const candidatosIniciais = membrosNoTurno.length > 0 ? membrosNoTurno : membrosAtivos;
+
+      // 2. Filtrar quem está ONLINE no Z-PRO
+      const candidatosOnline = candidatosIniciais.filter((m: any) => {
+        const zId = m.user.zproId ? Number(m.user.zproId) : null;
+        if (zId && onlineZproMap.has(zId)) return true;
+
+        const nomeClean = (m.user.name || "").toLowerCase().trim();
+        const emailClean = (m.user.email || "").toLowerCase().trim();
+        for (const [id, uOnline] of onlineZproMap.entries()) {
+          const uNome = (uOnline.name || "").toLowerCase().trim();
+          const uEmail = (uOnline.email || "").toLowerCase().trim();
+          if (
+            (uNome && (uNome.includes(nomeClean) || nomeClean.includes(uNome))) ||
+            (uEmail && uEmail === emailClean)
+          ) {
+            return true;
+          }
         }
-        return (a.ordemSequencial || 0) - (b.ordemSequencial || 0);
+        return false;
       });
 
-      const proximo = ordenados[0]?.user
+      let escolhido: any = null;
+      let modo = "pontuacao_ponderada";
+      let metricasEscolhidas = { abertos: 0, pendentes: 0, fechados: 0, score: 0 };
+
+      if (candidatosOnline.length > 0) {
+        const pontuados = candidatosOnline.map((m: any) => {
+          const emailKey = (m.user.email || "").toLowerCase().trim();
+          const nomeKey = (m.user.name || "").toLowerCase().trim();
+          const metrica = mapaCargas[emailKey] || mapaCargas[nomeKey];
+
+          const abertos = Number(metrica?.qtd_em_atendimento || 0);
+          const pendentes = Number(metrica?.qtd_pendentes || 0);
+          const fechados = Number(metrica?.qtd_resolvidos || metrica?.qtd_por_usuario || 0);
+
+          const score =
+            abertos * this.PESO_ABERTOS +
+            pendentes * this.PESO_PENDENTES +
+            fechados * this.PESO_TOTAL_DIA;
+
+          return {
+            membro: m,
+            abertos,
+            pendentes,
+            fechados,
+            score,
+            prioridade: m.pesoPrioridade || 0,
+          };
+        });
+
+        // Ordenar por score ascendente (menor carga primeiro), depois por ordemSequencial
+        pontuados.sort((a: any, b: any) => {
+          if (a.score !== b.score) return a.score - b.score;
+          return (a.membro.ordemSequencial || 0) - (b.membro.ordemSequencial || 0);
+        });
+
+        escolhido = pontuados[0]?.membro;
+        metricasEscolhidas = {
+          abertos: pontuados[0]?.abertos || 0,
+          pendentes: pontuados[0]?.pendentes || 0,
+          fechados: pontuados[0]?.fechados || 0,
+          score: pontuados[0]?.score || 0,
+        };
+      }
+
+      // 3. Fallback sequencial se nenhum membro estiver online
+      if (!escolhido) {
+        modo = "fallback_sequencial";
+        const ordenados = [...candidatosIniciais].sort((a: any, b: any) => {
+          if (!a.ultimoAtendimentoEm && b.ultimoAtendimentoEm) return -1;
+          if (a.ultimoAtendimentoEm && !b.ultimoAtendimentoEm) return 1;
+          if (a.ultimoAtendimentoEm && b.ultimoAtendimentoEm) {
+            return (
+              new Date(a.ultimoAtendimentoEm).getTime() - new Date(b.ultimoAtendimentoEm).getTime()
+            );
+          }
+          return (a.ordemSequencial || 0) - (b.ordemSequencial || 0);
+        });
+        escolhido = ordenados[0];
+      }
+
+      const proximo = escolhido?.user
         ? {
-            id: ordenados[0].user.id,
-            nome: ordenados[0].user.name,
-            zproId: ordenados[0].user.zproId,
-            email: ordenados[0].user.email,
-            ultimoAtendimentoEm: ordenados[0].ultimoAtendimentoEm,
+            id: escolhido.user.id,
+            nome: escolhido.user.name,
+            zproId: escolhido.user.zproId,
+            email: escolhido.user.email,
+            slackId: escolhido.user.slackId,
+            ultimoAtendimentoEm: escolhido.ultimoAtendimentoEm,
+            metricas: metricasEscolhidas,
+            modo,
+            isOnline: candidatosOnline.some((c: any) => c.user.id === escolhido.user.id),
           }
         : null;
 
@@ -376,8 +493,10 @@ export class DistributionService {
         equipeNome: eq.nome,
         queueId: eq.queueId,
         queueName: eq.queueName,
+        cor: eq.cor,
         departamentos: eq.departamentos,
         totalMembros: membros.length,
+        membrosOnline: candidatosOnline.length,
         proximoDaFila: proximo,
       };
     });

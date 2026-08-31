@@ -53,11 +53,19 @@ class ExternalApiService {
     "37a2b3203d2b93aae2d3bd9123044d53": "Kariny Moreira de Paula",
   };
 
+  private zproCache: { data: any[]; timestamp: number } | null = null;
+  private ticketsCache: Record<string, { data: TicketUserData[]; timestamp: number }> = {};
+  private readonly CACHE_TTL_MS = 10000; // 10 segundos
+
   private delay(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  async listZproUsers(): Promise<any[]> {
+  async listZproUsers(forceRefresh = false): Promise<any[]> {
+    if (!forceRefresh && this.zproCache && Date.now() - this.zproCache.timestamp < this.CACHE_TTL_MS) {
+      return this.zproCache.data;
+    }
+
     const config = await externalTokenService.getActiveServiceConfig(
       "zpro",
       "ZPRO_API_TOKEN",
@@ -89,15 +97,26 @@ class ExternalApiService {
       }
 
       console.log(`✅ [ExternalApi - Z-PRO] Conexão bem sucedida (Status ${response.status}). ${users.length} usuários obtidos.`);
+      this.zproCache = { data: users, timestamp: Date.now() };
       return users;
     } catch (error: any) {
+      if (this.zproCache) {
+        console.warn(`⚠️ [ExternalApi - Z-PRO] Falha na rede, usando dados em cache: ${error.message}`);
+        return this.zproCache.data;
+      }
       const status = error.response?.status ? `(Status ${error.response.status})` : "";
       console.error(`❌ [ExternalApi - Z-PRO] Erro na conexão com ${url} ${status}: ${error.message}`);
       throw new Error(`Falha ao buscar usuários no Z-PRO: ${error.message}`);
     }
   }
 
-  async getTicketsPerUser(startDate: string, endDate: string): Promise<TicketUserData[]> {
+  async getTicketsPerUser(startDate: string, endDate: string, forceRefresh = false): Promise<TicketUserData[]> {
+    const cacheKey = `${startDate}_${endDate}`;
+    const cached = this.ticketsCache[cacheKey];
+    if (!forceRefresh && cached && Date.now() - cached.timestamp < this.CACHE_TTL_MS) {
+      return cached.data;
+    }
+
     const config = await externalTokenService.getActiveServiceConfig(
       "alpha_dash",
       "ALPHA_API_TOKEN",
@@ -122,12 +141,17 @@ class ExternalApiService {
       if (response.data && response.data.success) {
         const registros = response.data.data || [];
         console.log(`✅ [ExternalApi - Alpha Dash] Conexão bem sucedida (Status ${response.status}). ${registros.length} analistas retornados.`);
+        this.ticketsCache[cacheKey] = { data: registros, timestamp: Date.now() };
         return registros;
       }
 
       console.warn(`⚠️ [ExternalApi - Alpha Dash] Resposta sem sucesso ou vazia.`);
       return [];
     } catch (error: any) {
+      if (cached) {
+        console.warn(`⚠️ [ExternalApi - Alpha Dash] Falha na rede, usando dados em cache: ${error.message}`);
+        return cached.data;
+      }
       const status = error.response?.status ? `(Status ${error.response.status})` : "";
       console.error(`❌ [ExternalApi - Alpha Dash] Erro na conexão com ${url} ${status}: ${error.message}`);
       throw new Error(`Falha na comunicação com o microsserviço externo: ${error.message}`);

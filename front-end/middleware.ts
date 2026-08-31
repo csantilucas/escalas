@@ -13,23 +13,27 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Mapeamento das rotas protegidas e administrativas
-  const isAdminRoute =
+  // 2. Mapeamento das rotas por nível de permissão
+  const isStrictAdminRoute =
     pathname.startsWith("/usuarios") ||
-    pathname.startsWith("/plantonistas") ||
-    pathname.startsWith("/equipes") ||
-    pathname.startsWith("/escalas") ||
     pathname.startsWith("/tokens") ||
-    pathname.startsWith("/tomticket") ||
-    pathname.startsWith("/relatorios-escalas") ||
     pathname.startsWith("/logs");
+
+  const isGestorAllowedRoute =
+    pathname.startsWith("/tomticket");
 
   const isPrivateRoute =
     pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/perfil") ||
+    pathname.startsWith("/tv") ||
     pathname.startsWith("/atendimentos") ||
     pathname.startsWith("/distribuicao") ||
-    pathname.startsWith("/registros") ||
-    isAdminRoute;
+    pathname.startsWith("/equipes") ||
+    pathname.startsWith("/plantonistas") ||
+    pathname.startsWith("/escalas") ||
+    pathname.startsWith("/relatorios-escalas") ||
+    isStrictAdminRoute ||
+    isGestorAllowedRoute;
 
   const isPublicRoute = pathname.startsWith("/login");
 
@@ -43,17 +47,21 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // Caso 3: Rota exclusiva de administrador acessada por perfil não-admin
-  if (isAdminRoute && userCookie) {
+  // Caso 3: Validação granular de permissões quando usuário acessa rotas restritas
+  if ((isStrictAdminRoute || isGestorAllowedRoute) && userCookie) {
     try {
       const user = JSON.parse(decodeURIComponent(userCookie));
-      const isAdmin =
-        user.role === "admin" ||
-        user.typeUser === "admin" ||
-        user.role?.toLowerCase() === "admin" ||
-        user.typeUser?.toLowerCase() === "admin";
+      const role = String(user.role || user.typeUser || "").toLowerCase();
+      const isAdmin = role === "admin";
+      const isGestor = role === "gestor";
 
-      if (!isAdmin) {
+      // Rotas estritas de admin (/usuarios, /tokens, /logs): apenas admin
+      if (isStrictAdminRoute && !isAdmin) {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
+
+      // Rota tomticket: apenas admin ou gestor (comum bloqueado)
+      if (isGestorAllowedRoute && !isAdmin && !isGestor) {
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
     } catch {

@@ -20,6 +20,17 @@ COPY index.ts ./
 COPY src ./src
 COPY generated ./generated
 
+# Variáveis necessárias durante o build para o prisma generate validar sem erro
+ENV POSTGRES_USER=admin \
+    POSTGRES_PASSWORD=112658 \
+    POSTGRES_HOST=localhost \
+    POSTGRES_PORT=5432 \
+    POSTGRES_DB=backend \
+    PORT=3001 \
+    HOST=0.0.0.0 \
+    BETTER_AUTH_SECRET=build_secret_temp_for_prisma_generate_123 \
+    JWT_SECRET_ACCESS_TOKEN=build_secret_temp_for_prisma_generate_123
+
 RUN npx prisma generate
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh

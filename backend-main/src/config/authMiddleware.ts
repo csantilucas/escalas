@@ -16,6 +16,7 @@ export class AuthMiddleware {
   constructor() {
     this.auth = this.auth.bind(this);
     this.authAdmin = this.authAdmin.bind(this);
+    this.authAdminOrGestor = this.authAdminOrGestor.bind(this);
   }
 
   async auth(req: Request, res: Response, next: NextFunction) {
@@ -86,5 +87,19 @@ export class AuthMiddleware {
     }
 
     return res.status(401).json({ error: "Access denied - Not admin" });
+  }
+
+  async authAdminOrGestor(req: Request, res: Response, next: NextFunction) {
+    if (
+      req.user &&
+      (req.user.role === "admin" ||
+        req.user.role === "gestor" ||
+        req.user.typeUser === "admin" ||
+        req.user.typeUser === "gestor")
+    ) {
+      return next();
+    }
+
+    return res.status(403).json({ error: "Access denied - Requires admin or gestor privileges" });
   }
 }

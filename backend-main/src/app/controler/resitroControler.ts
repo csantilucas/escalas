@@ -37,7 +37,7 @@ export class RegistroController {
   getAll = async (req: Request, res: Response): Promise<Response> => {
     try {
       const page = req.query.page ? Number(req.query.page) : 1;
-      const limit = 8;
+      const limit = req.query.limit ? Number(req.query.limit) : 50;
       const resultado = await registroService.getRegistros(page, limit);
 
       return res.status(200).json(resultado);

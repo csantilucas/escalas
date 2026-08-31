@@ -292,6 +292,7 @@ exports.Prisma.JsonNullValueFilter = {
 };
 exports.NivelAcesso = exports.$Enums.NivelAcesso = {
   admin: 'admin',
+  gestor: 'gestor',
   comum: 'comum'
 };
 

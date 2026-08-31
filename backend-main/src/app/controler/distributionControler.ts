@@ -4,14 +4,16 @@ import { distributionService } from "../../containers/distribution.container.js"
 export class DistributionController {
   distribuir = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const data = req.method === "GET" ? req.query : req.body;
+      const data = {
+        ...(typeof req.query === "object" && req.query ? req.query : {}),
+        ...(typeof req.body === "object" && req.body ? req.body : {}),
+      };
 
-      const departamento = data.departamento || data.depto || data.area;
-      const fila = data.fila || data.queue;
+      const departamento = data.departamento || data.depto || data.area || data.department;
+      const fila = data.fila || data.queue || data.queueName;
       const ticketId = data.ticketId || data.ticketID || data.ticket;
       const clienteId = data.clienteId || data.clienteID;
-      const numero = data.numero || data.Number || data.phone;
-      const pushName = data.pushName || data.nome_contato;
+      const numero = data.numero || data.Number || data.phone || data.number;
       const horarioMinutosOverride = data.horarioMinutosOverride
         ? Number(data.horarioMinutosOverride)
         : undefined;
@@ -24,7 +26,6 @@ export class DistributionController {
         ticketId,
         clienteId,
         numero: numero ? String(numero) : undefined,
-        pushName: pushName ? String(pushName) : undefined,
         horarioMinutosOverride,
         ignorarApisExternas,
       });

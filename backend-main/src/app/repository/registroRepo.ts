@@ -30,20 +30,14 @@ export class RegistroRepository extends BaseRepository<Registros> {
 
   async findNextActive(): Promise<any> {
     const agora = new Date();
+    const hojeIso = agora.toISOString().split("T")[0];
+    const inicioHoje = new Date(`${hojeIso}T00:00:00.000Z`);
 
-
-    const inicioHoje = new Date(agora);
-    inicioHoje.setUTCHours(0, 0, 0, 0);
-
-    const fimHoje = new Date(agora);
-    fimHoje.setUTCHours(23, 59, 59, 999);
-
-    const plantaoHoje = await prisma.registros.findFirst({
+    // 1. Verifica se há um plantão em andamento neste momento exato
+    const plantaoEmAndamento = await prisma.registros.findFirst({
       where: {
-        data: {
-          gte: inicioHoje,
-          lte: fimHoje
-        }
+        startTime: { lte: agora },
+        endTime: { gte: agora }
       },
       include: {
         user: {
@@ -51,35 +45,93 @@ export class RegistroRepository extends BaseRepository<Registros> {
             id: true,
             name: true,
             email: true,
-            id_atendente: true
+            id_atendente: true,
+            zproId: true,
+            slackId: true
           }
         },
         plantao: true
       }
     });
 
-    // Se houver plantão no dia de hoje, retorna o atendente de hoje (Kariny)
-    if (plantaoHoje) {
-      return plantaoHoje;
+    if (plantaoEmAndamento) {
+      return plantaoEmAndamento;
     }
 
-    // 🟢 3. FALLBACK: Se hoje não for dia de plantão, busca o próximo plantão futuro ativo
-    return await prisma.registros.findFirst({
+    // 2. Busca o plantão do dia de hoje ou os próximos futuros
+    const proximoFuturo = await prisma.registros.findFirst({
       where: {
-        endTime: {
-          gt: agora
-        }
+        OR: [
+          { data: { gte: inicioHoje } },
+          { endTime: { gte: agora } }
+        ]
       },
-      orderBy: {
-        startTime: "asc"
-      },
+      orderBy: [
+        { data: "asc" },
+        { startTime: "asc" }
+      ],
       include: {
         user: {
           select: {
             id: true,
             name: true,
             email: true,
-            id_atendente: true
+            id_atendente: true,
+            zproId: true,
+            slackId: true
+          }
+        },
+        plantao: true
+      }
+    });
+
+    if (proximoFuturo) {
+      return proximoFuturo;
+    }
+
+    // 3. Fallback: Primeiro plantonista da sequência oficial configurada
+    const primeiroPlantonista = await prisma.plantonistas.findFirst({
+      orderBy: { posicao: "asc" },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            id_atendente: true,
+            zproId: true,
+            slackId: true
+          }
+        }
+      }
+    });
+
+    if (primeiroPlantonista) {
+      return {
+        id: primeiroPlantonista.id,
+        data: agora,
+        startTime: agora,
+        endTime: agora,
+        user: primeiroPlantonista.user,
+        plantao: primeiroPlantonista
+      };
+    }
+
+    // 4. Fallback final: último registro
+    return await prisma.registros.findFirst({
+      orderBy: [
+        { data: "desc" },
+        { startTime: "desc" }
+      ],
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            id_atendente: true,
+            zproId: true,
+            slackId: true
           }
         },
         plantao: true
@@ -91,9 +143,10 @@ export class RegistroRepository extends BaseRepository<Registros> {
     return await prisma.registros.findMany({
       skip,
       take,
-      orderBy: {
-        createdAt: "desc" // Alterado para 'desc' para que os novos apareçam no topo
-      },
+      orderBy: [
+        { data: "asc" },
+        { startTime: "asc" }
+      ],
       include: {
         user: {
           select: {

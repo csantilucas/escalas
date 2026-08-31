@@ -11,6 +11,7 @@ import tokenRoutes from "./tokenRoutes.js";
 
 const registerRoutes = (app: express.Application): void => {
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
   app.use((req, res, next) => {
     const envOrigins = (process.env.CORS_ORIGINS || process.env.TRUSTED_ORIGINS || "")
@@ -25,6 +26,8 @@ const registerRoutes = (app: express.Application): void => {
       try {
         const url = new URL(orig);
         const host = url.hostname;
+        const serverIp = process.env.SERVER_IP;
+        if (serverIp && (host === serverIp || orig.includes(serverIp))) return true;
         // Permite localhost e loopback
         if (host === "localhost" || host === "127.0.0.1") return true;
         // Permite faixas de IP locais de rede (192.168.x.x, 10.x.x.x, 172.16-31.x.x)

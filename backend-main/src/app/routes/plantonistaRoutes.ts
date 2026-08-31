@@ -7,8 +7,8 @@ const router = Router();
 const plantonista = new PlantonistaController();
 
 
-router.post("/", authMiddleware.auth, authMiddleware.authAdmin, plantonista.create);
-router.get("/", authMiddleware.auth,plantonista.getAll); 
-router.get("/user/:userId", authMiddleware.auth, authMiddleware.authAdmin, plantonista.getByUserId); 
+router.post("/", authMiddleware.auth, authMiddleware.authAdminOrGestor, plantonista.create);
+router.get("/", authMiddleware.auth, plantonista.getAll); 
+router.get("/user/:userId", authMiddleware.auth, plantonista.getByUserId); 
 
 export default router;

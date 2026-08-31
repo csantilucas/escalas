@@ -39,7 +39,7 @@ export class PlantonistaService {
   }
 
   async getPlantonistas() {
-    return await this.plantonista.findAllOrderedByRecent();
+    return await this.plantonista.findAllOrderedByPosicao();
   }
 
   async getPlantonistaByUserId(userId: string) {

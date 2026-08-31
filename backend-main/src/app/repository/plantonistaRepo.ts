@@ -37,6 +37,9 @@ export class PlantonistaRepository extends BaseRepository<Plantonistas> {
   async findAllOrderedByPosicao(): Promise<Plantonistas[]> {
     return await prisma.plantonistas.findMany({
       orderBy: { posicao: 'asc' }, // Traz na ordem: 0, 1, 2, 3...
+      include: {
+        user: true,
+      }
     });
   }
 }

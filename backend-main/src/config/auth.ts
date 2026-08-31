@@ -5,30 +5,45 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-if (!process.env.BETTER_AUTH_SECRET && !process.env.JWT_SECRET_ACCESS_TOKEN) {
-  throw new Error("Verifique a variável de ambiente BETTER_AUTH_SECRET ou JWT_SECRET_ACCESS_TOKEN");
-}
+const secret =
+  process.env.BETTER_AUTH_SECRET ||
+  process.env.JWT_SECRET_ACCESS_TOKEN ||
+  "default_auth_session_secret_key_12345";
 
-const secret = process.env.BETTER_AUTH_SECRET || process.env.JWT_SECRET_ACCESS_TOKEN!;
+const serverIp = process.env.SERVER_IP || process.env.HOST || "localhost";
+const backendPort = process.env.BACKEND_PORT || process.env.PORT || "3001";
+const frontendPort = process.env.FRONTEND_PORT || "5004";
+
 const baseURL =
   process.env.BETTER_AUTH_URL ||
-  `http://${process.env.HOST || "localhost"}:${process.env.PORT || 3001}`;
+  `http://${serverIp}:${backendPort}`;
 
-// Origens confiáveis carregadas via variável de ambiente (CORS_ORIGINS ou TRUSTED_ORIGINS)
-const envTrustedOrigins = (process.env.CORS_ORIGINS || process.env.TRUSTED_ORIGINS || "")
+// Origens confiáveis carregadas via variável de ambiente ou construídas a partir de IP/Porta
+const customOrigins = (process.env.CORS_ORIGINS || process.env.TRUSTED_ORIGINS || "")
   .split(",")
   .map((o) => o.trim())
   .filter(Boolean);
+
+const dynamicOrigins = [
+  `http://${serverIp}:${frontendPort}`,
+  `http://localhost:${frontendPort}`,
+  `http://127.0.0.1:${frontendPort}`,
+  `http://${serverIp}:${backendPort}`,
+  `http://localhost:${backendPort}`,
+  `http://127.0.0.1:${backendPort}`,
+];
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
   trustedOrigins: [
-    ...envTrustedOrigins,
+    ...new Set([...customOrigins, ...dynamicOrigins]),
     "http://192.168.*:*",
     "http://10.*:*",
     "http://172.*:*",
+    "http://localhost:*",
+    "http://127.0.0.1:*",
   ],
   emailAndPassword: {
     enabled: true,
@@ -44,29 +59,21 @@ export const auth = betterAuth({
       role: {
         type: "string",
         required: false,
-        defaultValue: "comum",
-        input: true,
-      },
-      typeUser: {
-        type: "string",
-        required: false,
         defaultValue: "atendente",
         input: true,
       },
-      isPlantonista: {
-        type: "boolean",
+      equipe: {
+        type: "string",
         required: false,
-        defaultValue: false,
-        input: true,
-      },
-      posicao: {
-        type: "number",
-        required: false,
-        defaultValue: 0,
         input: true,
       },
     },
   },
   secret,
   baseURL,
+  advanced: {
+    useSecureCookies: false,
+  },
 });
+
+export default auth;

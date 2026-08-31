@@ -38,10 +38,17 @@ export function CalendarEscala({ registros }: CalendarEscalaProps) {
     setCurrentDate(new Date(ano, mes + 1, 1));
   };
 
-  // Verifica quais registros caem em um dia específico do mês atual (usando fuso UTC para alinhar com o seu banco)
+  // Verifica quais registros caem em um dia específico do mês atual
   const obterPlantonistasDoDia = (dia: number) => {
     return registros.filter((reg) => {
       if (!reg.data) return false;
+      const match = typeof reg.data === "string" ? reg.data.match(/^(\d{4})-(\d{2})-(\d{2})/) : null;
+      if (match) {
+        const regAno = parseInt(match[1], 10);
+        const regMes = parseInt(match[2], 10) - 1;
+        const regDia = parseInt(match[3], 10);
+        return regAno === ano && regMes === mes && regDia === dia;
+      }
       const dataReg = new Date(reg.data);
       return (
         dataReg.getUTCFullYear() === ano &&
@@ -61,36 +68,35 @@ export function CalendarEscala({ registros }: CalendarEscalaProps) {
   }
 
   return (
-    <div className="w-full bg-zinc-900/40 border border-zinc-800/80 rounded-xl p-4 font-sans antialiased text-left select-none">
-      
+    <div className="w-full bg-zinc-900/40 border border-zinc-800 rounded-lg p-3.5 font-sans antialiased text-left select-none shadow-xs">
       {/* Cabeçalho do Calendário */}
-      <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
+      <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5 mb-3">
         <div className="flex items-center gap-2">
-          <CalendarIcon size={16} className="text-zinc-400" />
-          <h3 className="text-sm font-semibold text-zinc-100">
+          <CalendarIcon size={15} className="text-zinc-400" />
+          <h3 className="text-xs font-semibold text-zinc-100 uppercase tracking-wider">
             {mesesNome[mes]} de {ano}
           </h3>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={handlePrevMonth}
-            className="p-1 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-zinc-200 transition-all active:scale-95"
+            className="p-1 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
           >
-            <ChevronLeft size={16} />
+            <ChevronLeft size={15} />
           </button>
           <button
             onClick={handleNextMonth}
-            className="p-1 hover:bg-zinc-800 rounded-md text-zinc-400 hover:text-zinc-200 transition-all active:scale-95"
+            className="p-1 hover:bg-zinc-800 rounded text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
           >
-            <ChevronRight size={16} />
+            <ChevronRight size={15} />
           </button>
         </div>
       </div>
 
       {/* Cabeçalho dos Dias da Semana */}
-      <div className="grid grid-cols-7 gap-1 text-center mb-2">
+      <div className="grid grid-cols-7 gap-1 text-center mb-1.5">
         {diasSemana.map((dia) => (
-          <span key={dia} className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+          <span key={dia} className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">
             {dia}
           </span>
         ))}
@@ -110,16 +116,16 @@ export function CalendarEscala({ registros }: CalendarEscalaProps) {
             <div
               key={`dia-${dia}`}
               className={cn(
-                "h-10 rounded-lg border flex flex-col justify-between p-1 transition-all relative",
+                "h-10 rounded-md border flex flex-col justify-between p-1 transition-all relative",
                 temPlantao
-                  ? "bg-zinc-800/40 border-zinc-700/80 text-zinc-100"
-                  : "bg-zinc-950/20 border-zinc-800/50 text-zinc-500"
+                  ? "bg-zinc-800/40 border-zinc-700 text-zinc-100"
+                  : "bg-zinc-950/40 border-zinc-800/60 text-zinc-500"
               )}
             >
               {/* Número do Dia */}
               <span className={cn(
-                "text-xs font-semibold",
-                temPlantao ? "text-zinc-200" : "text-zinc-200"
+                "text-[11px] font-medium leading-none",
+                temPlantao ? "text-zinc-200 font-semibold" : "text-zinc-400"
               )}>
                 {dia}
               </span>
@@ -130,7 +136,7 @@ export function CalendarEscala({ registros }: CalendarEscalaProps) {
                   {plantonistas.slice(0, 1).map((p) => (
                     <span 
                       key={p.id} 
-                      className="text-[8px] bg-zinc-700 text-zinc-200 px-1 rounded truncate w-full text-center font-medium"
+                      className="text-[8px] bg-zinc-800 text-zinc-300 border border-zinc-700 px-1 rounded truncate w-full text-center font-medium"
                       title={p.user?.name}
                     >
                       {p.user?.name?.split(" ")[0]}

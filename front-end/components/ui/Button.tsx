@@ -4,19 +4,23 @@ import { cn } from "@/lib/utils";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   isLoading?: boolean;
-  variant?: "primary" | "secondary" | "outline";
+  variant?: "primary" | "secondary" | "outline" | "danger" | "ghost";
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, children, disabled, isLoading, variant = "primary", ...props }, ref) => {
     
     const variants = {
-      // Tom de cinza-grafite sólido para o botão principal
-      primary: "bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-semibold focus-visible:ring-zinc-300",
-      // Tom escuro sutil
-      secondary: "bg-zinc-900 hover:bg-zinc-850 text-zinc-200 border border-zinc-800 focus-visible:ring-zinc-800",
-      // Linha fina neutra
-      outline: "border border-zinc-800 hover:bg-zinc-900/50 text-zinc-400 hover:text-zinc-200 focus-visible:ring-zinc-800",
+      // Azul corporativo de alto contraste
+      primary: "bg-blue-600 hover:bg-blue-500 text-white font-semibold shadow-xs focus-visible:ring-blue-500",
+      // Tom neutro de superfície
+      secondary: "bg-zinc-800 hover:bg-zinc-750 text-zinc-100 border border-zinc-700/80 font-medium focus-visible:ring-zinc-500",
+      // Linha sutil
+      outline: "border border-zinc-800 hover:bg-zinc-800/60 text-zinc-300 hover:text-white font-medium focus-visible:ring-zinc-700",
+      // Ghost
+      ghost: "hover:bg-zinc-800/80 text-zinc-400 hover:text-zinc-100 font-medium focus-visible:ring-zinc-700",
+      // Exclusão / Perigo
+      danger: "bg-red-600 hover:bg-red-500 text-white font-semibold shadow-xs focus-visible:ring-red-500",
     };
 
     return (

@@ -32,14 +32,17 @@ export default function PlantonistasPage() {
     endTime: ""
   });
 
-  const isAdmin = user?.role === "admin" || user?.typeUser === "admin";
+  const role = String(user?.role || user?.typeUser || "").toLowerCase();
+  const isAdmin = role === "admin" || user?.role === "admin" || user?.typeUser === "admin";
+  const isGestor = role === "gestor" || user?.role === "gestor" || user?.typeUser === "gestor";
+  const canEdit = isAdmin || isGestor;
 
   async function carregarEscalas(page: number) {
     try {
       setLoading(true);
       const data = await registroService.list(page);
-      setRegistros(data.registros);
-      setTotalPaginas(data.pages);
+      setRegistros(data.registros || []);
+      setTotalPaginas(data.pages || 1);
       setPaginaAtual(page);
     } catch (error) {
       console.error(error);
@@ -49,11 +52,11 @@ export default function PlantonistasPage() {
   }
 
   useEffect(() => {
-    if (isAdmin) {
-      carregarEscalas(paginaAtual);
-      userService.listAll().then(setListaUsuarios).catch(console.error);
+    carregarEscalas(paginaAtual);
+    if (canEdit) {
+      userService.listAll().then(setListaUsuarios).catch(() => setListaUsuarios([]));
     }
-  }, [isAdmin, paginaAtual]);
+  }, [canEdit, paginaAtual]);
 
   // Handler disparado pelo clique do lápis dentro da tabela
   async function handleAbrirEdicao(escala: RegistroEscala) {
@@ -163,17 +166,6 @@ export default function PlantonistasPage() {
     } finally { setIsSubmitting(false); }
   }
 
-  if (!isAdmin) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-center select-none font-sans antialiased">
-        <div className="p-3 bg-red-950/10 border border-red-900/20 text-red-400 rounded-xl">
-          <ShieldAlert size={20} />
-        </div>
-        <h1 className="text-sm font-bold text-zinc-200">Acesso Restrito</h1>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-5 font-sans antialiased text-left select-none">
 
@@ -184,34 +176,41 @@ export default function PlantonistasPage() {
           <p className="text-xs text-zinc-500 font-medium">Gerencie e distribua as escalas de atendimento em fila</p>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <Button 
-            variant={activeCard === "vincular" ? "outline" : "secondary"} 
-            onClick={() => setActiveCard(activeCard === "vincular" ? null : "vincular")} 
-            className="flex items-center gap-1.5 px-3 h-[32px] text-xs font-semibold"
-          >
-            {activeCard === "vincular" ? <X size={12} /> : <UserPlus size={12} />} <span>Plantonista</span>
-          </Button>
-          <Button 
-            variant={activeCard === "gerar" ? "outline" : "secondary"} 
-            onClick={() => setActiveCard(activeCard === "gerar" ? null : "gerar")} 
-            className="flex items-center gap-1.5 px-3 h-[32px] text-xs font-semibold"
-          >
-            {activeCard === "gerar" ? <X size={12} /> : <CalendarRange size={12} />} <span>Gerar Loop</span>
-          </Button>
-          <Button 
-            variant={activeCard === "criar" ? "outline" : "primary"} 
-            onClick={() => setActiveCard(activeCard === "criar" ? null : "criar")} 
-            className="flex items-center gap-1.5 px-3 h-[32px] text-xs font-semibold"
-          >
-            {activeCard === "criar" ? <X size={12} /> : <Plus size={12} />} <span>Criar Escala</span>
-          </Button>
-        </div>
+        {canEdit ? (
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <Button 
+              variant={activeCard === "vincular" ? "outline" : "secondary"} 
+              onClick={() => setActiveCard(activeCard === "vincular" ? null : "vincular")} 
+              className="flex items-center gap-1.5 px-3 h-[32px] text-xs font-semibold cursor-pointer"
+            >
+              {activeCard === "vincular" ? <X size={12} /> : <UserPlus size={12} />} <span>Plantonista</span>
+            </Button>
+            <Button 
+              variant={activeCard === "gerar" ? "outline" : "secondary"} 
+              onClick={() => setActiveCard(activeCard === "gerar" ? null : "gerar")} 
+              className="flex items-center gap-1.5 px-3 h-[32px] text-xs font-semibold cursor-pointer"
+            >
+              {activeCard === "gerar" ? <X size={12} /> : <CalendarRange size={12} />} <span>Gerar Loop</span>
+            </Button>
+            <Button 
+              variant={activeCard === "criar" ? "outline" : "primary"} 
+              onClick={() => setActiveCard(activeCard === "criar" ? null : "criar")} 
+              className="flex items-center gap-1.5 px-3 h-[32px] text-xs font-semibold cursor-pointer"
+            >
+              {activeCard === "criar" ? <X size={12} /> : <Plus size={12} />} <span>Criar Escala</span>
+            </Button>
+          </div>
+        ) : (
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-zinc-800/80 border border-zinc-700/60 text-zinc-400">
+            <ShieldAlert className="w-3.5 h-3.5 text-zinc-400" />
+            Modo Leitura
+          </span>
+        )}
       </div>
 
       {/* Cards de Ação Rápidas */}
-      {activeCard && (
-        <div className="p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-xl animate-in slide-in-from-top-2 duration-200">
+      {canEdit && activeCard && (
+        <div className="p-4 bg-zinc-900/40 border border-zinc-800 rounded-lg shadow-xs">
           {activeCard === "vincular" && <VincularPlantonistaCard usuarios={listaUsuarios} isSubmitting={isSubmitting} onSubmit={onVincular} />}
           {activeCard === "gerar" && <GerarEscalaLoopCard isSubmitting={isSubmitting} onSubmit={onGerarLoop} />}
           {activeCard === "criar" && <CriarEscalaManualCard usuarios={listaUsuarios} isSubmitting={isSubmitting} onSubmit={onCriarManual} />}
@@ -219,11 +218,11 @@ export default function PlantonistasPage() {
       )}
 
       {/* Tabela de Escalas de Plantões */}
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <EscalaTable
           registros={registros}
           isLoading={loading}
-          isAdmin={true}
+          isAdmin={canEdit}
           onEditClick={handleAbrirEdicao}
           onDeleteClick={handleExcluirEscala}
         />
@@ -235,34 +234,33 @@ export default function PlantonistasPage() {
               <button 
                 onClick={() => setPaginaAtual(p => Math.max(p - 1, 1))} 
                 disabled={paginaAtual === 1 || loading} 
-                className="p-1.5 rounded-lg border border-zinc-800/80 bg-zinc-900/30 text-zinc-400 disabled:opacity-30 transition-all"
+                className="p-1.5 rounded-md border border-zinc-800 bg-zinc-900/40 text-zinc-400 disabled:opacity-30 transition-all cursor-pointer"
               >
-                <ChevronLeft size={15} />
+                <ChevronLeft size={14} />
               </button>
               <button 
                 onClick={() => setPaginaAtual(p => Math.min(p + 1, totalPaginas))} 
                 disabled={paginaAtual === totalPaginas || loading} 
-                className="p-1.5 rounded-lg border border-zinc-800/80 bg-zinc-900/30 text-zinc-400 disabled:opacity-30 transition-all"
+                className="p-1.5 rounded-md border border-zinc-800 bg-zinc-900/40 text-zinc-400 disabled:opacity-30 transition-all cursor-pointer"
               >
-                <ChevronRight size={15} />
+                <ChevronRight size={14} />
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* SEÇÃO DO CALENDÁRIO: (w-full)  */}
-      <div className="border-t border-zinc-800/80 pt-5 mt-2 flex flex-col gap-3">
+      {/* SEÇÃO DO CALENDÁRIO */}
+      <div className="border-t border-zinc-800 pt-4 mt-1 flex flex-col gap-2.5">
         <div className="flex flex-col gap-0.5 text-left">
-          <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+          <h2 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
             Distribuição Mensal
           </h2>
-          <p className="text-[11px] text-zinc-600 font-medium">
+          <p className="text-[11px] text-zinc-500">
             Visualização rápida das escalas programadas para o mês vigente
           </p>
         </div>
         
-        {/* w-full faz o calendário se esticar de ponta a ponta acompanhando a tabela */}
         <div className="w-full">
           <CalendarEscala registros={registros} />
         </div>
@@ -271,22 +269,22 @@ export default function PlantonistasPage() {
       {/* MODAL DE EDIÇÃO */}
       {escalaParaEditar && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4"
           onClick={() => setEscalaParaEditar(null)}
         >
           <div 
-            className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-150"
+            className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-lg shadow-xs overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="px-5 py-3 border-b border-zinc-850 bg-zinc-900/60 flex justify-between items-center">
-              <h3 className="text-xs font-semibold text-zinc-300">Editar Registro de Escala</h3>
+            <div className="px-4 py-2.5 border-b border-zinc-800 bg-zinc-900/80 flex justify-between items-center">
+              <h3 className="text-xs font-semibold text-zinc-200">Editar Registro de Escala</h3>
               <button 
                 type="button" 
                 onClick={() => setEscalaParaEditar(null)} 
-                className="text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="text-zinc-400 hover:text-white transition-colors cursor-pointer"
               >
-                <X size={16} />
+                <X size={15} />
               </button>
             </div>
 

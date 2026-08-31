@@ -20,6 +20,7 @@ import {
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { formatarData, formatarHora, formatarDiaSemana } from "@/lib/dateUtils";
 
 export default function RelatoriosEscalasPage() {
   const [escalas, setEscalas] = useState<any[]>([]);
@@ -45,7 +46,7 @@ export default function RelatoriosEscalasPage() {
       setLoading(true);
       const [escalasRes, usersRes] = await Promise.all([
         registroService.list(1),
-        userService.listAll(),
+        userService.listAll().catch(() => []),
       ]);
 
       if (escalasRes && escalasRes.registros) {
@@ -84,13 +85,13 @@ export default function RelatoriosEscalasPage() {
 
     const rows = escalasFiltradas.map((e, index) => ({
       "Nº": index + 1,
-      "Data": new Date(e.data || e.startTime).toLocaleDateString("pt-BR"),
-      "Dia da Semana": new Date(e.data || e.startTime).toLocaleDateString("pt-BR", { weekday: "long" }),
+      "Data": formatarData(e.data || e.startTime),
+      "Dia da Semana": formatarDiaSemana(e.data || e.startTime, "long"),
       "Plantonista": e.user?.name || "Não informado",
       "E-mail": e.user?.email || "-",
       "ID Atendente": e.user?.id_atendente || "-",
-      "Hora Início": e.startTime ? new Date(e.startTime).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "08:00",
-      "Hora Fim": e.endTime ? new Date(e.endTime).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "18:00",
+      "Hora Início": formatarHora(e.startTime),
+      "Hora Fim": formatarHora(e.endTime),
     }));
 
     const ws = XLSX.utils.json_to_sheet(rows);
@@ -117,15 +118,15 @@ export default function RelatoriosEscalasPage() {
 
     doc.setFontSize(10);
     doc.setTextColor(100, 116, 139);
-    doc.text(`Período de Referência: ${mesAno} | Gerado em: ${new Date().toLocaleDateString("pt-BR")}`, 14, 27);
+    doc.text(`Período de Referência: ${mesAno} | Gerado em: ${formatarData(new Date())}`, 14, 27);
 
     const tableData = escalasFiltradas.map((e, index) => [
       index + 1,
-      new Date(e.data || e.startTime).toLocaleDateString("pt-BR"),
-      new Date(e.data || e.startTime).toLocaleDateString("pt-BR", { weekday: "short" }),
+      formatarData(e.data || e.startTime),
+      formatarDiaSemana(e.data || e.startTime, "short"),
       e.user?.name || "Não informado",
-      e.startTime ? new Date(e.startTime).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "08:00",
-      e.endTime ? new Date(e.endTime).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "18:00",
+      formatarHora(e.startTime),
+      formatarHora(e.endTime),
       "Assinatura: __________________",
     ]);
 
@@ -204,17 +205,17 @@ export default function RelatoriosEscalasPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-4 max-w-7xl mx-auto font-sans antialiased text-left">
       {/* HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800/80 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/50 p-5 rounded-lg border border-zinc-800 shadow-xs">
         <div>
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-blue-500/10 border border-blue-500/20 rounded-xl text-blue-400">
-              <FileSpreadsheet className="w-6 h-6" />
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-blue-500/10 border border-blue-500/20 rounded-md text-blue-400">
+              <FileSpreadsheet className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-zinc-100">Central de Relatórios & Escalas</h1>
-              <p className="text-sm text-zinc-400">
+              <h1 className="text-base font-bold text-zinc-100">Central de Relatórios & Escalas</h1>
+              <p className="text-xs text-zinc-400 mt-0.5">
                 Exporte cronogramas de plantões em PDF e Excel ou importe escalas em lote.
               </p>
             </div>
@@ -224,7 +225,7 @@ export default function RelatoriosEscalasPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setImportModalOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-xl border border-zinc-700 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-md border border-zinc-700 transition-colors cursor-pointer shadow-xs"
           >
             <Upload className="w-3.5 h-3.5 text-blue-400" />
             <span>Importar em Lote</span>
@@ -232,7 +233,7 @@ export default function RelatoriosEscalasPage() {
 
           <button
             onClick={exportarExcel}
-            className="flex items-center gap-2 px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs font-semibold rounded-xl border border-emerald-500/30 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 text-xs font-semibold rounded-md border border-emerald-500/30 transition-colors cursor-pointer shadow-xs"
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
             <span>Excel (.xlsx)</span>
@@ -240,7 +241,7 @@ export default function RelatoriosEscalasPage() {
 
           <button
             onClick={exportarPDF}
-            className="flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-xl transition-all shadow-lg shadow-blue-600/20"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold rounded-md transition-all cursor-pointer shadow-xs"
           >
             <FileText className="w-3.5 h-3.5" />
             <span>PDF de Impressão</span>
@@ -250,49 +251,49 @@ export default function RelatoriosEscalasPage() {
 
       {/* FEEDBACKS */}
       {errorMsg && (
-        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center justify-between text-red-300 text-sm">
-          <div className="flex items-center gap-2.5">
+        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center justify-between text-red-300 text-xs">
+          <div className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
             <span>{errorMsg}</span>
           </div>
-          <button onClick={() => setErrorMsg(null)} className="text-red-400 hover:text-red-200">
+          <button onClick={() => setErrorMsg(null)} className="text-red-400 hover:text-red-200 cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
       {successMsg && (
-        <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between text-emerald-300 text-sm">
-          <div className="flex items-center gap-2.5">
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center justify-between text-emerald-300 text-xs">
+          <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{successMsg}</span>
           </div>
-          <button onClick={() => setSuccessMsg(null)} className="text-emerald-400 hover:text-emerald-200">
+          <button onClick={() => setSuccessMsg(null)} className="text-emerald-400 hover:text-emerald-200 cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
       {/* BARRA DE FILTROS */}
-      <div className="flex flex-col sm:flex-row items-center gap-4 bg-zinc-900/40 p-4 rounded-2xl border border-zinc-800">
+      <div className="flex flex-col sm:flex-row items-center gap-3 bg-zinc-900/40 p-3 rounded-lg border border-zinc-800 shadow-xs">
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Calendar className="w-4 h-4 text-blue-400" />
-          <span className="text-xs font-semibold text-zinc-300 whitespace-nowrap">Mês de Referência:</span>
+          <Calendar className="w-3.5 h-3.5 text-blue-400" />
+          <span className="text-xs font-medium text-zinc-300 whitespace-nowrap">Mês de Referência:</span>
           <input
             type="month"
             value={mesAno}
             onChange={(e) => setMesAno(e.target.value)}
-            className="px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
+            className="px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Users className="w-4 h-4 text-indigo-400" />
-          <span className="text-xs font-semibold text-zinc-300 whitespace-nowrap">Filtrar Plantonista:</span>
+          <Users className="w-3.5 h-3.5 text-indigo-400" />
+          <span className="text-xs font-medium text-zinc-300 whitespace-nowrap">Filtrar Plantonista:</span>
           <select
             value={filtroUsuario}
             onChange={(e) => setFiltroUsuario(e.target.value)}
-            className="px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
+            className="px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
           >
             <option value="ALL">Todos os Plantonistas</option>
             {usuarios.map((u) => (
@@ -309,10 +310,10 @@ export default function RelatoriosEscalasPage() {
       </div>
 
       {/* TABELA DE PRÉVIA */}
-      <div className="bg-zinc-900/40 border border-zinc-800 rounded-2xl p-5 space-y-4">
+      <div className="bg-zinc-900/40 border border-zinc-800 rounded-lg p-4 space-y-3 shadow-xs">
         <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
-          <h2 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
-            <Table className="w-4 h-4 text-blue-400" />
+          <h2 className="text-xs font-semibold text-zinc-100 flex items-center gap-1.5 uppercase tracking-wider">
+            <Table className="w-3.5 h-3.5 text-blue-400" />
             Prévia do Cronograma
           </h2>
         </div>
@@ -340,10 +341,10 @@ export default function RelatoriosEscalasPage() {
                   <tr key={item.id || idx} className="hover:bg-zinc-800/30">
                     <td className="py-3 px-4 font-mono text-zinc-500">{idx + 1}</td>
                     <td className="py-3 px-4 font-semibold text-zinc-100">
-                      {new Date(item.data || item.startTime).toLocaleDateString("pt-BR")}
+                      {formatarData(item.data || item.startTime)}
                     </td>
                     <td className="py-3 px-4 text-zinc-400 capitalize">
-                      {new Date(item.data || item.startTime).toLocaleDateString("pt-BR", { weekday: "long" })}
+                      {formatarDiaSemana(item.data || item.startTime, "long")}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
@@ -354,10 +355,10 @@ export default function RelatoriosEscalasPage() {
                       </div>
                     </td>
                     <td className="py-3 px-4 font-mono text-zinc-300">
-                      {item.startTime ? new Date(item.startTime).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "08:00"}
+                      {formatarHora(item.startTime)}
                     </td>
                     <td className="py-3 px-4 font-mono text-zinc-300">
-                      {item.endTime ? new Date(item.endTime).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "18:00"}
+                      {formatarHora(item.endTime)}
                     </td>
                     <td className="py-3 px-4">
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">

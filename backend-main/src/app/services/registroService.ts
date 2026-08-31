@@ -57,7 +57,7 @@ export class RegistroService {
     return novoRegistro;
   }
 
-  async getRegistros(page: number = 1, limit: number = 8): Promise<{ registros: any[]; total: number; pages: number }> {
+  async getRegistros(page: number = 1, limit: number = 15): Promise<{ registros: any[]; total: number; pages: number }> {
     const skip = (page - 1) * limit;
     const take = limit;
 

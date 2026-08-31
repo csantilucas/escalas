@@ -35,34 +35,37 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-zinc-950 select-none font-sans antialiased">
-      {/* 🟢 CONTAINER PRINCIPAL: Fundo cinza suave (bg-zinc-900/40) e bordas finas */}
-      <div className="w-full max-w-[360px] bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 flex flex-col gap-5 shadow-2xl">
+      <div className="w-full max-w-[360px] bg-zinc-900/50 border border-zinc-800 rounded-lg p-6 flex flex-col gap-5 shadow-xs">
         
-        {/* Identidade Minimalista */}
+        {/* Identidade Sóbria */}
         <div className="text-left">
-          {/* Logo um pouco maior e mais limpa */}
-          <h1 className="text-xl font-bold text-zinc-100 tracking-tight">
-            Alpha.
-          </h1>
-          <p className="text-zinc-500 text-xs mt-0.5 font-medium">
-            Acesse o painel de escalas
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center text-xs font-bold text-white">
+              α
+            </div>
+            <h1 className="text-base font-bold text-zinc-100 tracking-tight">
+              Alpha Escalas
+            </h1>
+          </div>
+          <p className="text-zinc-500 text-xs mt-1 font-medium">
+            Painel operacional de plantões e roteamento
           </p>
         </div>
 
         {/* Notificação de erro compacta */}
         {error && (
-          <div className="p-2.5 bg-red-950/20 border border-red-900/30 text-red-400 text-xs rounded-lg font-medium">
+          <div className="p-2.5 bg-red-950/30 border border-red-900/40 text-red-400 text-xs rounded-md font-medium">
             {error}
           </div>
         )}
 
-        {/* Formulário integrado com os novos tamanhos e comportamentos */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        {/* Formulário */}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
           <Input
             id="email"
-            label="E-mail"
+            label="E-mail corporativo"
             type="email"
-            placeholder="nome@empresa.com"
+            placeholder="nome@alphasoftware.com.br"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
@@ -70,7 +73,7 @@ export default function LoginPage() {
 
           <Input
             id="password"
-            label="Senha"
+            label="Senha de acesso"
             type="password"
             placeholder="••••••••"
             value={pass}
@@ -80,17 +83,17 @@ export default function LoginPage() {
 
           <Button 
             type="submit" 
-            className="w-full mt-1.5 h-[36px] text-xs font-semibold" 
+            className="w-full mt-1 h-[36px] text-xs font-semibold" 
             isLoading={isLoading}
           >
-            Entrar
+            Acessar painel
           </Button>
         </form>
 
         {/* Rodapé de Ajuda Neutro */}
-        <div className="text-center pt-1 border-t border-zinc-800/60">
-          <p className="text-[11px] font-medium text-zinc-500 hover:text-zinc-400 transition-colors cursor-pointer">
-            Esqueceu seus dados? Contate o suporte.
+        <div className="text-center pt-2 border-t border-zinc-800/80">
+          <p className="text-[11px] font-medium text-zinc-500">
+            Acesso restrito à equipe autorizada.
           </p>
         </div>
 

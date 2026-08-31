@@ -8,6 +8,7 @@ import {
   MembroEquipe,
   TurnoTrabalho,
 } from "@/services";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Users,
   Plus,
@@ -23,9 +24,20 @@ import {
   AlertCircle,
   X,
   Layers,
+  ShieldAlert,
 } from "lucide-react";
 
 export default function EquipesPage() {
+  const { user } = useAuth();
+  const role = String(user?.role || user?.typeUser || "").toLowerCase();
+  const canEdit =
+    role === "admin" ||
+    role === "gestor" ||
+    user?.role === "admin" ||
+    user?.role === "gestor" ||
+    user?.typeUser === "admin" ||
+    user?.typeUser === "gestor";
+
   const [equipes, setEquipes] = useState<EquipePlantao[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,10 +76,10 @@ export default function EquipesPage() {
       setLoading(true);
       const [equipesData, usersData] = await Promise.all([
         equipeService.getAll(),
-        userService.getAll(),
+        userService.getAll().catch(() => []),
       ]);
-      setEquipes(equipesData);
-      setUsuarios(usersData);
+      setEquipes(equipesData || []);
+      setUsuarios(usersData || []);
     } catch (err: any) {
       setErrorMsg(err.message || "Erro ao carregar equipes.");
     } finally {
@@ -259,13 +271,20 @@ export default function EquipesPage() {
           </div>
         </div>
 
-        <button
-          onClick={openCreateEquipeModal}
-          className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-600/20 active:scale-95 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Nova Equipe</span>
-        </button>
+        {canEdit ? (
+          <button
+            onClick={openCreateEquipeModal}
+            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-blue-600/20 active:scale-95 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Nova Equipe</span>
+          </button>
+        ) : (
+          <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-zinc-800/80 border border-zinc-700/60 text-zinc-400">
+            <ShieldAlert className="w-3.5 h-3.5 text-zinc-400" />
+            Modo Leitura
+          </span>
+        )}
       </div>
 
       {/* FEEDBACKS */}
@@ -295,153 +314,155 @@ export default function EquipesPage() {
 
       {/* LISTAGEM DE EQUIPES */}
       {loading ? (
-        <div className="flex items-center justify-center p-12 text-zinc-400">
-          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-3" />
+        <div className="flex items-center justify-center p-12 text-zinc-400 text-xs">
+          <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-2" />
           Carregando equipes...
         </div>
       ) : equipes.length === 0 ? (
-        <div className="p-12 text-center bg-zinc-900/30 border border-zinc-800 rounded-2xl text-zinc-500">
-          <Layers className="w-12 h-12 mx-auto mb-3 text-zinc-600" />
-          <p className="font-semibold text-zinc-300">Nenhuma equipe cadastrada ainda</p>
-          <p className="text-xs text-zinc-500 mt-1">
-            Clique no botão acima para cadastrar a primeira equipe (ex: N1 - Suporte).
-          </p>
+        <div className="p-12 text-center border border-zinc-800 rounded-lg bg-zinc-900/20">
+          <Users className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+          <p className="text-zinc-400 text-sm font-semibold">Nenhuma equipe cadastrada ainda.</p>
+          {canEdit && (
+            <p className="text-zinc-500 text-xs mt-0.5">
+              Clique no botão acima para criar sua primeira equipe de atendimento.
+            </p>
+          )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6">
+        <div className="space-y-4">
           {equipes.map((equipe) => (
             <div
               key={equipe.id}
-              className="bg-zinc-900/40 border border-zinc-800/80 rounded-2xl p-6 transition-all hover:border-zinc-700/80"
+              className="bg-zinc-900/40 border border-zinc-800 rounded-lg p-5 shadow-xs space-y-4"
             >
-              {/* TOPO DO CARD DA EQUIPE */}
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-zinc-800/60">
+              {/* CABEÇALHO DO CARD DA EQUIPE */}
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-zinc-800">
                 <div className="flex items-start gap-3">
                   <div
-                    className="w-4 h-12 rounded-full shrink-0"
+                    className="w-2.5 h-10 rounded-full shrink-0"
                     style={{ backgroundColor: equipe.cor || "#3B82F6" }}
                   />
                   <div>
-                    <div className="flex items-center gap-2.5 flex-wrap">
-                      <h2 className="text-lg font-bold text-zinc-100">{equipe.nome}</h2>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-sm font-bold text-zinc-100">{equipe.nome}</h2>
                       {equipe.queueId !== null && (
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 border border-blue-500/30 text-blue-400">
-                          Fila Z-PRO #{equipe.queueId} ({equipe.queueName || "Padrão"})
+                        <span className="px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-blue-500/10 border border-blue-500/20 text-blue-400">
+                          Fila #{equipe.queueId} {equipe.queueName ? `(${equipe.queueName})` : ""}
                         </span>
                       )}
                       {equipe.isFallback && (
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-400">
-                          ⭐ Fila Padrão (Fallback)
+                        <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400">
+                          Fallback
                         </span>
                       )}
-                      <span
-                        className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                          equipe.ativo
-                            ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400"
-                            : "bg-zinc-800 text-zinc-500"
-                        }`}
-                      >
-                        {equipe.ativo ? "Ativa" : "Inativa"}
-                      </span>
+                      {!equipe.ativo && (
+                        <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-red-500/10 border border-red-500/20 text-red-400">
+                          Inativa
+                        </span>
+                      )}
                     </div>
                     {equipe.descricao && (
-                      <p className="text-xs text-zinc-400 mt-1">{equipe.descricao}</p>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">{equipe.descricao}</p>
                     )}
 
                     {/* DEPARTAMENTOS MAPEADOS */}
-                    <div className="flex items-center gap-1.5 mt-2.5 flex-wrap">
-                      <Tag className="w-3.5 h-3.5 text-zinc-500" />
-                      <span className="text-xs text-zinc-500 mr-1">Deptos:</span>
+                    <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+                      <Tag className="w-3 h-3 text-zinc-500" />
+                      <span className="text-[11px] text-zinc-500 mr-1">Deptos:</span>
                       {equipe.departamentos && equipe.departamentos.length > 0 ? (
                         equipe.departamentos.map((dep, idx) => (
                           <span
                             key={idx}
-                            className="px-2 py-0.5 rounded-md text-[11px] bg-zinc-800/80 border border-zinc-700/60 text-zinc-300 font-mono"
+                            className="px-1.5 py-0.2 rounded text-[10px] bg-zinc-800 border border-zinc-700 text-zinc-300 font-mono"
                           >
                             {dep}
                           </span>
                         ))
                       ) : (
-                        <span className="text-xs text-zinc-600 italic">Nenhum departamento cadastrado</span>
+                        <span className="text-[11px] text-zinc-600 italic">Nenhum departamento cadastrado</span>
                       )}
                     </div>
                   </div>
                 </div>
 
                 {/* AÇÕES DA EQUIPE */}
-                <div className="flex items-center gap-2 self-end lg:self-center">
-                  <button
-                    onClick={() => openAddMembroModal(equipe)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-xl border border-zinc-700/60 transition-colors"
-                  >
-                    <UserPlus className="w-3.5 h-3.5 text-blue-400" />
-                    <span>Adicionar Membro</span>
-                  </button>
-                  <button
-                    onClick={() => openEditEquipeModal(equipe)}
-                    className="p-2 bg-zinc-800/60 hover:bg-zinc-800 text-zinc-300 hover:text-zinc-100 rounded-xl border border-zinc-700/40 transition-colors"
-                    title="Editar Equipe"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteEquipe(equipe.id, equipe.nome)}
-                    className="p-2 bg-zinc-800/60 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 rounded-xl border border-zinc-700/40 transition-colors"
-                    title="Excluir Equipe"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                {canEdit && (
+                  <div className="flex items-center gap-1.5 self-end lg:self-center">
+                    <button
+                      onClick={() => openAddMembroModal(equipe)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-md border border-zinc-700 transition-colors cursor-pointer shadow-xs"
+                    >
+                      <UserPlus className="w-3.5 h-3.5 text-blue-400" />
+                      <span>Adicionar Membro</span>
+                    </button>
+                    <button
+                      onClick={() => openEditEquipeModal(equipe)}
+                      className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white rounded-md border border-zinc-700 transition-colors cursor-pointer"
+                      title="Editar Equipe"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteEquipe(equipe.id, equipe.nome)}
+                      className="p-1.5 bg-zinc-800 hover:bg-red-500/20 text-zinc-400 hover:text-red-400 rounded-md border border-zinc-700 transition-colors cursor-pointer"
+                      title="Excluir Equipe"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* LISTA DE MEMBROS DA EQUIPE */}
-              <div className="mt-4">
-                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">
+              <div className="mt-3">
+                <h3 className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider mb-2.5">
                   Membros & Turnos de Trabalho ({equipe.membros?.length || 0})
                 </h3>
 
                 {!equipe.membros || equipe.membros.length === 0 ? (
-                  <div className="p-4 bg-zinc-950/40 border border-dashed border-zinc-800 rounded-xl text-center text-xs text-zinc-500">
-                    Nenhum membro vinculado a esta equipe. Clique em &quot;Adicionar Membro&quot; para configurar a escala.
+                  <div className="p-3 bg-zinc-950/40 border border-zinc-800 rounded-md text-center text-xs text-zinc-500">
+                    Nenhum membro vinculado a esta equipe.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5">
                     {equipe.membros
                       .sort((a, b) => (a.ordemSequencial || 0) - (b.ordemSequencial || 0))
                       .map((membro) => (
                         <div
                           key={membro.id}
-                          className="bg-zinc-950/60 border border-zinc-800/80 rounded-xl p-3.5 flex flex-col justify-between gap-3 relative group hover:border-zinc-700"
+                          className="bg-zinc-950 border border-zinc-800 rounded-md p-3 flex flex-col justify-between gap-2.5 shadow-xs"
                         >
                           <div>
                             <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <span className="w-5 h-5 rounded-full bg-zinc-800 text-[10px] font-bold text-zinc-300 flex items-center justify-center border border-zinc-700">
+                              <div className="flex items-center gap-1.5">
+                                <span className="w-4 h-4 rounded-full bg-zinc-800 text-[9px] font-bold text-zinc-300 flex items-center justify-center border border-zinc-700">
                                   {membro.ordemSequencial}
                                 </span>
-                                <span className="font-semibold text-sm text-zinc-200 truncate">
+                                <span className="font-semibold text-xs text-zinc-200 truncate">
                                   {membro.user.name}
                                 </span>
                               </div>
 
-                              <div className="flex items-center gap-1">
-                                <button
-                                  onClick={() => openEditMembroModal(equipe, membro)}
-                                  className="p-1 text-zinc-400 hover:text-zinc-200"
-                                  title="Editar Membro"
-                                >
-                                  <Edit2 className="w-3.5 h-3.5" />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    handleDesvincularMembro(equipe.id, membro.userId, membro.user.name)
-                                  }
-                                  className="p-1 text-zinc-500 hover:text-red-400"
-                                  title="Desvincular Membro"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
+                              {canEdit && (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => openEditMembroModal(equipe, membro)}
+                                    className="p-1 text-zinc-400 hover:text-zinc-200 cursor-pointer"
+                                    title="Editar Membro"
+                                  >
+                                    <Edit2 className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      handleDesvincularMembro(equipe.id, membro.userId, membro.user.name)
+                                    }
+                                    className="p-1 text-zinc-500 hover:text-red-400 cursor-pointer"
+                                    title="Desvincular Membro"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
 
                             <div className="flex items-center gap-2 mt-1.5 text-xs text-zinc-500">

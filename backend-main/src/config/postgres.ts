@@ -22,22 +22,21 @@ const user = process.env.POSTGRES_USER;
 const password = process.env.POSTGRES_PASSWORD;
 const host = process.env.POSTGRES_HOST;
 const dbName = process.env.POSTGRES_DB;
+const port = process.env.POSTGRES_PORT || "5432";
 
 const connectionString =
   process.env.DATABASE_URL ||
-  `postgresql://${user}:${password}@${host}:5432/${dbName}?schema=public`;
+  `postgresql://${user}:${password}@${host}:${port}/${dbName}?schema=public`;
 
 const adapter = new PrismaPg({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 export async function connectPostgres() {
-
   try {
     await prisma.$connect();
     console.log("PostgreSQL conectado");
     return prisma;
-  }
-  catch (error) {
+  } catch (error) {
     console.error("❌ Erro ao conectar no banco de dados:", error);
     process.exit(1);
   }

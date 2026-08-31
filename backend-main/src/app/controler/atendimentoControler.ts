@@ -1,6 +1,32 @@
 import type { Request, Response } from "express";
 import { atendimentoService } from "../../containers/atendimento.container.js";
 
+function parseFilterStartDate(dateStr?: any): Date | undefined {
+  if (!dateStr) return undefined;
+  const str = String(dateStr).trim();
+  if (!str) return undefined;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return new Date(`${str}T00:00:00.000Z`);
+  }
+  const d = new Date(str);
+  return isNaN(d.getTime()) ? undefined : d;
+}
+
+function parseFilterEndDate(dateStr?: any): Date | undefined {
+  if (!dateStr) return undefined;
+  const str = String(dateStr).trim();
+  if (!str) return undefined;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return new Date(`${str}T23:59:59.999Z`);
+  }
+  const d = new Date(str);
+  if (isNaN(d.getTime())) return undefined;
+  if (d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0) {
+    d.setUTCHours(23, 59, 59, 999);
+  }
+  return d;
+}
+
 export class AtendimentoController {
   // 1. Criar Atendimento Inicial (n8n)
   create = async (req: Request, res: Response): Promise<Response> => {
@@ -92,8 +118,8 @@ export class AtendimentoController {
         atendente: atendente ? String(atendente) : undefined,
         busca: busca ? String(busca) : undefined,
         sincronizado: sincronizado !== undefined ? sincronizado === "true" : undefined,
-        dataInicio: dataInicio ? new Date(String(dataInicio)) : undefined,
-        dataFim: dataFim ? new Date(String(dataFim)) : undefined,
+        dataInicio: parseFilterStartDate(dataInicio),
+        dataFim: parseFilterEndDate(dataFim),
       };
 
       const result = await atendimentoService.getAtendimentos(filters);
@@ -111,8 +137,8 @@ export class AtendimentoController {
 
       const filters = {
         atendente: atendente ? String(atendente) : undefined,
-        dataInicio: dataInicio ? new Date(String(dataInicio)) : undefined,
-        dataFim: dataFim ? new Date(String(dataFim)) : undefined,
+        dataInicio: parseFilterStartDate(dataInicio),
+        dataFim: parseFilterEndDate(dataFim),
       };
 
       const result = await atendimentoService.getMetrics(filters);
@@ -134,8 +160,8 @@ export class AtendimentoController {
         limit: limit ? Number(limit) : undefined,
         busca: busca ? String(busca) : undefined,
         sincronizado: sincronizado !== undefined ? sincronizado === "true" : undefined,
-        dataInicio: dataInicio ? new Date(String(dataInicio)) : undefined,
-        dataFim: dataFim ? new Date(String(dataFim)) : undefined,
+        dataInicio: parseFilterStartDate(dataInicio),
+        dataFim: parseFilterEndDate(dataFim),
       };
 
       const result = await atendimentoService.getAtendimentosPorAnalista(String(analista), filters);

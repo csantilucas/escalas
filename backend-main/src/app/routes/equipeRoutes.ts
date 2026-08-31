@@ -6,16 +6,16 @@ const router = Router();
 const equipeController = new EquipeController();
 
 // CRUD Equipes de Plantão
-router.post("/", authMiddleware.auth, authMiddleware.authAdmin, equipeController.create);
+router.post("/", authMiddleware.auth, authMiddleware.authAdminOrGestor, equipeController.create);
 router.get("/", authMiddleware.auth, equipeController.getAll);
 router.get("/:id", authMiddleware.auth, equipeController.getById);
-router.put("/:id", authMiddleware.auth, authMiddleware.authAdmin, equipeController.update);
-router.delete("/:id", authMiddleware.auth, authMiddleware.authAdmin, equipeController.delete);
+router.put("/:id", authMiddleware.auth, authMiddleware.authAdminOrGestor, equipeController.update);
+router.delete("/:id", authMiddleware.auth, authMiddleware.authAdminOrGestor, equipeController.delete);
 
 // Vínculo e Gerenciamento de Membros na Equipe
-router.post("/:id/membros", authMiddleware.auth, authMiddleware.authAdmin, equipeController.vincularMembro);
-router.post("/vincular", authMiddleware.auth, authMiddleware.authAdmin, equipeController.vincularMembro);
-router.delete("/:id/membros/:userId", authMiddleware.auth, authMiddleware.authAdmin, equipeController.desvincularMembro);
-router.patch("/:id/membros/:userId", authMiddleware.auth, authMiddleware.authAdmin, equipeController.updateMembro);
+router.post("/:id/membros", authMiddleware.auth, authMiddleware.authAdminOrGestor, equipeController.vincularMembro);
+router.post("/vincular", authMiddleware.auth, authMiddleware.authAdminOrGestor, equipeController.vincularMembro);
+router.delete("/:id/membros/:userId", authMiddleware.auth, authMiddleware.authAdminOrGestor, equipeController.desvincularMembro);
+router.patch("/:id/membros/:userId", authMiddleware.auth, authMiddleware.authAdminOrGestor, equipeController.updateMembro);
 
 export default router;

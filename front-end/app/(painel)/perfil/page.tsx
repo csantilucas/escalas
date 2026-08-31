@@ -1,8 +1,11 @@
+// src/app/perfil/page.tsx
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, FormEvent } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { registroService, atendimentoService, AtendimentoModel } from "@/services";
+import { registroService, atendimentoService, userService, AtendimentoModel } from "@/services";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 import {
   User,
   Calendar,
@@ -15,14 +18,30 @@ import {
   ChevronLeft,
   ChevronRight,
   Hash,
+  Edit2,
+  X,
+  AlertCircle,
+  KeyRound,
 } from "lucide-react";
+import { formatarData, formatarHora, formatarDiaSemana, formatarDataHora } from "@/lib/dateUtils";
 
 export default function PerfilPage() {
-  const { user } = useAuth();
+  const { user, refreshSession } = useAuth();
   const [escalas, setEscalas] = useState<any[]>([]);
   const [atendimentos, setAtendimentos] = useState<AtendimentoModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [mesSelecionado, setMesSelecionado] = useState(new Date());
+
+  // Estados para Modal de Edição de Perfil
+  const [modalEditOpen, setModalEditOpen] = useState(false);
+  const [nome, setNome] = useState("");
+  const [email, setEmail] = useState("");
+  const [senhaAtual, setSenhaAtual] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const carregarDadosUsuario = async () => {
     try {
@@ -53,6 +72,53 @@ export default function PerfilPage() {
   useEffect(() => {
     carregarDadosUsuario();
   }, [user]);
+
+  function handleOpenEdit() {
+    setNome(user?.name || "");
+    setEmail(user?.email || "");
+    setSenhaAtual("");
+    setNovaSenha("");
+    setConfirmarSenha("");
+    setErrorMsg(null);
+    setSuccessMsg(null);
+    setModalEditOpen(true);
+  }
+
+  async function handleSalvarPerfil(e: FormEvent) {
+    e.preventDefault();
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    if (!nome.trim() || !email.trim()) {
+      setErrorMsg("Nome e e-mail são obrigatórios.");
+      return;
+    }
+
+    if (novaSenha && novaSenha !== confirmarSenha) {
+      setErrorMsg("A nova senha e a confirmação não conferem.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await userService.updateProfile({
+        name: nome.trim(),
+        email: email.toLowerCase().trim(),
+        pass: novaSenha ? novaSenha.trim() : undefined,
+      });
+
+      await refreshSession();
+      setSuccessMsg("Seu perfil foi atualizado com sucesso!");
+      setTimeout(() => {
+        setModalEditOpen(false);
+        setSuccessMsg(null);
+      }, 1500);
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.error || err.message || "Erro ao atualizar perfil.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   // Filtra as escalas pertencentes ao usuário logado
   const minhasEscalas = useMemo(() => {
@@ -113,23 +179,31 @@ export default function PerfilPage() {
     setMesSelecionado((prev) => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
   };
 
+  const roleAuth = String(user?.role || user?.typeUser || "").toLowerCase();
+  const roleLabel =
+    roleAuth === "admin"
+      ? "Administrador"
+      : roleAuth === "gestor"
+      ? "Gestor"
+      : "Usuário Comum";
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-300">
       {/* HEADER DE PERFIL */}
       <div className="bg-gradient-to-r from-zinc-900 via-zinc-900/80 to-zinc-900/50 p-6 rounded-2xl border border-zinc-800 backdrop-blur-md">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-2xl font-bold text-white shadow-xl shadow-blue-500/20 border border-blue-400/30">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-2xl font-bold text-white shadow-xl shadow-blue-500/20 border border-blue-400/30 shrink-0">
               {user?.name ? user.name.substring(0, 2).toUpperCase() : "US"}
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-2xl font-bold text-zinc-100">{user?.name || "Usuário"}</h1>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/10 border border-rose-500/30 text-rose-400 capitalize">
-                  {user?.role === "admin" ? "Administrador" : "Usuário Comum"}
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 border border-blue-500/30 text-blue-400 capitalize">
+                  {roleLabel}
                 </span>
                 <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 capitalize">
-                  {user?.typeUser === "atendente" ? "Atendente" : "Comum"}
+                  {user?.typeUser === "atendente" ? "Atendente" : "Geral"}
                 </span>
               </div>
               <p className="text-sm text-zinc-400 mt-1">{user?.email || "Sem e-mail"}</p>
@@ -141,32 +215,133 @@ export default function PerfilPage() {
             </div>
           </div>
 
-          {/* CARD DE PRÓXIMO PLANTÃO */}
-          <div className="p-4 bg-zinc-950/70 border border-zinc-800 rounded-xl sm:min-w-[260px]">
-            <div className="flex items-center gap-2 text-xs font-semibold text-zinc-400 mb-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>Próximo Plantão Agendado</span>
-            </div>
-            {proximoPlantao ? (
-              <div>
-                <p className="text-sm font-bold text-emerald-400">
-                  {new Date(proximoPlantao.data || proximoPlantao.startTime).toLocaleDateString("pt-BR", {
-                    weekday: "short",
-                    day: "2-digit",
-                    month: "short",
-                  })}
-                </p>
-                <p className="text-xs text-zinc-400 mt-0.5">
-                  Horário: {proximoPlantao.startTime ? new Date(proximoPlantao.startTime).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "08:00"} às{" "}
-                  {proximoPlantao.endTime ? new Date(proximoPlantao.endTime).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "18:00"}
-                </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            {/* BOTÃO EDITAR PERFIL */}
+            <Button
+              onClick={handleOpenEdit}
+              variant="outline"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md cursor-pointer"
+            >
+              <Edit2 size={13} className="text-blue-400" />
+              <span>Editar Meus Dados</span>
+            </Button>
+
+            {/* CARD DE PRÓXIMO PLANTÃO */}
+            <div className="p-3 bg-zinc-950 border border-zinc-800 rounded-md sm:min-w-[220px] shadow-xs">
+              <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-400 mb-1">
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                <span>Próximo Plantão</span>
               </div>
-            ) : (
-              <p className="text-xs text-zinc-500 italic">Nenhum plantão futuro agendado.</p>
-            )}
+              {proximoPlantao ? (
+                <div>
+                  <p className="text-xs font-bold text-emerald-400">
+                    {formatarDiaSemana(proximoPlantao.data || proximoPlantao.startTime, "short")}, {formatarData(proximoPlantao.data || proximoPlantao.startTime)}
+                  </p>
+                  <p className="text-[11px] text-zinc-400 mt-0.5">
+                    Horário: {formatarHora(proximoPlantao.startTime)} às {formatarHora(proximoPlantao.endTime)}
+                  </p>
+                </div>
+              ) : (
+                <p className="text-[11px] text-zinc-500 italic">Nenhum plantão agendado.</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* MODAL DE EDIÇÃO DE PERFIL */}
+      {modalEditOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg max-w-lg w-full p-5 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-blue-500/10 border border-blue-500/20 rounded-md text-blue-400">
+                  <User className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-zinc-100">Editar Meu Perfil</h2>
+                  <p className="text-[11px] text-zinc-400">Atualize seus dados cadastrais e senha de acesso.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setModalEditOpen(false)}
+                className="p-1 rounded text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {errorMsg && (
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-2 text-red-400 text-xs">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
+
+            {successMsg && (
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center gap-2 text-emerald-400 text-xs">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{successMsg}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSalvarPerfil} className="space-y-4">
+              <Input
+                label="Nome Completo *"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                disabled={submitting}
+              />
+              <Input
+                label="E-mail *"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={submitting}
+              />
+
+              <div className="pt-2 border-t border-zinc-800 space-y-3">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400">
+                  <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Alterar Senha (Opcional)</span>
+                </div>
+                <Input
+                  label="Nova Senha (deixe em branco se não desejar alterar)"
+                  type="password"
+                  placeholder="••••••••"
+                  value={novaSenha}
+                  onChange={(e) => setNovaSenha(e.target.value)}
+                  disabled={submitting}
+                />
+                {novaSenha && (
+                  <Input
+                    label="Confirmar Nova Senha *"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmarSenha}
+                    onChange={(e) => setConfirmarSenha(e.target.value)}
+                    disabled={submitting}
+                  />
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-zinc-800">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setModalEditOpen(false)}
+                  className="px-4 text-xs cursor-pointer"
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" isLoading={submitting} className="px-5 text-xs cursor-pointer">
+                  Salvar Alterações
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* MÉTRICAS RÁPIDAS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -194,7 +369,7 @@ export default function PerfilPage() {
           <div>
             <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Nível de Acesso</p>
             <p className="text-2xl font-bold text-indigo-400 mt-1 capitalize">
-              {user?.role === "admin" ? "Administrador" : "Usuário Comum"}
+              {roleLabel}
             </p>
           </div>
           <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400">
@@ -215,14 +390,14 @@ export default function PerfilPage() {
             <div className="flex items-center gap-1">
               <button
                 onClick={() => mudarMes(-1)}
-                className="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+                className="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors cursor-pointer"
                 title="Mês anterior"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
               <button
                 onClick={() => mudarMes(1)}
-                className="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors"
+                className="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 transition-colors cursor-pointer"
                 title="Próximo mês"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -258,7 +433,7 @@ export default function PerfilPage() {
           </div>
 
           <div className="flex items-center gap-2 text-xs text-zinc-400 pt-2 border-t border-zinc-800/60">
-            <div className="w-3 h-3 rounded-full bg-emerald-500/30 border border-emerald-500/50" />
+            <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/30 border border-emerald-500/50" />
             <span>Dias com seus plantões</span>
           </div>
         </div>
@@ -287,17 +462,11 @@ export default function PerfilPage() {
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-zinc-200">
-                        {new Date(esc.data || esc.startTime).toLocaleDateString("pt-BR", {
-                          weekday: "long",
-                          day: "2-digit",
-                          month: "long",
-                          year: "numeric",
-                        })}
+                        {formatarDiaSemana(esc.data || esc.startTime, "long")}, {formatarData(esc.data || esc.startTime)}
                       </p>
                       <p className="text-xs text-zinc-400 flex items-center gap-1.5 mt-0.5">
                         <Clock className="w-3 h-3 text-zinc-500" />
-                        {esc.startTime ? new Date(esc.startTime).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "08:00"} até{" "}
-                        {esc.endTime ? new Date(esc.endTime).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "18:00"}
+                        {formatarHora(esc.startTime)} até {formatarHora(esc.endTime)}
                       </p>
                     </div>
                   </div>
@@ -342,7 +511,7 @@ export default function PerfilPage() {
                   <tr key={item.id} className="hover:bg-zinc-800/30">
                     <td className="py-3 px-4 font-mono">
                       <p className="font-semibold text-zinc-100">{item.protocolo || "Sem Protocolo"}</p>
-                      <p className="text-[10px] text-zinc-500">{new Date(item.createdAt).toLocaleString("pt-BR")}</p>
+                      <p className="text-[10px] text-zinc-500">{formatarDataHora(item.createdAt)}</p>
                     </td>
                     <td className="py-3 px-4">
                       <p className="font-medium text-zinc-200">{item.nomeContato || "Não identificado"}</p>

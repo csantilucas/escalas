@@ -23,6 +23,7 @@ import {
   PieChart,
   Users
 } from "lucide-react";
+import { formatarDataHora } from "@/lib/dateUtils";
 
 export default function AtendimentosPage() {
   const [atendimentos, setAtendimentos] = useState<AtendimentoModel[]>([]);
@@ -107,128 +108,124 @@ export default function AtendimentosPage() {
   };
 
   return (
-    <div className="p-6 max-w-[1600px] mx-auto space-y-6 text-zinc-100 font-sans">
+    <div className="p-4 max-w-[1600px] mx-auto space-y-4 text-zinc-100 font-sans antialiased text-left">
       {/* 🟢 CABEÇALHO */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-100">
+          <h1 className="text-base font-bold tracking-tight text-zinc-100">
             Painel Geral de Atendimentos
           </h1>
-          <p className="text-sm text-zinc-400 mt-1">
-            Métricas consolidadas e relatórios por analistas ZPro & Tomticket.
+          <p className="text-xs text-zinc-400 mt-0.5">
+            Métricas consolidadas e relatórios operacionais Z-PRO & Tomticket.
           </p>
         </div>
         <button
           onClick={fetchData}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-zinc-800 border border-zinc-700/80 rounded-lg text-sm font-medium hover:bg-zinc-700/80 hover:text-white transition-all active:scale-95 disabled:opacity-50 self-start md:self-auto"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 border border-zinc-700 rounded-lg text-xs font-semibold hover:bg-zinc-700 hover:text-white transition-all disabled:opacity-50 self-start sm:self-auto cursor-pointer shadow-xs"
         >
-          <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+          <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
           Atualizar Dados
         </button>
       </div>
 
-      {/* 🟢 BLOCOS DE CARDS KPI (VINDOS DO BANCO DE DADOS) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 bg-zinc-900/60 border border-zinc-800/80 rounded-xl flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Total Registrados</p>
-            <p className="text-2xl font-bold text-zinc-100">{m.total}</p>
-            <span className="text-[11px] text-zinc-500">Base completa filtrada</span>
+      {/* 🟢 BLOCOS DE CARDS KPI */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="p-3.5 bg-zinc-900/50 border border-zinc-800 rounded-lg flex items-center justify-between shadow-xs">
+          <div className="space-y-0.5">
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Total Registrados</p>
+            <p className="text-xl font-bold text-zinc-100">{m.total}</p>
+            <span className="text-[10px] text-zinc-500">Base filtrada</span>
           </div>
-          <div className="p-3 bg-indigo-500/10 text-indigo-400 rounded-lg border border-indigo-500/20">
-            <Layers size={22} />
-          </div>
-        </div>
-
-        <div className="p-5 bg-zinc-900/60 border border-zinc-800/80 rounded-xl flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Sincronizados (Tomticket)</p>
-            <p className="text-2xl font-bold text-emerald-400">{m.sincronizados}</p>
-            <span className="text-[11px] text-emerald-500/80">Com suporte atrelado</span>
-          </div>
-          <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20">
-            <CheckCircle2 size={22} />
+          <div className="p-2 bg-blue-500/10 text-blue-400 rounded-md border border-blue-500/20">
+            <Layers size={18} />
           </div>
         </div>
 
-        <div className="p-5 bg-zinc-900/60 border border-zinc-800/80 rounded-xl flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Pendentes (Somente ZPro)</p>
-            <p className="text-2xl font-bold text-amber-400">{m.pendentes}</p>
-            <span className="text-[11px] text-amber-500/80">Aguardando espelhamento</span>
+        <div className="p-3.5 bg-zinc-900/50 border border-zinc-800 rounded-lg flex items-center justify-between shadow-xs">
+          <div className="space-y-0.5">
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Sincronizados (Tomticket)</p>
+            <p className="text-xl font-bold text-emerald-400">{m.sincronizados}</p>
+            <span className="text-[10px] text-emerald-500/80">Com suporte atrelado</span>
           </div>
-          <div className="p-3 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20">
-            <Clock size={22} />
+          <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-md border border-emerald-500/20">
+            <CheckCircle2 size={18} />
           </div>
         </div>
 
-        <div className="p-5 bg-zinc-900/60 border border-zinc-800/80 rounded-xl flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Criados Hoje</p>
-            <p className="text-2xl font-bold text-sky-400">{m.criadosHoje}</p>
-            <span className="text-[11px] text-zinc-500">Entradas no dia atual</span>
+        <div className="p-3.5 bg-zinc-900/50 border border-zinc-800 rounded-lg flex items-center justify-between shadow-xs">
+          <div className="space-y-0.5">
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Pendentes (Somente ZPro)</p>
+            <p className="text-xl font-bold text-amber-400">{m.pendentes}</p>
+            <span className="text-[10px] text-amber-500/80">Aguardando espelhamento</span>
           </div>
-          <div className="p-3 bg-sky-500/10 text-sky-400 rounded-lg border border-sky-500/20">
-            <TrendingUp size={22} />
+          <div className="p-2 bg-amber-500/10 text-amber-400 rounded-md border border-amber-500/20">
+            <Clock size={18} />
+          </div>
+        </div>
+
+        <div className="p-3.5 bg-zinc-900/50 border border-zinc-800 rounded-lg flex items-center justify-between shadow-xs">
+          <div className="space-y-0.5">
+            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">Criados Hoje</p>
+            <p className="text-xl font-bold text-blue-400">{m.criadosHoje}</p>
+            <span className="text-[10px] text-zinc-500">Entradas no dia</span>
+          </div>
+          <div className="p-2 bg-blue-500/10 text-blue-400 rounded-md border border-blue-500/20">
+            <TrendingUp size={18} />
           </div>
         </div>
       </div>
 
       {/* 🟢 GRÁFICOS & RANKING DE ANALISTAS */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Card Taxa de Integração */}
-        <div className="p-5 bg-zinc-900/60 border border-zinc-800/80 rounded-xl flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-            <div className="flex items-center gap-2">
-              <PieChart size={18} className="text-indigo-400" />
-              <h3 className="text-sm font-semibold text-zinc-200">Taxa Geral de Integração</h3>
+        <div className="p-3.5 bg-zinc-900/50 border border-zinc-800 rounded-lg flex flex-col justify-between space-y-3 shadow-xs">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+            <div className="flex items-center gap-1.5">
+              <PieChart size={15} className="text-blue-400" />
+              <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">Taxa de Integração</h3>
             </div>
-            <span className="text-xs font-bold px-2 py-0.5 rounded bg-zinc-800 text-zinc-300">
+            <span className="text-xs font-bold px-2 py-0.5 rounded bg-zinc-800 text-zinc-200 border border-zinc-700">
               {m.taxaSincronizacao}%
             </span>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs text-zinc-400">
+          <div className="space-y-1.5">
+            <div className="flex justify-between text-[11px] text-zinc-400">
               <span>Sincronizados ({m.sincronizados})</span>
               <span>Pendentes ({m.pendentes})</span>
             </div>
-            <div className="w-full bg-zinc-800 h-4 rounded-full overflow-hidden flex p-0.5">
+            <div className="w-full bg-zinc-800 h-2 rounded-full overflow-hidden flex p-0.5">
               <div 
                 style={{ width: `${m.taxaSincronizacao}%` }} 
-                className="bg-emerald-500 h-full rounded-l-full transition-all duration-500" 
-              />
-              <div 
-                style={{ width: `${100 - m.taxaSincronizacao}%` }} 
-                className="bg-amber-500 h-full rounded-r-full transition-all duration-500" 
+                className="bg-emerald-500 h-full rounded-full transition-all duration-300" 
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs pt-2">
-            <div className="p-2 bg-zinc-950/50 rounded-lg border border-zinc-800/50 flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+          <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+            <div className="p-1.5 bg-zinc-950 rounded-md border border-zinc-800 flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-emerald-500" />
               <span className="text-zinc-400">Tomticket Ok</span>
             </div>
-            <div className="p-2 bg-zinc-950/50 rounded-lg border border-zinc-800/50 flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+            <div className="p-1.5 bg-zinc-950 rounded-md border border-zinc-800 flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-amber-500" />
               <span className="text-zinc-400">Pendente</span>
             </div>
           </div>
         </div>
 
-        {/* Card Ranking de Analistas (Clicável) */}
-        <div className="p-5 bg-zinc-900/60 border border-zinc-800/80 rounded-xl flex flex-col justify-between space-y-3 lg:col-span-2">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-            <div className="flex items-center gap-2">
-              <Users size={18} className="text-emerald-400" />
-              <h3 className="text-sm font-semibold text-zinc-200">Atendimentos por Analista / Suporte</h3>
+        {/* Card Ranking de Analistas */}
+        <div className="p-3.5 bg-zinc-900/50 border border-zinc-800 rounded-lg flex flex-col justify-between space-y-2.5 lg:col-span-2 shadow-xs">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-2.5">
+            <div className="flex items-center gap-1.5">
+              <Users size={15} className="text-blue-400" />
+              <h3 className="text-xs font-semibold text-zinc-200 uppercase tracking-wider">Atendimentos por Analista</h3>
             </div>
-            <span className="text-[11px] text-zinc-500">Clique para filtrar na tabela</span>
+            <span className="text-[10px] text-zinc-500">Clique para filtrar</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[160px] overflow-y-auto pr-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[140px] overflow-y-auto pr-1">
             {!metricsData?.porAnalista || metricsData.porAnalista.length === 0 ? (
               <p className="text-xs text-zinc-500 col-span-2 text-center py-4">Nenhum analista com atendimentos no período.</p>
             ) : (
@@ -240,18 +237,18 @@ export default function AtendimentosPage() {
                   <div 
                     key={item.analista}
                     onClick={() => selectAnalistaFilter(item.analista)}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
+                    className={`p-2 rounded-md border cursor-pointer transition-all ${
                       isSelected 
-                        ? "bg-indigo-500/10 border-indigo-500/50" 
-                        : "bg-zinc-950/40 border-zinc-800/60 hover:border-zinc-700"
+                        ? "bg-blue-500/10 border-blue-500/40" 
+                        : "bg-zinc-950 border-zinc-800 hover:border-zinc-700"
                     }`}
                   >
-                    <div className="flex justify-between text-xs mb-1.5">
+                    <div className="flex justify-between text-xs mb-1">
                       <span className="text-zinc-200 font-medium truncate">{item.analista}</span>
                       <span className="text-zinc-400 font-semibold">{item.totalAtendimentos} tickets</span>
                     </div>
-                    <div className="w-full bg-zinc-800 h-1.5 rounded-full overflow-hidden">
-                      <div style={{ width: `${pct}%` }} className="bg-emerald-500 h-full rounded-full" />
+                    <div className="w-full bg-zinc-800 h-1 rounded-full overflow-hidden">
+                      <div style={{ width: `${pct}%` }} className="bg-blue-500 h-full rounded-full" />
                     </div>
                   </div>
                 );
@@ -264,37 +261,37 @@ export default function AtendimentosPage() {
       {/* 🟢 BARRA DE FILTROS AVANÇADOS */}
       <form 
         onSubmit={handleFilterSubmit} 
-        className="p-4 bg-zinc-900/40 border border-zinc-800/80 rounded-xl flex flex-col lg:flex-row gap-4 items-end"
+        className="p-3 bg-zinc-900/40 border border-zinc-800 rounded-lg flex flex-col lg:flex-row gap-2.5 items-end shadow-xs"
       >
-        <div className="flex-1 w-full space-y-1.5">
-          <label className="text-xs font-medium text-zinc-400 flex items-center gap-1.5">
-            <Search size={14} /> Busca Geral
+        <div className="flex-1 w-full space-y-1">
+          <label className="text-[11px] font-medium text-zinc-400 flex items-center gap-1">
+            <Search size={12} /> Busca Geral
           </label>
           <input
             type="text"
             placeholder="Protocolo, CNPJ, Cliente ou Ticket..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-2.5 py-1.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
 
-        <div className="w-full lg:w-48 space-y-1.5">
-          <label className="text-xs font-medium text-zinc-400 flex items-center gap-1.5">
-            <UserCheck size={14} /> Analista / Atendente
+        <div className="w-full lg:w-44 space-y-1">
+          <label className="text-[11px] font-medium text-zinc-400 flex items-center gap-1">
+            <UserCheck size={12} /> Analista
           </label>
           <input
             type="text"
             placeholder="Nome do analista..."
             value={analista}
             onChange={(e) => setAnalista(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-2.5 py-1.5 text-xs text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
 
-        <div className="w-full lg:w-40 space-y-1.5">
-          <label className="text-xs font-medium text-zinc-400 flex items-center gap-1.5">
-            <Filter size={14} /> Integração
+        <div className="w-full lg:w-36 space-y-1">
+          <label className="text-[11px] font-medium text-zinc-400 flex items-center gap-1">
+            <Filter size={12} /> Integração
           </label>
           <select
             value={sincronizado}
@@ -302,42 +299,42 @@ export default function AtendimentosPage() {
               setSincronizado(e.target.value);
               setPage(1);
             }}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-2.5 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 transition-colors"
           >
-            <option value="">Todos os Status</option>
+            <option value="">Todos</option>
             <option value="true">Sincronizados</option>
             <option value="false">Pendentes</option>
           </select>
         </div>
 
-        <div className="w-full lg:w-36 space-y-1.5">
-          <label className="text-xs font-medium text-zinc-400 flex items-center gap-1.5">
-            <Calendar size={14} /> De
+        <div className="w-full lg:w-32 space-y-1">
+          <label className="text-[11px] font-medium text-zinc-400 flex items-center gap-1">
+            <Calendar size={12} /> De
           </label>
           <input
             type="date"
             value={dataInicio}
             onChange={(e) => setDataInicio(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
 
-        <div className="w-full lg:w-36 space-y-1.5">
-          <label className="text-xs font-medium text-zinc-400 flex items-center gap-1.5">
-            <Calendar size={14} /> Até
+        <div className="w-full lg:w-32 space-y-1">
+          <label className="text-[11px] font-medium text-zinc-400 flex items-center gap-1">
+            <Calendar size={12} /> Até
           </label>
           <input
             type="date"
             value={dataFim}
             onChange={(e) => setDataFim(e.target.value)}
-            className="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-2 py-1.5 text-xs text-zinc-200 focus:outline-none focus:border-blue-500 transition-colors"
           />
         </div>
 
-        <div className="flex gap-2 w-full lg:w-auto">
+        <div className="flex gap-1.5 w-full lg:w-auto">
           <button
             type="submit"
-            className="flex-1 lg:flex-none px-5 py-2 bg-zinc-100 text-zinc-950 rounded-lg text-sm font-semibold hover:bg-white transition-all active:scale-95 shrink-0"
+            className="flex-1 lg:flex-none px-4 py-1.5 bg-blue-600 text-white rounded-md text-xs font-semibold hover:bg-blue-500 transition-all cursor-pointer shadow-xs"
           >
             Filtrar
           </button>
@@ -347,78 +344,78 @@ export default function AtendimentosPage() {
               type="button"
               onClick={handleClearFilters}
               title="Limpar filtros"
-              className="p-2 bg-zinc-800 text-zinc-400 hover:text-red-400 rounded-lg border border-zinc-700/80 transition-all"
+              className="p-1.5 bg-zinc-800 text-zinc-400 hover:text-red-400 rounded-md border border-zinc-700 transition-all cursor-pointer"
             >
-              <XCircle size={18} />
+              <XCircle size={15} />
             </button>
           )}
         </div>
       </form>
 
       {/* 🟢 TABELA DE ATENDIMENTOS */}
-      <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-xl overflow-hidden backdrop-blur-sm">
+      <div className="bg-zinc-900/40 border border-zinc-800 rounded-lg overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-zinc-900/80 border-b border-zinc-800/80 text-xs text-zinc-400 uppercase font-semibold">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-zinc-900/70 border-b border-zinc-800 text-[11px] text-zinc-400 uppercase font-semibold">
               <tr>
-                <th className="px-4 py-3.5">Protocolo</th>
-                <th className="px-4 py-3.5">Cliente / Razão Social</th>
-                <th className="px-4 py-3.5">CNPJ</th>
-                <th className="px-4 py-3.5">Ticket ZPro</th>
-                <th className="px-4 py-3.5">Ticket Tomticket</th>
-                <th className="px-4 py-3.5">Atendente</th>
-                <th className="px-4 py-3.5 text-center">Status Sinc.</th>
-                <th className="px-4 py-3.5 text-right">Data/Hora</th>
+                <th className="px-3.5 py-2.5">Protocolo</th>
+                <th className="px-3.5 py-2.5">Cliente / Razão Social</th>
+                <th className="px-3.5 py-2.5">CNPJ</th>
+                <th className="px-3.5 py-2.5">Ticket Z-PRO</th>
+                <th className="px-3.5 py-2.5">Ticket Tomticket</th>
+                <th className="px-3.5 py-2.5">Atendente</th>
+                <th className="px-3.5 py-2.5 text-center">Status</th>
+                <th className="px-3.5 py-2.5 text-right">Data/Hora</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800/60 text-zinc-300">
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-zinc-500">
-                    <RefreshCw size={24} className="animate-spin mx-auto mb-2 opacity-50" />
+                  <td colSpan={8} className="text-center py-10 text-zinc-500">
+                    <RefreshCw size={20} className="animate-spin mx-auto mb-1.5 opacity-50" />
                     Carregando atendimentos...
                   </td>
                 </tr>
               ) : atendimentos.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-12 text-zinc-500">
+                  <td colSpan={8} className="text-center py-10 text-zinc-500">
                     Nenhum atendimento localizado com os parâmetros informados.
                   </td>
                 </tr>
               ) : (
                 atendimentos.map((item) => (
                   <tr key={item.id} className="hover:bg-zinc-800/30 transition-colors">
-                    <td className="px-4 py-3.5 font-mono text-xs font-semibold text-zinc-200">
+                    <td className="px-3.5 py-2.5 font-mono font-semibold text-zinc-200">
                       {item.protocolo || "N/A"}
                     </td>
-                    <td className="px-4 py-3.5 font-medium text-zinc-100">
+                    <td className="px-3.5 py-2.5 font-medium text-zinc-100">
                       {item.nomeContato || "Contato Não Identificado"}
                     </td>
-                    <td className="px-4 py-3.5 font-mono text-xs text-zinc-400">
+                    <td className="px-3.5 py-2.5 font-mono text-zinc-400">
                       {item.cnpj}
                     </td>
-                    <td className="px-4 py-3.5 text-zinc-400 font-mono text-xs">
+                    <td className="px-3.5 py-2.5 text-zinc-400 font-mono">
                       {item.ticketZpro ? `#${item.ticketZpro}` : "-"}
                     </td>
-                    <td className="px-4 py-3.5 text-zinc-400 font-mono text-xs">
+                    <td className="px-3.5 py-2.5 text-zinc-400 font-mono">
                       {item.ticketTomticket ? `#${item.ticketTomticket}` : "-"}
                     </td>
-                    <td className="px-4 py-3.5 text-zinc-300">
+                    <td className="px-3.5 py-2.5 text-zinc-300">
                       {item.atendente || <span className="text-zinc-600 italic">Aguardando</span>}
                     </td>
-                    <td className="px-4 py-3.5 text-center">
+                    <td className="px-3.5 py-2.5 text-center">
                       {item.sincronizado ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                           Sincronizado
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
                           Pendente
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5 text-right font-mono text-xs text-zinc-500">
-                      {new Date(item.createdAt).toLocaleString("pt-BR")}
+                    <td className="px-3.5 py-2.5 text-right font-mono text-zinc-500">
+                      {formatarDataHora(item.createdAt)}
                     </td>
                   </tr>
                 ))
@@ -429,26 +426,26 @@ export default function AtendimentosPage() {
 
         {/* 🟢 PAGINAÇÃO */}
         {pagination && pagination.totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between px-4 py-3 bg-zinc-900/80 border-t border-zinc-800/80 text-xs text-zinc-400 gap-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between px-3.5 py-2.5 bg-zinc-900/60 border-t border-zinc-800 text-xs text-zinc-400 gap-2">
             <div>
-              Exibindo página <strong className="text-zinc-200">{pagination.currentPage}</strong> de{" "}
-              <strong className="text-zinc-200">{pagination.totalPages}</strong> ({pagination.totalRecords} registros totais)
+              Página <strong className="text-zinc-200">{pagination.currentPage}</strong> de{" "}
+              <strong className="text-zinc-200">{pagination.totalPages}</strong> ({pagination.totalRecords} registros)
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 disabled={!pagination.hasPrevPage || loading}
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
-                className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 border border-zinc-700/80 rounded-md text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-1 px-2.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
               >
-                <ChevronLeft size={14} /> Anterior
+                <ChevronLeft size={13} /> Anterior
               </button>
               <button
                 disabled={!pagination.hasNextPage || loading}
                 onClick={() => setPage((p) => p + 1)}
-                className="flex items-center gap-1 px-3 py-1.5 bg-zinc-800 border border-zinc-700/80 rounded-md text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-1 px-2.5 py-1 bg-zinc-800 border border-zinc-700 rounded text-zinc-300 hover:bg-zinc-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
               >
-                Próxima <ChevronRight size={14} />
+                Próxima <ChevronRight size={13} />
               </button>
             </div>
           </div>

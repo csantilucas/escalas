@@ -8,9 +8,9 @@ export { tokenService } from "./tokenService";
 export { distribuicaoService } from "./distribuicaoService";
 
 // Tipagens
-export type { LoginModel, CreateUserModel, UserItem } from "./userService";
+export type { LoginModel, CreateUserModel, UpdateUserModel, UpdateProfileModel, UserItem } from "./userService";
 export type { CreateRegistroModel, UpdateDatesModel, GerarEscalaModel } from "./registroService";
-export type { TicketUserData } from "./dashboardService";
+export type { TicketUserData, DashboardOverview, RelatorioTomticket } from "./dashboardService";
 export type {
   AtendimentoModel,
   AtendimentoPagination,

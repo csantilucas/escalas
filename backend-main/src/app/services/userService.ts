@@ -22,6 +22,10 @@ export class UserService {
         return user;
     }
 
+    async getUserById(id: string): Promise<PrismaUser | null> {
+        return await this.user.findById(id);
+    }
+
     async getUserByEmail(email: string): Promise<PrismaUser | null> {
         const user = await this.user.findByEmail(email);
         return user;
@@ -30,5 +34,13 @@ export class UserService {
     async getAllUsers(): Promise<PrismaUser[]> {
         const users = await this.user.findAll();
         return users;
+    }
+
+    async updateUser(id: string, data: any): Promise<PrismaUser> {
+        return await this.user.updateUser(id, data);
+    }
+
+    async deleteUser(id: string): Promise<PrismaUser> {
+        return await this.user.deleteUser(id);
     }
 }
