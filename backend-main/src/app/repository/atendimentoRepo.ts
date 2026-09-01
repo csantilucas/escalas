@@ -248,8 +248,9 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
       }
     }
 
-    // Converte para o formato de produtividade por etapas de atendimento
+    // Converte para o formato de produtividade por etapas de atendimento (filtrando apenas quem possui atendimentos no período)
     const resultado = Array.from(mapaAnalistas.values())
+      .filter((acc) => acc.total > 0)
       .map((acc) => ({
         name: acc.name,
         email: acc.email,
