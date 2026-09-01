@@ -1,5 +1,6 @@
 import { EquipeRepository } from "../repository/equipeRepo.js";
 import { DistribuicaoLogRepository, type DistribuicaoLogFilterQuery } from "../repository/distribuicaoLogRepo.js";
+import { AtendimentoRepository } from "../repository/atendimentoRepo.js";
 import { externalApiService, type TicketUserData } from "./externalApiService.js";
 import { sseEventBus } from "../../config/sseEvents.js";
 
@@ -98,13 +99,19 @@ export function isWithinShift(
 export class DistributionService {
   private equipeRepo: EquipeRepository;
   private distribuicaoLogRepo?: DistribuicaoLogRepository;
+  private atendimentoRepo?: AtendimentoRepository;
   private readonly PESO_ABERTOS = 10;
   private readonly PESO_PENDENTES = 5;
   private readonly PESO_TOTAL_DIA = 1;
 
-  constructor(equipeRepository: EquipeRepository, distribuicaoLogRepository?: DistribuicaoLogRepository) {
+  constructor(
+    equipeRepository: EquipeRepository,
+    distribuicaoLogRepository?: DistribuicaoLogRepository,
+    atendimentoRepository?: AtendimentoRepository
+  ) {
     this.equipeRepo = equipeRepository;
     this.distribuicaoLogRepo = distribuicaoLogRepository;
+    this.atendimentoRepo = atendimentoRepository;
   }
 
   private async persistLog(input: DistribuirInput, result: DistribuirResult): Promise<void> {
@@ -379,6 +386,27 @@ export class DistributionService {
 
       await this.persistLog(input, result);
 
+      // 6. Atualizar o atendente na tabela de atendimentos e notificar SSE
+      if (input.ticketId && this.atendimentoRepo) {
+        try {
+          const atendAtualizado = await this.atendimentoRepo.upsertAtendentePorTicket(
+            String(input.ticketId),
+            analistaEscolhido.user.name,
+            {
+              clienteId: input.clienteId ? String(input.clienteId) : null,
+              nomeContato: input.pushName ? String(input.pushName) : null,
+              tipoAtendimento: input.departamento ? String(input.departamento) : null,
+            }
+          );
+          sseEventBus.notify("atendimento", "update", atendAtualizado);
+        } catch (atendErr: any) {
+          console.warn(
+            "⚠️ [DistributionService] Falha ao atualizar atendente na tabela de atendimentos:",
+            atendErr.message || atendErr
+          );
+        }
+      }
+
       sseEventBus.notify("distribuicao", "create", {
         ...result,
         ticketId: input.ticketId,
@@ -402,6 +430,26 @@ export class DistributionService {
     };
 
     await this.persistLog(input, fallbackResult);
+
+    if (input.ticketId && this.atendimentoRepo) {
+      try {
+        const atendAtualizado = await this.atendimentoRepo.upsertAtendentePorTicket(
+          String(input.ticketId),
+          "Pendente na Fila",
+          {
+            clienteId: input.clienteId ? String(input.clienteId) : null,
+            nomeContato: input.pushName ? String(input.pushName) : null,
+            tipoAtendimento: input.departamento ? String(input.departamento) : null,
+          }
+        );
+        sseEventBus.notify("atendimento", "update", atendAtualizado);
+      } catch (atendErr: any) {
+        console.warn(
+          "⚠️ [DistributionService] Falha ao atualizar atendimento pendente:",
+          atendErr.message || atendErr
+        );
+      }
+    }
 
     sseEventBus.notify("distribuicao", "create", {
       ...fallbackResult,

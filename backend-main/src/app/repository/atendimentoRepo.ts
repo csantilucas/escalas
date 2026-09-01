@@ -149,4 +149,163 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
       },
     };
   }
+
+  // 🟢 Obter produtividade dos analistas por período baseada na tabela de atendimentos
+  async getProdutividadePorPeriodo(dataInicio?: Date, dataFim?: Date) {
+    let inicio = dataInicio;
+    let fim = dataFim;
+
+    if (!inicio && !fim) {
+      const hoje = new Date();
+      inicio = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 0, 0, 0, 0);
+      fim = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 23, 59, 59, 999);
+    }
+
+    const where: Prisma.AtendimentoWhereInput = {};
+    if (inicio || fim) {
+      where.createdAt = {};
+      if (inicio) where.createdAt.gte = inicio;
+      if (fim) where.createdAt.lte = fim;
+    }
+
+    const [usuariosAtendentes, atendimentosDoPeriodo] = await Promise.all([
+      prisma.user.findMany({
+        where: { typeUser: "atendente" },
+        select: { id: true, name: true, email: true, zproId: true },
+        orderBy: { name: "asc" },
+      }),
+      prisma.atendimento.findMany({
+        where,
+        select: { id: true, atendente: true, sincronizado: true, ticketTomticket: true, createdAt: true },
+      }),
+    ]);
+
+    // Mapa para consolidar as métricas por analista
+    interface AnalistaMetricsAccumulator {
+      name: string;
+      email: string;
+      em_atendimento: number;
+      pendentes: number;
+      resolvidos: number;
+      total: number;
+    }
+
+    const mapaAnalistas = new Map<string, AnalistaMetricsAccumulator>();
+
+    // Inicializa com todos os atendentes cadastrados no sistema
+    for (const u of usuariosAtendentes) {
+      const chave = (u.name || "").toLowerCase().trim();
+      if (chave) {
+        mapaAnalistas.set(chave, {
+          name: u.name,
+          email: u.email || `${chave}@alphasoftware.com.br`,
+          em_atendimento: 0,
+          pendentes: 0,
+          resolvidos: 0,
+          total: 0,
+        });
+      }
+    }
+
+    // Acumula os atendimentos do período
+    for (const at of atendimentosDoPeriodo) {
+      if (!at.atendente || at.atendente.trim() === "") continue;
+
+      const atendenteNome = at.atendente.trim();
+      const chaveBusca = atendenteNome.toLowerCase();
+
+      let registro = mapaAnalistas.get(chaveBusca);
+
+      if (!registro) {
+        // Tenta buscar por correspondência parcial de nome
+        for (const [k, v] of mapaAnalistas.entries()) {
+          if (k.includes(chaveBusca) || chaveBusca.includes(k)) {
+            registro = v;
+            break;
+          }
+        }
+      }
+
+      if (!registro) {
+        // Se for um atendente não cadastrado formalmente na tabela de usuários, cria o registro dinâmico
+        registro = {
+          name: atendenteNome,
+          email: `${chaveBusca}@alphasoftware.com.br`,
+          em_atendimento: 0,
+          pendentes: 0,
+          resolvidos: 0,
+          total: 0,
+        };
+        mapaAnalistas.set(chaveBusca, registro);
+      }
+
+      registro.total += 1;
+      if (at.sincronizado) {
+        registro.resolvidos += 1;
+      } else {
+        registro.em_atendimento += 1;
+        registro.pendentes += 1;
+      }
+    }
+
+    // Converte para o formato de produtividade por etapas de atendimento
+    const resultado = Array.from(mapaAnalistas.values())
+      .map((acc) => ({
+        name: acc.name,
+        email: acc.email,
+        qtd_em_atendimento: String(acc.em_atendimento),
+        qtd_pendentes: String(acc.pendentes),
+        qtd_resolvidos: String(acc.resolvidos),
+        qtd_por_usuario: String(acc.total),
+      }))
+      .sort((a, b) => Number(b.qtd_por_usuario) - Number(a.qtd_por_usuario) || a.name.localeCompare(b.name));
+
+    return resultado;
+  }
+
+  // 🟢 Atualizar ou registrar o atendente de um ticket durante a distribuição
+  async upsertAtendentePorTicket(
+    ticketZpro: string,
+    atendenteNome: string,
+    dadosExtras?: {
+      clienteId?: string | null;
+      cnpj?: string | null;
+      protocolo?: string | null;
+      nomeContato?: string | null;
+      tipoAtendimento?: string | null;
+    }
+  ): Promise<Atendimento> {
+    const ticketStr = String(ticketZpro).trim();
+
+    const existente = await prisma.atendimento.findFirst({
+      where: { ticketZpro: ticketStr },
+    });
+
+    if (existente) {
+      return await prisma.atendimento.update({
+        where: { id: existente.id },
+        data: {
+          atendente: atendenteNome,
+          ...(dadosExtras?.clienteId ? { clienteId: String(dadosExtras.clienteId) } : {}),
+          ...(dadosExtras?.cnpj ? { cnpj: String(dadosExtras.cnpj) } : {}),
+          ...(dadosExtras?.protocolo ? { protocolo: String(dadosExtras.protocolo) } : {}),
+          ...(dadosExtras?.nomeContato ? { nomeContato: String(dadosExtras.nomeContato) } : {}),
+          ...(dadosExtras?.tipoAtendimento ? { tipoAtendimento: String(dadosExtras.tipoAtendimento) } : {}),
+        },
+      });
+    }
+
+    return await prisma.atendimento.create({
+      data: {
+        ticketZpro: ticketStr,
+        atendente: atendenteNome,
+        clienteId: dadosExtras?.clienteId ? String(dadosExtras.clienteId) : null,
+        cnpj: dadosExtras?.cnpj ? String(dadosExtras.cnpj) : "00000000000",
+        protocolo: dadosExtras?.protocolo ? String(dadosExtras.protocolo) : null,
+        nomeContato: dadosExtras?.nomeContato ? String(dadosExtras.nomeContato) : null,
+        tipoAtendimento: dadosExtras?.tipoAtendimento ? String(dadosExtras.tipoAtendimento) : null,
+        sincronizado: false,
+      },
+    });
+  }
 }

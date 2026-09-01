@@ -73,7 +73,7 @@ export class DashboardController {
     }
   };
 
-  // 3. Rota que consome a API da Alpha Software
+  // 3. Rota de Produtividade dos Analistas (Calculada pela tabela interna de Atendimentos)
   getTicketsReport = async (req: Request, res: Response): Promise<Response> => {
     try {
       const { startDate, endDate } = req.query;
@@ -84,25 +84,16 @@ export class DashboardController {
         });
       }
 
-      let dadosReport: any[] = [];
-      try {
-        dadosReport = await externalApiService.getTicketsPerUser(
-          startDate as string,
-          endDate as string
-        );
-      } catch (externalError: any) {
-        console.warn(
-          "⚠️ [DashboardController.getTicketsReport] Microsserviço externo indisponível. Retornando fallback vazio:",
-          externalError.message || externalError
-        );
-        dadosReport = [];
-      }
+      const dadosReport = await atendimentoService.getProdutividade(
+        startDate as string,
+        endDate as string
+      );
 
       return res.status(200).json(dadosReport);
     } catch (error: any) {
       console.error("❌ [DashboardController.getTicketsReport] Erro interno:", error.message || error);
       return res.status(500).json({
-        error: error.message || "Erro interno ao processar métricas de chamados.",
+        error: error.message || "Erro interno ao processar métricas de produtividade.",
       });
     }
   };

@@ -4,6 +4,7 @@ import app from "../config/server.js";
 import prisma from "../config/postgres.js";
 import { clearDatabase } from "./helpers.js";
 import { externalApiService } from "../app/services/externalApiService.js";
+import { atendimentoService } from "../containers/atendimento.container.js";
 
 describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendimentos", () => {
   let equipeN1Id: string;
@@ -313,7 +314,17 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
     expect(resLogs.body.pagination.totalRecords).toBeGreaterThan(0);
   });
 
-  it("deve distribuir corretamente para a fila N2 quando informado departamento suporte_fiscal ou fila N2-Suporte", async () => {
+  it("deve distribuir corretamente para a fila N2 quando informado departamento suporte_fiscal ou fila N2-Suporte e atualizar o atendente na tabela de atendimentos", async () => {
+    // 1. Criar prévio atendimento sem atendente
+    await prisma.atendimento.create({
+      data: {
+        ticketZpro: "18297",
+        cnpj: "12345678000199",
+        nomeContato: "Cliente Teste",
+        sincronizado: false,
+      },
+    });
+
     const res = await request(app)
       .post("/atendimentos/distribuir")
       .send({
@@ -329,6 +340,34 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
     expect(res.body.sucesso).toBe(true);
     expect(res.body.queueId).toBe(7);
     expect(res.body.queueName).toBe("N2-Suporte");
+    expect(res.body.atendenteNome).toBeDefined();
+
+    // 2. Verificar se a tabela de atendimentos foi atualizada com o nome do atendente
+    const atendimentoDb = await prisma.atendimento.findFirst({
+      where: { ticketZpro: "18297" },
+    });
+    expect(atendimentoDb).toBeDefined();
+    expect(atendimentoDb?.atendente).toBe(res.body.atendenteNome);
+  });
+
+  it("deve retornar o relatório de produtividade dos analistas baseado na tabela de atendimentos", async () => {
+    const hojeStr = new Date().toISOString().substring(0, 10);
+    const relatorio = await atendimentoService.getProdutividade(hojeStr, hojeStr);
+
+    expect(Array.isArray(relatorio)).toBe(true);
+    expect(relatorio.length).toBeGreaterThan(0);
+
+    const primeiro = relatorio[0];
+    expect(primeiro).toHaveProperty("name");
+    expect(primeiro).toHaveProperty("email");
+    expect(primeiro).toHaveProperty("qtd_em_atendimento");
+    expect(primeiro).toHaveProperty("qtd_pendentes");
+    expect(primeiro).toHaveProperty("qtd_resolvidos");
+    expect(primeiro).toHaveProperty("qtd_por_usuario");
+
+    // O analista que recebeu o ticket 18297 deve ter ao menos 1 atendimento registrado
+    const totalGeral = relatorio.reduce((acc, r) => acc + Number(r.qtd_por_usuario), 0);
+    expect(totalGeral).toBeGreaterThanOrEqual(1);
   });
 });
 

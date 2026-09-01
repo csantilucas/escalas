@@ -8,13 +8,13 @@ export interface TicketUserData {
   qtd_pendentes: string;
   qtd_resolvidos: string;
   qtd_por_usuario: string;
-  tma: {
+  tma?: {
     minutes: number;
   };
-  tme: {
+  tme?: {
     minutes: number;
   };
-  media_avaliacao: number | null;
+  media_avaliacao?: number | null;
 }
 
 // 🟢 Tipos do Tomticket

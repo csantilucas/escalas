@@ -9,8 +9,6 @@ interface AnalistaMetricCardProps {
 
 export function AnalistaMetricCard({ dados, compact = false }: AnalistaMetricCardProps) {
   const { currentPaletteConfig } = useTheme();
-  const tmaMinutos = dados.tma?.minutes ?? 0;
-  const tmeMinutos = dados.tme?.minutes ?? 0;
   const initials = (dados.name || "AN").trim().substring(0, 2).toUpperCase();
 
   if (compact) {
@@ -83,17 +81,12 @@ export function AnalistaMetricCard({ dados, compact = false }: AnalistaMetricCar
           </div>
         </div>
 
-        {/* Rodapé: Total e Tempos Médios */}
+        {/* Rodapé: Total de Atendimentos */}
         <div className="bg-zinc-950/80 border border-zinc-800 rounded-xl px-2.5 py-1.5 flex items-center justify-between text-[10px] sm:text-xs text-zinc-400 shrink-0 font-medium">
-          <span className="text-zinc-300">
-            Total: <span className="font-black text-white text-xs sm:text-sm">{dados.qtd_por_usuario || "0"}</span>
+          <span className="text-zinc-400">
+            Total de Chamados
           </span>
-          <span className="text-zinc-400 font-medium">
-            TMA: <span className="font-bold text-zinc-200">{tmaMinutos}m</span>
-          </span>
-          <span className="text-zinc-400 font-medium">
-            TME: <span className="font-bold text-zinc-200">{tmeMinutos}m</span>
-          </span>
+          <span className="font-black text-white text-xs sm:text-sm">{dados.qtd_por_usuario || "0"}</span>
         </div>
       </div>
     );
@@ -168,17 +161,12 @@ export function AnalistaMetricCard({ dados, compact = false }: AnalistaMetricCar
         </div>
       </div>
 
-      {/* Rodapé: Tempos Médios e Produtividade Total */}
+      {/* Rodapé: Total de Atendimentos */}
       <div className="bg-zinc-950/80 border border-zinc-800/80 rounded-lg px-2.5 py-2 flex items-center justify-between text-xs text-zinc-400 mt-auto">
-        <span className="text-zinc-300 font-medium">
-          Total: <strong className="text-white font-bold">{dados.qtd_por_usuario || "0"}</strong>
+        <span className="text-zinc-400 font-medium">
+          Total de Chamados
         </span>
-        <span className="text-zinc-400">
-          TMA: <strong className="text-zinc-200 font-semibold">{tmaMinutos}m</strong>
-        </span>
-        <span className="text-zinc-400">
-          TME: <strong className="text-zinc-200 font-semibold">{tmeMinutos}m</strong>
-        </span>
+        <strong className="text-white font-bold text-sm">{dados.qtd_por_usuario || "0"}</strong>
       </div>
     </div>
   );

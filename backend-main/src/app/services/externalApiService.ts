@@ -13,9 +13,9 @@ export interface TicketUserData {
   qtd_pendentes: string;
   qtd_resolvidos: string;
   qtd_por_usuario: string;
-  tma: { minutes: number };
-  tme: { minutes: number };
-  media_avaliacao: number | null;
+  tma?: { minutes: number };
+  tme?: { minutes: number };
+  media_avaliacao?: number | null;
 }
 
 export interface RelatorioUsuarioTomticket {

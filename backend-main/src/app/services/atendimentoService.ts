@@ -119,10 +119,57 @@ export class AtendimentoService {
 
 
     async getAtendimentos(filters: AtendimentoFilterQuery) {
-
         return await this.atendimentoRepo.findWithFilters(filters);
-
     }
 
+    async getProdutividade(startDate?: string, endDate?: string) {
+        let dataInicio: Date | undefined;
+        let dataFim: Date | undefined;
+
+        if (startDate) {
+            const parts = startDate.split("-");
+            if (parts.length === 3) {
+                dataInicio = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 0, 0, 0, 0);
+            } else {
+                dataInicio = new Date(startDate);
+                dataInicio.setHours(0, 0, 0, 0);
+            }
+        }
+
+        if (endDate) {
+            const parts = endDate.split("-");
+            if (parts.length === 3) {
+                dataFim = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]), 23, 59, 59, 999);
+            } else {
+                dataFim = new Date(endDate);
+                dataFim.setHours(23, 59, 59, 999);
+            }
+        }
+
+        return await this.atendimentoRepo.getProdutividadePorPeriodo(dataInicio, dataFim);
+    }
+
+    async atribuirAtendente(
+        ticketZpro: string,
+        atendenteNome: string,
+        dadosExtras?: {
+            clienteId?: string | null;
+            cnpj?: string | null;
+            protocolo?: string | null;
+            nomeContato?: string | null;
+            tipoAtendimento?: string | null;
+        }
+    ) {
+        const atendimentoAtualizado = await this.atendimentoRepo.upsertAtendentePorTicket(
+            ticketZpro,
+            atendenteNome,
+            dadosExtras
+        );
+
+        // 🟢 Notificação SSE para atualizar os dashboards e cards de produtividade em tempo real
+        sseEventBus.notify("atendimento", "update", atendimentoAtualizado);
+
+        return atendimentoAtualizado;
+    }
 }
 
