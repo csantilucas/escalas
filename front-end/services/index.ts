@@ -28,4 +28,11 @@ export type {
   UpdateMembroInput,
 } from "./equipeService";
 export type { ExternalToken, CreateOrUpsertTokenInput, UpdateTokenInput } from "./tokenService";
-export type { PrevisaoFila, DistribuirInput, DistribuirResponse } from "./distribuicaoService";
+export type {
+  PrevisaoFila,
+  DistribuirInput,
+  DistribuirResponse,
+  DistribuicaoLogItem,
+  DistribuicaoLogFilterParams,
+  DistribuicaoLogPaginationResponse,
+} from "./distribuicaoService";

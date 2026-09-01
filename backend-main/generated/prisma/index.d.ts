@@ -34,6 +34,11 @@ export type Account = $Result.DefaultSelection<Prisma.$AccountPayload>
  */
 export type Verification = $Result.DefaultSelection<Prisma.$VerificationPayload>
 /**
+ * Model DistribuicaoLog
+ * 
+ */
+export type DistribuicaoLog = $Result.DefaultSelection<Prisma.$DistribuicaoLogPayload>
+/**
  * Model EquipePlantao
  * 
  */
@@ -259,6 +264,16 @@ export class PrismaClient<
     * ```
     */
   get verification(): Prisma.VerificationDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.distribuicaoLog`: Exposes CRUD operations for the **DistribuicaoLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DistribuicaoLogs
+    * const distribuicaoLogs = await prisma.distribuicaoLog.findMany()
+    * ```
+    */
+  get distribuicaoLog(): Prisma.DistribuicaoLogDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.equipePlantao`: Exposes CRUD operations for the **EquipePlantao** model.
@@ -767,6 +782,7 @@ export namespace Prisma {
     Session: 'Session',
     Account: 'Account',
     Verification: 'Verification',
+    DistribuicaoLog: 'DistribuicaoLog',
     EquipePlantao: 'EquipePlantao',
     MembroEquipe: 'MembroEquipe',
     Plantonistas: 'Plantonistas',
@@ -789,7 +805,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "atendimento" | "session" | "account" | "verification" | "equipePlantao" | "membroEquipe" | "plantonistas" | "registros" | "externalToken" | "tomticketReportCache" | "user"
+      modelProps: "atendimento" | "session" | "account" | "verification" | "distribuicaoLog" | "equipePlantao" | "membroEquipe" | "plantonistas" | "registros" | "externalToken" | "tomticketReportCache" | "user"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1086,6 +1102,80 @@ export namespace Prisma {
           count: {
             args: Prisma.VerificationCountArgs<ExtArgs>
             result: $Utils.Optional<VerificationCountAggregateOutputType> | number
+          }
+        }
+      }
+      DistribuicaoLog: {
+        payload: Prisma.$DistribuicaoLogPayload<ExtArgs>
+        fields: Prisma.DistribuicaoLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DistribuicaoLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistribuicaoLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DistribuicaoLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistribuicaoLogPayload>
+          }
+          findFirst: {
+            args: Prisma.DistribuicaoLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistribuicaoLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DistribuicaoLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistribuicaoLogPayload>
+          }
+          findMany: {
+            args: Prisma.DistribuicaoLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistribuicaoLogPayload>[]
+          }
+          create: {
+            args: Prisma.DistribuicaoLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistribuicaoLogPayload>
+          }
+          createMany: {
+            args: Prisma.DistribuicaoLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DistribuicaoLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistribuicaoLogPayload>[]
+          }
+          delete: {
+            args: Prisma.DistribuicaoLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistribuicaoLogPayload>
+          }
+          update: {
+            args: Prisma.DistribuicaoLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistribuicaoLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.DistribuicaoLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DistribuicaoLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DistribuicaoLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistribuicaoLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.DistribuicaoLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DistribuicaoLogPayload>
+          }
+          aggregate: {
+            args: Prisma.DistribuicaoLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDistribuicaoLog>
+          }
+          groupBy: {
+            args: Prisma.DistribuicaoLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DistribuicaoLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DistribuicaoLogCountArgs<ExtArgs>
+            result: $Utils.Optional<DistribuicaoLogCountAggregateOutputType> | number
           }
         }
       }
@@ -1719,6 +1809,7 @@ export namespace Prisma {
     session?: SessionOmit
     account?: AccountOmit
     verification?: VerificationOmit
+    distribuicaoLog?: DistribuicaoLogOmit
     equipePlantao?: EquipePlantaoOmit
     membroEquipe?: MembroEquipeOmit
     plantonistas?: PlantonistasOmit
@@ -6308,6 +6399,1261 @@ export namespace Prisma {
      * Omit specific fields from the Verification
      */
     omit?: VerificationOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model DistribuicaoLog
+   */
+
+  export type AggregateDistribuicaoLog = {
+    _count: DistribuicaoLogCountAggregateOutputType | null
+    _avg: DistribuicaoLogAvgAggregateOutputType | null
+    _sum: DistribuicaoLogSumAggregateOutputType | null
+    _min: DistribuicaoLogMinAggregateOutputType | null
+    _max: DistribuicaoLogMaxAggregateOutputType | null
+  }
+
+  export type DistribuicaoLogAvgAggregateOutputType = {
+    queueId: number | null
+    userId: number | null
+    pontuacaoCarga: number | null
+  }
+
+  export type DistribuicaoLogSumAggregateOutputType = {
+    queueId: number | null
+    userId: number | null
+    pontuacaoCarga: number | null
+  }
+
+  export type DistribuicaoLogMinAggregateOutputType = {
+    id: string | null
+    ticketId: string | null
+    clienteId: string | null
+    numero: string | null
+    pushName: string | null
+    departamento: string | null
+    fila: string | null
+    equipeNome: string | null
+    queueId: number | null
+    queueName: string | null
+    userId: number | null
+    atendenteNome: string | null
+    atendenteEmail: string | null
+    atendenteSlack: string | null
+    modoDistribuicao: string | null
+    pontuacaoCarga: number | null
+    sucesso: boolean | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DistribuicaoLogMaxAggregateOutputType = {
+    id: string | null
+    ticketId: string | null
+    clienteId: string | null
+    numero: string | null
+    pushName: string | null
+    departamento: string | null
+    fila: string | null
+    equipeNome: string | null
+    queueId: number | null
+    queueName: string | null
+    userId: number | null
+    atendenteNome: string | null
+    atendenteEmail: string | null
+    atendenteSlack: string | null
+    modoDistribuicao: string | null
+    pontuacaoCarga: number | null
+    sucesso: boolean | null
+    status: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DistribuicaoLogCountAggregateOutputType = {
+    id: number
+    ticketId: number
+    clienteId: number
+    numero: number
+    pushName: number
+    departamento: number
+    fila: number
+    equipeNome: number
+    queueId: number
+    queueName: number
+    userId: number
+    atendenteNome: number
+    atendenteEmail: number
+    atendenteSlack: number
+    modoDistribuicao: number
+    pontuacaoCarga: number
+    metricas: number
+    sucesso: number
+    status: number
+    detalhes: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type DistribuicaoLogAvgAggregateInputType = {
+    queueId?: true
+    userId?: true
+    pontuacaoCarga?: true
+  }
+
+  export type DistribuicaoLogSumAggregateInputType = {
+    queueId?: true
+    userId?: true
+    pontuacaoCarga?: true
+  }
+
+  export type DistribuicaoLogMinAggregateInputType = {
+    id?: true
+    ticketId?: true
+    clienteId?: true
+    numero?: true
+    pushName?: true
+    departamento?: true
+    fila?: true
+    equipeNome?: true
+    queueId?: true
+    queueName?: true
+    userId?: true
+    atendenteNome?: true
+    atendenteEmail?: true
+    atendenteSlack?: true
+    modoDistribuicao?: true
+    pontuacaoCarga?: true
+    sucesso?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DistribuicaoLogMaxAggregateInputType = {
+    id?: true
+    ticketId?: true
+    clienteId?: true
+    numero?: true
+    pushName?: true
+    departamento?: true
+    fila?: true
+    equipeNome?: true
+    queueId?: true
+    queueName?: true
+    userId?: true
+    atendenteNome?: true
+    atendenteEmail?: true
+    atendenteSlack?: true
+    modoDistribuicao?: true
+    pontuacaoCarga?: true
+    sucesso?: true
+    status?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DistribuicaoLogCountAggregateInputType = {
+    id?: true
+    ticketId?: true
+    clienteId?: true
+    numero?: true
+    pushName?: true
+    departamento?: true
+    fila?: true
+    equipeNome?: true
+    queueId?: true
+    queueName?: true
+    userId?: true
+    atendenteNome?: true
+    atendenteEmail?: true
+    atendenteSlack?: true
+    modoDistribuicao?: true
+    pontuacaoCarga?: true
+    metricas?: true
+    sucesso?: true
+    status?: true
+    detalhes?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type DistribuicaoLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DistribuicaoLog to aggregate.
+     */
+    where?: DistribuicaoLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DistribuicaoLogs to fetch.
+     */
+    orderBy?: DistribuicaoLogOrderByWithRelationInput | DistribuicaoLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DistribuicaoLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DistribuicaoLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DistribuicaoLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DistribuicaoLogs
+    **/
+    _count?: true | DistribuicaoLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DistribuicaoLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DistribuicaoLogSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DistribuicaoLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DistribuicaoLogMaxAggregateInputType
+  }
+
+  export type GetDistribuicaoLogAggregateType<T extends DistribuicaoLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateDistribuicaoLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDistribuicaoLog[P]>
+      : GetScalarType<T[P], AggregateDistribuicaoLog[P]>
+  }
+
+
+
+
+  export type DistribuicaoLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DistribuicaoLogWhereInput
+    orderBy?: DistribuicaoLogOrderByWithAggregationInput | DistribuicaoLogOrderByWithAggregationInput[]
+    by: DistribuicaoLogScalarFieldEnum[] | DistribuicaoLogScalarFieldEnum
+    having?: DistribuicaoLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DistribuicaoLogCountAggregateInputType | true
+    _avg?: DistribuicaoLogAvgAggregateInputType
+    _sum?: DistribuicaoLogSumAggregateInputType
+    _min?: DistribuicaoLogMinAggregateInputType
+    _max?: DistribuicaoLogMaxAggregateInputType
+  }
+
+  export type DistribuicaoLogGroupByOutputType = {
+    id: string
+    ticketId: string | null
+    clienteId: string | null
+    numero: string | null
+    pushName: string | null
+    departamento: string | null
+    fila: string | null
+    equipeNome: string | null
+    queueId: number | null
+    queueName: string | null
+    userId: number | null
+    atendenteNome: string | null
+    atendenteEmail: string | null
+    atendenteSlack: string | null
+    modoDistribuicao: string
+    pontuacaoCarga: number | null
+    metricas: JsonValue | null
+    sucesso: boolean
+    status: string
+    detalhes: JsonValue | null
+    createdAt: Date
+    updatedAt: Date
+    _count: DistribuicaoLogCountAggregateOutputType | null
+    _avg: DistribuicaoLogAvgAggregateOutputType | null
+    _sum: DistribuicaoLogSumAggregateOutputType | null
+    _min: DistribuicaoLogMinAggregateOutputType | null
+    _max: DistribuicaoLogMaxAggregateOutputType | null
+  }
+
+  type GetDistribuicaoLogGroupByPayload<T extends DistribuicaoLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DistribuicaoLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DistribuicaoLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DistribuicaoLogGroupByOutputType[P]>
+            : GetScalarType<T[P], DistribuicaoLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DistribuicaoLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ticketId?: boolean
+    clienteId?: boolean
+    numero?: boolean
+    pushName?: boolean
+    departamento?: boolean
+    fila?: boolean
+    equipeNome?: boolean
+    queueId?: boolean
+    queueName?: boolean
+    userId?: boolean
+    atendenteNome?: boolean
+    atendenteEmail?: boolean
+    atendenteSlack?: boolean
+    modoDistribuicao?: boolean
+    pontuacaoCarga?: boolean
+    metricas?: boolean
+    sucesso?: boolean
+    status?: boolean
+    detalhes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["distribuicaoLog"]>
+
+  export type DistribuicaoLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ticketId?: boolean
+    clienteId?: boolean
+    numero?: boolean
+    pushName?: boolean
+    departamento?: boolean
+    fila?: boolean
+    equipeNome?: boolean
+    queueId?: boolean
+    queueName?: boolean
+    userId?: boolean
+    atendenteNome?: boolean
+    atendenteEmail?: boolean
+    atendenteSlack?: boolean
+    modoDistribuicao?: boolean
+    pontuacaoCarga?: boolean
+    metricas?: boolean
+    sucesso?: boolean
+    status?: boolean
+    detalhes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["distribuicaoLog"]>
+
+  export type DistribuicaoLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ticketId?: boolean
+    clienteId?: boolean
+    numero?: boolean
+    pushName?: boolean
+    departamento?: boolean
+    fila?: boolean
+    equipeNome?: boolean
+    queueId?: boolean
+    queueName?: boolean
+    userId?: boolean
+    atendenteNome?: boolean
+    atendenteEmail?: boolean
+    atendenteSlack?: boolean
+    modoDistribuicao?: boolean
+    pontuacaoCarga?: boolean
+    metricas?: boolean
+    sucesso?: boolean
+    status?: boolean
+    detalhes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["distribuicaoLog"]>
+
+  export type DistribuicaoLogSelectScalar = {
+    id?: boolean
+    ticketId?: boolean
+    clienteId?: boolean
+    numero?: boolean
+    pushName?: boolean
+    departamento?: boolean
+    fila?: boolean
+    equipeNome?: boolean
+    queueId?: boolean
+    queueName?: boolean
+    userId?: boolean
+    atendenteNome?: boolean
+    atendenteEmail?: boolean
+    atendenteSlack?: boolean
+    modoDistribuicao?: boolean
+    pontuacaoCarga?: boolean
+    metricas?: boolean
+    sucesso?: boolean
+    status?: boolean
+    detalhes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type DistribuicaoLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "ticketId" | "clienteId" | "numero" | "pushName" | "departamento" | "fila" | "equipeNome" | "queueId" | "queueName" | "userId" | "atendenteNome" | "atendenteEmail" | "atendenteSlack" | "modoDistribuicao" | "pontuacaoCarga" | "metricas" | "sucesso" | "status" | "detalhes" | "createdAt" | "updatedAt", ExtArgs["result"]["distribuicaoLog"]>
+
+  export type $DistribuicaoLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DistribuicaoLog"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      ticketId: string | null
+      clienteId: string | null
+      numero: string | null
+      pushName: string | null
+      departamento: string | null
+      fila: string | null
+      equipeNome: string | null
+      queueId: number | null
+      queueName: string | null
+      userId: number | null
+      atendenteNome: string | null
+      atendenteEmail: string | null
+      atendenteSlack: string | null
+      modoDistribuicao: string
+      pontuacaoCarga: number | null
+      metricas: Prisma.JsonValue | null
+      sucesso: boolean
+      status: string
+      detalhes: Prisma.JsonValue | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["distribuicaoLog"]>
+    composites: {}
+  }
+
+  type DistribuicaoLogGetPayload<S extends boolean | null | undefined | DistribuicaoLogDefaultArgs> = $Result.GetResult<Prisma.$DistribuicaoLogPayload, S>
+
+  type DistribuicaoLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DistribuicaoLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DistribuicaoLogCountAggregateInputType | true
+    }
+
+  export interface DistribuicaoLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DistribuicaoLog'], meta: { name: 'DistribuicaoLog' } }
+    /**
+     * Find zero or one DistribuicaoLog that matches the filter.
+     * @param {DistribuicaoLogFindUniqueArgs} args - Arguments to find a DistribuicaoLog
+     * @example
+     * // Get one DistribuicaoLog
+     * const distribuicaoLog = await prisma.distribuicaoLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DistribuicaoLogFindUniqueArgs>(args: SelectSubset<T, DistribuicaoLogFindUniqueArgs<ExtArgs>>): Prisma__DistribuicaoLogClient<$Result.GetResult<Prisma.$DistribuicaoLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DistribuicaoLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DistribuicaoLogFindUniqueOrThrowArgs} args - Arguments to find a DistribuicaoLog
+     * @example
+     * // Get one DistribuicaoLog
+     * const distribuicaoLog = await prisma.distribuicaoLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DistribuicaoLogFindUniqueOrThrowArgs>(args: SelectSubset<T, DistribuicaoLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DistribuicaoLogClient<$Result.GetResult<Prisma.$DistribuicaoLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DistribuicaoLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistribuicaoLogFindFirstArgs} args - Arguments to find a DistribuicaoLog
+     * @example
+     * // Get one DistribuicaoLog
+     * const distribuicaoLog = await prisma.distribuicaoLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DistribuicaoLogFindFirstArgs>(args?: SelectSubset<T, DistribuicaoLogFindFirstArgs<ExtArgs>>): Prisma__DistribuicaoLogClient<$Result.GetResult<Prisma.$DistribuicaoLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DistribuicaoLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistribuicaoLogFindFirstOrThrowArgs} args - Arguments to find a DistribuicaoLog
+     * @example
+     * // Get one DistribuicaoLog
+     * const distribuicaoLog = await prisma.distribuicaoLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DistribuicaoLogFindFirstOrThrowArgs>(args?: SelectSubset<T, DistribuicaoLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__DistribuicaoLogClient<$Result.GetResult<Prisma.$DistribuicaoLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DistribuicaoLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistribuicaoLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DistribuicaoLogs
+     * const distribuicaoLogs = await prisma.distribuicaoLog.findMany()
+     * 
+     * // Get first 10 DistribuicaoLogs
+     * const distribuicaoLogs = await prisma.distribuicaoLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const distribuicaoLogWithIdOnly = await prisma.distribuicaoLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DistribuicaoLogFindManyArgs>(args?: SelectSubset<T, DistribuicaoLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DistribuicaoLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DistribuicaoLog.
+     * @param {DistribuicaoLogCreateArgs} args - Arguments to create a DistribuicaoLog.
+     * @example
+     * // Create one DistribuicaoLog
+     * const DistribuicaoLog = await prisma.distribuicaoLog.create({
+     *   data: {
+     *     // ... data to create a DistribuicaoLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends DistribuicaoLogCreateArgs>(args: SelectSubset<T, DistribuicaoLogCreateArgs<ExtArgs>>): Prisma__DistribuicaoLogClient<$Result.GetResult<Prisma.$DistribuicaoLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DistribuicaoLogs.
+     * @param {DistribuicaoLogCreateManyArgs} args - Arguments to create many DistribuicaoLogs.
+     * @example
+     * // Create many DistribuicaoLogs
+     * const distribuicaoLog = await prisma.distribuicaoLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DistribuicaoLogCreateManyArgs>(args?: SelectSubset<T, DistribuicaoLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DistribuicaoLogs and returns the data saved in the database.
+     * @param {DistribuicaoLogCreateManyAndReturnArgs} args - Arguments to create many DistribuicaoLogs.
+     * @example
+     * // Create many DistribuicaoLogs
+     * const distribuicaoLog = await prisma.distribuicaoLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DistribuicaoLogs and only return the `id`
+     * const distribuicaoLogWithIdOnly = await prisma.distribuicaoLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DistribuicaoLogCreateManyAndReturnArgs>(args?: SelectSubset<T, DistribuicaoLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DistribuicaoLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DistribuicaoLog.
+     * @param {DistribuicaoLogDeleteArgs} args - Arguments to delete one DistribuicaoLog.
+     * @example
+     * // Delete one DistribuicaoLog
+     * const DistribuicaoLog = await prisma.distribuicaoLog.delete({
+     *   where: {
+     *     // ... filter to delete one DistribuicaoLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DistribuicaoLogDeleteArgs>(args: SelectSubset<T, DistribuicaoLogDeleteArgs<ExtArgs>>): Prisma__DistribuicaoLogClient<$Result.GetResult<Prisma.$DistribuicaoLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DistribuicaoLog.
+     * @param {DistribuicaoLogUpdateArgs} args - Arguments to update one DistribuicaoLog.
+     * @example
+     * // Update one DistribuicaoLog
+     * const distribuicaoLog = await prisma.distribuicaoLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DistribuicaoLogUpdateArgs>(args: SelectSubset<T, DistribuicaoLogUpdateArgs<ExtArgs>>): Prisma__DistribuicaoLogClient<$Result.GetResult<Prisma.$DistribuicaoLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DistribuicaoLogs.
+     * @param {DistribuicaoLogDeleteManyArgs} args - Arguments to filter DistribuicaoLogs to delete.
+     * @example
+     * // Delete a few DistribuicaoLogs
+     * const { count } = await prisma.distribuicaoLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DistribuicaoLogDeleteManyArgs>(args?: SelectSubset<T, DistribuicaoLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DistribuicaoLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistribuicaoLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DistribuicaoLogs
+     * const distribuicaoLog = await prisma.distribuicaoLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DistribuicaoLogUpdateManyArgs>(args: SelectSubset<T, DistribuicaoLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DistribuicaoLogs and returns the data updated in the database.
+     * @param {DistribuicaoLogUpdateManyAndReturnArgs} args - Arguments to update many DistribuicaoLogs.
+     * @example
+     * // Update many DistribuicaoLogs
+     * const distribuicaoLog = await prisma.distribuicaoLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DistribuicaoLogs and only return the `id`
+     * const distribuicaoLogWithIdOnly = await prisma.distribuicaoLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DistribuicaoLogUpdateManyAndReturnArgs>(args: SelectSubset<T, DistribuicaoLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DistribuicaoLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DistribuicaoLog.
+     * @param {DistribuicaoLogUpsertArgs} args - Arguments to update or create a DistribuicaoLog.
+     * @example
+     * // Update or create a DistribuicaoLog
+     * const distribuicaoLog = await prisma.distribuicaoLog.upsert({
+     *   create: {
+     *     // ... data to create a DistribuicaoLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DistribuicaoLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DistribuicaoLogUpsertArgs>(args: SelectSubset<T, DistribuicaoLogUpsertArgs<ExtArgs>>): Prisma__DistribuicaoLogClient<$Result.GetResult<Prisma.$DistribuicaoLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DistribuicaoLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistribuicaoLogCountArgs} args - Arguments to filter DistribuicaoLogs to count.
+     * @example
+     * // Count the number of DistribuicaoLogs
+     * const count = await prisma.distribuicaoLog.count({
+     *   where: {
+     *     // ... the filter for the DistribuicaoLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends DistribuicaoLogCountArgs>(
+      args?: Subset<T, DistribuicaoLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DistribuicaoLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DistribuicaoLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistribuicaoLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DistribuicaoLogAggregateArgs>(args: Subset<T, DistribuicaoLogAggregateArgs>): Prisma.PrismaPromise<GetDistribuicaoLogAggregateType<T>>
+
+    /**
+     * Group by DistribuicaoLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DistribuicaoLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DistribuicaoLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DistribuicaoLogGroupByArgs['orderBy'] }
+        : { orderBy?: DistribuicaoLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DistribuicaoLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDistribuicaoLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DistribuicaoLog model
+   */
+  readonly fields: DistribuicaoLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DistribuicaoLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DistribuicaoLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DistribuicaoLog model
+   */
+  interface DistribuicaoLogFieldRefs {
+    readonly id: FieldRef<"DistribuicaoLog", 'String'>
+    readonly ticketId: FieldRef<"DistribuicaoLog", 'String'>
+    readonly clienteId: FieldRef<"DistribuicaoLog", 'String'>
+    readonly numero: FieldRef<"DistribuicaoLog", 'String'>
+    readonly pushName: FieldRef<"DistribuicaoLog", 'String'>
+    readonly departamento: FieldRef<"DistribuicaoLog", 'String'>
+    readonly fila: FieldRef<"DistribuicaoLog", 'String'>
+    readonly equipeNome: FieldRef<"DistribuicaoLog", 'String'>
+    readonly queueId: FieldRef<"DistribuicaoLog", 'Int'>
+    readonly queueName: FieldRef<"DistribuicaoLog", 'String'>
+    readonly userId: FieldRef<"DistribuicaoLog", 'Int'>
+    readonly atendenteNome: FieldRef<"DistribuicaoLog", 'String'>
+    readonly atendenteEmail: FieldRef<"DistribuicaoLog", 'String'>
+    readonly atendenteSlack: FieldRef<"DistribuicaoLog", 'String'>
+    readonly modoDistribuicao: FieldRef<"DistribuicaoLog", 'String'>
+    readonly pontuacaoCarga: FieldRef<"DistribuicaoLog", 'Int'>
+    readonly metricas: FieldRef<"DistribuicaoLog", 'Json'>
+    readonly sucesso: FieldRef<"DistribuicaoLog", 'Boolean'>
+    readonly status: FieldRef<"DistribuicaoLog", 'String'>
+    readonly detalhes: FieldRef<"DistribuicaoLog", 'Json'>
+    readonly createdAt: FieldRef<"DistribuicaoLog", 'DateTime'>
+    readonly updatedAt: FieldRef<"DistribuicaoLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DistribuicaoLog findUnique
+   */
+  export type DistribuicaoLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
+    /**
+     * Filter, which DistribuicaoLog to fetch.
+     */
+    where: DistribuicaoLogWhereUniqueInput
+  }
+
+  /**
+   * DistribuicaoLog findUniqueOrThrow
+   */
+  export type DistribuicaoLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
+    /**
+     * Filter, which DistribuicaoLog to fetch.
+     */
+    where: DistribuicaoLogWhereUniqueInput
+  }
+
+  /**
+   * DistribuicaoLog findFirst
+   */
+  export type DistribuicaoLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
+    /**
+     * Filter, which DistribuicaoLog to fetch.
+     */
+    where?: DistribuicaoLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DistribuicaoLogs to fetch.
+     */
+    orderBy?: DistribuicaoLogOrderByWithRelationInput | DistribuicaoLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DistribuicaoLogs.
+     */
+    cursor?: DistribuicaoLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DistribuicaoLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DistribuicaoLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DistribuicaoLogs.
+     */
+    distinct?: DistribuicaoLogScalarFieldEnum | DistribuicaoLogScalarFieldEnum[]
+  }
+
+  /**
+   * DistribuicaoLog findFirstOrThrow
+   */
+  export type DistribuicaoLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
+    /**
+     * Filter, which DistribuicaoLog to fetch.
+     */
+    where?: DistribuicaoLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DistribuicaoLogs to fetch.
+     */
+    orderBy?: DistribuicaoLogOrderByWithRelationInput | DistribuicaoLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DistribuicaoLogs.
+     */
+    cursor?: DistribuicaoLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DistribuicaoLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DistribuicaoLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DistribuicaoLogs.
+     */
+    distinct?: DistribuicaoLogScalarFieldEnum | DistribuicaoLogScalarFieldEnum[]
+  }
+
+  /**
+   * DistribuicaoLog findMany
+   */
+  export type DistribuicaoLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
+    /**
+     * Filter, which DistribuicaoLogs to fetch.
+     */
+    where?: DistribuicaoLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DistribuicaoLogs to fetch.
+     */
+    orderBy?: DistribuicaoLogOrderByWithRelationInput | DistribuicaoLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DistribuicaoLogs.
+     */
+    cursor?: DistribuicaoLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DistribuicaoLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DistribuicaoLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DistribuicaoLogs.
+     */
+    distinct?: DistribuicaoLogScalarFieldEnum | DistribuicaoLogScalarFieldEnum[]
+  }
+
+  /**
+   * DistribuicaoLog create
+   */
+  export type DistribuicaoLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
+    /**
+     * The data needed to create a DistribuicaoLog.
+     */
+    data: XOR<DistribuicaoLogCreateInput, DistribuicaoLogUncheckedCreateInput>
+  }
+
+  /**
+   * DistribuicaoLog createMany
+   */
+  export type DistribuicaoLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DistribuicaoLogs.
+     */
+    data: DistribuicaoLogCreateManyInput | DistribuicaoLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DistribuicaoLog createManyAndReturn
+   */
+  export type DistribuicaoLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many DistribuicaoLogs.
+     */
+    data: DistribuicaoLogCreateManyInput | DistribuicaoLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DistribuicaoLog update
+   */
+  export type DistribuicaoLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
+    /**
+     * The data needed to update a DistribuicaoLog.
+     */
+    data: XOR<DistribuicaoLogUpdateInput, DistribuicaoLogUncheckedUpdateInput>
+    /**
+     * Choose, which DistribuicaoLog to update.
+     */
+    where: DistribuicaoLogWhereUniqueInput
+  }
+
+  /**
+   * DistribuicaoLog updateMany
+   */
+  export type DistribuicaoLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DistribuicaoLogs.
+     */
+    data: XOR<DistribuicaoLogUpdateManyMutationInput, DistribuicaoLogUncheckedUpdateManyInput>
+    /**
+     * Filter which DistribuicaoLogs to update
+     */
+    where?: DistribuicaoLogWhereInput
+    /**
+     * Limit how many DistribuicaoLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DistribuicaoLog updateManyAndReturn
+   */
+  export type DistribuicaoLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
+    /**
+     * The data used to update DistribuicaoLogs.
+     */
+    data: XOR<DistribuicaoLogUpdateManyMutationInput, DistribuicaoLogUncheckedUpdateManyInput>
+    /**
+     * Filter which DistribuicaoLogs to update
+     */
+    where?: DistribuicaoLogWhereInput
+    /**
+     * Limit how many DistribuicaoLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DistribuicaoLog upsert
+   */
+  export type DistribuicaoLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
+    /**
+     * The filter to search for the DistribuicaoLog to update in case it exists.
+     */
+    where: DistribuicaoLogWhereUniqueInput
+    /**
+     * In case the DistribuicaoLog found by the `where` argument doesn't exist, create a new DistribuicaoLog with this data.
+     */
+    create: XOR<DistribuicaoLogCreateInput, DistribuicaoLogUncheckedCreateInput>
+    /**
+     * In case the DistribuicaoLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DistribuicaoLogUpdateInput, DistribuicaoLogUncheckedUpdateInput>
+  }
+
+  /**
+   * DistribuicaoLog delete
+   */
+  export type DistribuicaoLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
+    /**
+     * Filter which DistribuicaoLog to delete.
+     */
+    where: DistribuicaoLogWhereUniqueInput
+  }
+
+  /**
+   * DistribuicaoLog deleteMany
+   */
+  export type DistribuicaoLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DistribuicaoLogs to delete
+     */
+    where?: DistribuicaoLogWhereInput
+    /**
+     * Limit how many DistribuicaoLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DistribuicaoLog without action
+   */
+  export type DistribuicaoLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DistribuicaoLog
+     */
+    select?: DistribuicaoLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DistribuicaoLog
+     */
+    omit?: DistribuicaoLogOmit<ExtArgs> | null
   }
 
 
@@ -14450,6 +15796,34 @@ export namespace Prisma {
   export type VerificationScalarFieldEnum = (typeof VerificationScalarFieldEnum)[keyof typeof VerificationScalarFieldEnum]
 
 
+  export const DistribuicaoLogScalarFieldEnum: {
+    id: 'id',
+    ticketId: 'ticketId',
+    clienteId: 'clienteId',
+    numero: 'numero',
+    pushName: 'pushName',
+    departamento: 'departamento',
+    fila: 'fila',
+    equipeNome: 'equipeNome',
+    queueId: 'queueId',
+    queueName: 'queueName',
+    userId: 'userId',
+    atendenteNome: 'atendenteNome',
+    atendenteEmail: 'atendenteEmail',
+    atendenteSlack: 'atendenteSlack',
+    modoDistribuicao: 'modoDistribuicao',
+    pontuacaoCarga: 'pontuacaoCarga',
+    metricas: 'metricas',
+    sucesso: 'sucesso',
+    status: 'status',
+    detalhes: 'detalhes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type DistribuicaoLogScalarFieldEnum = (typeof DistribuicaoLogScalarFieldEnum)[keyof typeof DistribuicaoLogScalarFieldEnum]
+
+
   export const EquipePlantaoScalarFieldEnum: {
     id: 'id',
     nome: 'nome',
@@ -15033,6 +16407,145 @@ export namespace Prisma {
     expiresAt?: DateTimeWithAggregatesFilter<"Verification"> | Date | string
     createdAt?: DateTimeNullableWithAggregatesFilter<"Verification"> | Date | string | null
     updatedAt?: DateTimeNullableWithAggregatesFilter<"Verification"> | Date | string | null
+  }
+
+  export type DistribuicaoLogWhereInput = {
+    AND?: DistribuicaoLogWhereInput | DistribuicaoLogWhereInput[]
+    OR?: DistribuicaoLogWhereInput[]
+    NOT?: DistribuicaoLogWhereInput | DistribuicaoLogWhereInput[]
+    id?: StringFilter<"DistribuicaoLog"> | string
+    ticketId?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    clienteId?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    numero?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    pushName?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    departamento?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    fila?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    equipeNome?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    queueId?: IntNullableFilter<"DistribuicaoLog"> | number | null
+    queueName?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    userId?: IntNullableFilter<"DistribuicaoLog"> | number | null
+    atendenteNome?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    atendenteEmail?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    atendenteSlack?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    modoDistribuicao?: StringFilter<"DistribuicaoLog"> | string
+    pontuacaoCarga?: IntNullableFilter<"DistribuicaoLog"> | number | null
+    metricas?: JsonNullableFilter<"DistribuicaoLog">
+    sucesso?: BoolFilter<"DistribuicaoLog"> | boolean
+    status?: StringFilter<"DistribuicaoLog"> | string
+    detalhes?: JsonNullableFilter<"DistribuicaoLog">
+    createdAt?: DateTimeFilter<"DistribuicaoLog"> | Date | string
+    updatedAt?: DateTimeFilter<"DistribuicaoLog"> | Date | string
+  }
+
+  export type DistribuicaoLogOrderByWithRelationInput = {
+    id?: SortOrder
+    ticketId?: SortOrderInput | SortOrder
+    clienteId?: SortOrderInput | SortOrder
+    numero?: SortOrderInput | SortOrder
+    pushName?: SortOrderInput | SortOrder
+    departamento?: SortOrderInput | SortOrder
+    fila?: SortOrderInput | SortOrder
+    equipeNome?: SortOrderInput | SortOrder
+    queueId?: SortOrderInput | SortOrder
+    queueName?: SortOrderInput | SortOrder
+    userId?: SortOrderInput | SortOrder
+    atendenteNome?: SortOrderInput | SortOrder
+    atendenteEmail?: SortOrderInput | SortOrder
+    atendenteSlack?: SortOrderInput | SortOrder
+    modoDistribuicao?: SortOrder
+    pontuacaoCarga?: SortOrderInput | SortOrder
+    metricas?: SortOrderInput | SortOrder
+    sucesso?: SortOrder
+    status?: SortOrder
+    detalhes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DistribuicaoLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: DistribuicaoLogWhereInput | DistribuicaoLogWhereInput[]
+    OR?: DistribuicaoLogWhereInput[]
+    NOT?: DistribuicaoLogWhereInput | DistribuicaoLogWhereInput[]
+    ticketId?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    clienteId?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    numero?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    pushName?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    departamento?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    fila?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    equipeNome?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    queueId?: IntNullableFilter<"DistribuicaoLog"> | number | null
+    queueName?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    userId?: IntNullableFilter<"DistribuicaoLog"> | number | null
+    atendenteNome?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    atendenteEmail?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    atendenteSlack?: StringNullableFilter<"DistribuicaoLog"> | string | null
+    modoDistribuicao?: StringFilter<"DistribuicaoLog"> | string
+    pontuacaoCarga?: IntNullableFilter<"DistribuicaoLog"> | number | null
+    metricas?: JsonNullableFilter<"DistribuicaoLog">
+    sucesso?: BoolFilter<"DistribuicaoLog"> | boolean
+    status?: StringFilter<"DistribuicaoLog"> | string
+    detalhes?: JsonNullableFilter<"DistribuicaoLog">
+    createdAt?: DateTimeFilter<"DistribuicaoLog"> | Date | string
+    updatedAt?: DateTimeFilter<"DistribuicaoLog"> | Date | string
+  }, "id">
+
+  export type DistribuicaoLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    ticketId?: SortOrderInput | SortOrder
+    clienteId?: SortOrderInput | SortOrder
+    numero?: SortOrderInput | SortOrder
+    pushName?: SortOrderInput | SortOrder
+    departamento?: SortOrderInput | SortOrder
+    fila?: SortOrderInput | SortOrder
+    equipeNome?: SortOrderInput | SortOrder
+    queueId?: SortOrderInput | SortOrder
+    queueName?: SortOrderInput | SortOrder
+    userId?: SortOrderInput | SortOrder
+    atendenteNome?: SortOrderInput | SortOrder
+    atendenteEmail?: SortOrderInput | SortOrder
+    atendenteSlack?: SortOrderInput | SortOrder
+    modoDistribuicao?: SortOrder
+    pontuacaoCarga?: SortOrderInput | SortOrder
+    metricas?: SortOrderInput | SortOrder
+    sucesso?: SortOrder
+    status?: SortOrder
+    detalhes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: DistribuicaoLogCountOrderByAggregateInput
+    _avg?: DistribuicaoLogAvgOrderByAggregateInput
+    _max?: DistribuicaoLogMaxOrderByAggregateInput
+    _min?: DistribuicaoLogMinOrderByAggregateInput
+    _sum?: DistribuicaoLogSumOrderByAggregateInput
+  }
+
+  export type DistribuicaoLogScalarWhereWithAggregatesInput = {
+    AND?: DistribuicaoLogScalarWhereWithAggregatesInput | DistribuicaoLogScalarWhereWithAggregatesInput[]
+    OR?: DistribuicaoLogScalarWhereWithAggregatesInput[]
+    NOT?: DistribuicaoLogScalarWhereWithAggregatesInput | DistribuicaoLogScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DistribuicaoLog"> | string
+    ticketId?: StringNullableWithAggregatesFilter<"DistribuicaoLog"> | string | null
+    clienteId?: StringNullableWithAggregatesFilter<"DistribuicaoLog"> | string | null
+    numero?: StringNullableWithAggregatesFilter<"DistribuicaoLog"> | string | null
+    pushName?: StringNullableWithAggregatesFilter<"DistribuicaoLog"> | string | null
+    departamento?: StringNullableWithAggregatesFilter<"DistribuicaoLog"> | string | null
+    fila?: StringNullableWithAggregatesFilter<"DistribuicaoLog"> | string | null
+    equipeNome?: StringNullableWithAggregatesFilter<"DistribuicaoLog"> | string | null
+    queueId?: IntNullableWithAggregatesFilter<"DistribuicaoLog"> | number | null
+    queueName?: StringNullableWithAggregatesFilter<"DistribuicaoLog"> | string | null
+    userId?: IntNullableWithAggregatesFilter<"DistribuicaoLog"> | number | null
+    atendenteNome?: StringNullableWithAggregatesFilter<"DistribuicaoLog"> | string | null
+    atendenteEmail?: StringNullableWithAggregatesFilter<"DistribuicaoLog"> | string | null
+    atendenteSlack?: StringNullableWithAggregatesFilter<"DistribuicaoLog"> | string | null
+    modoDistribuicao?: StringWithAggregatesFilter<"DistribuicaoLog"> | string
+    pontuacaoCarga?: IntNullableWithAggregatesFilter<"DistribuicaoLog"> | number | null
+    metricas?: JsonNullableWithAggregatesFilter<"DistribuicaoLog">
+    sucesso?: BoolWithAggregatesFilter<"DistribuicaoLog"> | boolean
+    status?: StringWithAggregatesFilter<"DistribuicaoLog"> | string
+    detalhes?: JsonNullableWithAggregatesFilter<"DistribuicaoLog">
+    createdAt?: DateTimeWithAggregatesFilter<"DistribuicaoLog"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"DistribuicaoLog"> | Date | string
   }
 
   export type EquipePlantaoWhereInput = {
@@ -15970,6 +17483,181 @@ export namespace Prisma {
     expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     updatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type DistribuicaoLogCreateInput = {
+    id?: string
+    ticketId?: string | null
+    clienteId?: string | null
+    numero?: string | null
+    pushName?: string | null
+    departamento?: string | null
+    fila?: string | null
+    equipeNome?: string | null
+    queueId?: number | null
+    queueName?: string | null
+    userId?: number | null
+    atendenteNome?: string | null
+    atendenteEmail?: string | null
+    atendenteSlack?: string | null
+    modoDistribuicao: string
+    pontuacaoCarga?: number | null
+    metricas?: NullableJsonNullValueInput | InputJsonValue
+    sucesso?: boolean
+    status?: string
+    detalhes?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DistribuicaoLogUncheckedCreateInput = {
+    id?: string
+    ticketId?: string | null
+    clienteId?: string | null
+    numero?: string | null
+    pushName?: string | null
+    departamento?: string | null
+    fila?: string | null
+    equipeNome?: string | null
+    queueId?: number | null
+    queueName?: string | null
+    userId?: number | null
+    atendenteNome?: string | null
+    atendenteEmail?: string | null
+    atendenteSlack?: string | null
+    modoDistribuicao: string
+    pontuacaoCarga?: number | null
+    metricas?: NullableJsonNullValueInput | InputJsonValue
+    sucesso?: boolean
+    status?: string
+    detalhes?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DistribuicaoLogUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ticketId?: NullableStringFieldUpdateOperationsInput | string | null
+    clienteId?: NullableStringFieldUpdateOperationsInput | string | null
+    numero?: NullableStringFieldUpdateOperationsInput | string | null
+    pushName?: NullableStringFieldUpdateOperationsInput | string | null
+    departamento?: NullableStringFieldUpdateOperationsInput | string | null
+    fila?: NullableStringFieldUpdateOperationsInput | string | null
+    equipeNome?: NullableStringFieldUpdateOperationsInput | string | null
+    queueId?: NullableIntFieldUpdateOperationsInput | number | null
+    queueName?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableIntFieldUpdateOperationsInput | number | null
+    atendenteNome?: NullableStringFieldUpdateOperationsInput | string | null
+    atendenteEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    atendenteSlack?: NullableStringFieldUpdateOperationsInput | string | null
+    modoDistribuicao?: StringFieldUpdateOperationsInput | string
+    pontuacaoCarga?: NullableIntFieldUpdateOperationsInput | number | null
+    metricas?: NullableJsonNullValueInput | InputJsonValue
+    sucesso?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    detalhes?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DistribuicaoLogUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ticketId?: NullableStringFieldUpdateOperationsInput | string | null
+    clienteId?: NullableStringFieldUpdateOperationsInput | string | null
+    numero?: NullableStringFieldUpdateOperationsInput | string | null
+    pushName?: NullableStringFieldUpdateOperationsInput | string | null
+    departamento?: NullableStringFieldUpdateOperationsInput | string | null
+    fila?: NullableStringFieldUpdateOperationsInput | string | null
+    equipeNome?: NullableStringFieldUpdateOperationsInput | string | null
+    queueId?: NullableIntFieldUpdateOperationsInput | number | null
+    queueName?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableIntFieldUpdateOperationsInput | number | null
+    atendenteNome?: NullableStringFieldUpdateOperationsInput | string | null
+    atendenteEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    atendenteSlack?: NullableStringFieldUpdateOperationsInput | string | null
+    modoDistribuicao?: StringFieldUpdateOperationsInput | string
+    pontuacaoCarga?: NullableIntFieldUpdateOperationsInput | number | null
+    metricas?: NullableJsonNullValueInput | InputJsonValue
+    sucesso?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    detalhes?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DistribuicaoLogCreateManyInput = {
+    id?: string
+    ticketId?: string | null
+    clienteId?: string | null
+    numero?: string | null
+    pushName?: string | null
+    departamento?: string | null
+    fila?: string | null
+    equipeNome?: string | null
+    queueId?: number | null
+    queueName?: string | null
+    userId?: number | null
+    atendenteNome?: string | null
+    atendenteEmail?: string | null
+    atendenteSlack?: string | null
+    modoDistribuicao: string
+    pontuacaoCarga?: number | null
+    metricas?: NullableJsonNullValueInput | InputJsonValue
+    sucesso?: boolean
+    status?: string
+    detalhes?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DistribuicaoLogUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ticketId?: NullableStringFieldUpdateOperationsInput | string | null
+    clienteId?: NullableStringFieldUpdateOperationsInput | string | null
+    numero?: NullableStringFieldUpdateOperationsInput | string | null
+    pushName?: NullableStringFieldUpdateOperationsInput | string | null
+    departamento?: NullableStringFieldUpdateOperationsInput | string | null
+    fila?: NullableStringFieldUpdateOperationsInput | string | null
+    equipeNome?: NullableStringFieldUpdateOperationsInput | string | null
+    queueId?: NullableIntFieldUpdateOperationsInput | number | null
+    queueName?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableIntFieldUpdateOperationsInput | number | null
+    atendenteNome?: NullableStringFieldUpdateOperationsInput | string | null
+    atendenteEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    atendenteSlack?: NullableStringFieldUpdateOperationsInput | string | null
+    modoDistribuicao?: StringFieldUpdateOperationsInput | string
+    pontuacaoCarga?: NullableIntFieldUpdateOperationsInput | number | null
+    metricas?: NullableJsonNullValueInput | InputJsonValue
+    sucesso?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    detalhes?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DistribuicaoLogUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ticketId?: NullableStringFieldUpdateOperationsInput | string | null
+    clienteId?: NullableStringFieldUpdateOperationsInput | string | null
+    numero?: NullableStringFieldUpdateOperationsInput | string | null
+    pushName?: NullableStringFieldUpdateOperationsInput | string | null
+    departamento?: NullableStringFieldUpdateOperationsInput | string | null
+    fila?: NullableStringFieldUpdateOperationsInput | string | null
+    equipeNome?: NullableStringFieldUpdateOperationsInput | string | null
+    queueId?: NullableIntFieldUpdateOperationsInput | number | null
+    queueName?: NullableStringFieldUpdateOperationsInput | string | null
+    userId?: NullableIntFieldUpdateOperationsInput | number | null
+    atendenteNome?: NullableStringFieldUpdateOperationsInput | string | null
+    atendenteEmail?: NullableStringFieldUpdateOperationsInput | string | null
+    atendenteSlack?: NullableStringFieldUpdateOperationsInput | string | null
+    modoDistribuicao?: StringFieldUpdateOperationsInput | string
+    pontuacaoCarga?: NullableIntFieldUpdateOperationsInput | number | null
+    metricas?: NullableJsonNullValueInput | InputJsonValue
+    sucesso?: BoolFieldUpdateOperationsInput | boolean
+    status?: StringFieldUpdateOperationsInput | string
+    detalhes?: NullableJsonNullValueInput | InputJsonValue
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EquipePlantaoCreateInput = {
@@ -16923,6 +18611,154 @@ export namespace Prisma {
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
   }
+  export type JsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type DistribuicaoLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    ticketId?: SortOrder
+    clienteId?: SortOrder
+    numero?: SortOrder
+    pushName?: SortOrder
+    departamento?: SortOrder
+    fila?: SortOrder
+    equipeNome?: SortOrder
+    queueId?: SortOrder
+    queueName?: SortOrder
+    userId?: SortOrder
+    atendenteNome?: SortOrder
+    atendenteEmail?: SortOrder
+    atendenteSlack?: SortOrder
+    modoDistribuicao?: SortOrder
+    pontuacaoCarga?: SortOrder
+    metricas?: SortOrder
+    sucesso?: SortOrder
+    status?: SortOrder
+    detalhes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DistribuicaoLogAvgOrderByAggregateInput = {
+    queueId?: SortOrder
+    userId?: SortOrder
+    pontuacaoCarga?: SortOrder
+  }
+
+  export type DistribuicaoLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    ticketId?: SortOrder
+    clienteId?: SortOrder
+    numero?: SortOrder
+    pushName?: SortOrder
+    departamento?: SortOrder
+    fila?: SortOrder
+    equipeNome?: SortOrder
+    queueId?: SortOrder
+    queueName?: SortOrder
+    userId?: SortOrder
+    atendenteNome?: SortOrder
+    atendenteEmail?: SortOrder
+    atendenteSlack?: SortOrder
+    modoDistribuicao?: SortOrder
+    pontuacaoCarga?: SortOrder
+    sucesso?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DistribuicaoLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    ticketId?: SortOrder
+    clienteId?: SortOrder
+    numero?: SortOrder
+    pushName?: SortOrder
+    departamento?: SortOrder
+    fila?: SortOrder
+    equipeNome?: SortOrder
+    queueId?: SortOrder
+    queueName?: SortOrder
+    userId?: SortOrder
+    atendenteNome?: SortOrder
+    atendenteEmail?: SortOrder
+    atendenteSlack?: SortOrder
+    modoDistribuicao?: SortOrder
+    pontuacaoCarga?: SortOrder
+    sucesso?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DistribuicaoLogSumOrderByAggregateInput = {
+    queueId?: SortOrder
+    userId?: SortOrder
+    pontuacaoCarga?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
+  }
 
   export type StringNullableListFilter<$PrismaModel = never> = {
     equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -16990,22 +18826,6 @@ export namespace Prisma {
     queueId?: SortOrder
   }
 
-  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _avg?: NestedFloatNullableFilter<$PrismaModel>
-    _sum?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedIntNullableFilter<$PrismaModel>
-    _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -17015,29 +18835,6 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntFilter<$PrismaModel> | number
-  }
-  export type JsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
 
   export type EquipePlantaoScalarRelationFilter = {
@@ -17124,32 +18921,6 @@ export namespace Prisma {
     _sum?: NestedIntFilter<$PrismaModel>
     _min?: NestedIntFilter<$PrismaModel>
     _max?: NestedIntFilter<$PrismaModel>
-  }
-  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
-
-  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedJsonNullableFilter<$PrismaModel>
-    _max?: NestedJsonNullableFilter<$PrismaModel>
   }
 
   export type RegistrosListRelationFilter = {
@@ -17521,6 +19292,14 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutAccountsInput, UserUpdateWithoutAccountsInput>, UserUncheckedUpdateWithoutAccountsInput>
   }
 
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type EquipePlantaoCreatedepartamentosInput = {
     set: string[]
   }
@@ -17537,14 +19316,6 @@ export namespace Prisma {
     connectOrCreate?: MembroEquipeCreateOrConnectWithoutEquipeInput | MembroEquipeCreateOrConnectWithoutEquipeInput[]
     createMany?: MembroEquipeCreateManyEquipeInputEnvelope
     connect?: MembroEquipeWhereUniqueInput | MembroEquipeWhereUniqueInput[]
-  }
-
-  export type NullableIntFieldUpdateOperationsInput = {
-    set?: number | null
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type EquipePlantaoUpdatedepartamentosInput = {
@@ -18081,6 +19852,29 @@ export namespace Prisma {
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
+  export type NestedJsonNullableFilter<$PrismaModel = never> =
+    | PatchUndefined<
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
@@ -18107,29 +19901,6 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
-  }
-  export type NestedJsonNullableFilter<$PrismaModel = never> =
-    | PatchUndefined<
-        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
-        Required<NestedJsonNullableFilterBase<$PrismaModel>>
-      >
-    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
-
-  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
-    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
-    path?: string[]
-    mode?: QueryMode | EnumQueryModeFieldRefInput<$PrismaModel>
-    string_contains?: string | StringFieldRefInput<$PrismaModel>
-    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
-    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
-    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
-    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
   }
   export type NestedJsonFilter<$PrismaModel = never> =
     | PatchUndefined<

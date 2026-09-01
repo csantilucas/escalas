@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   distribuicaoService,
   PrevisaoFila,
   DistribuirResponse,
+  DistribuicaoLogItem,
 } from "@/services";
 import {
   GitFork,
@@ -18,11 +19,16 @@ import {
   ShieldAlert,
   Zap,
   Sparkles,
+  Layers,
+  History,
+  Info,
 } from "lucide-react";
+import { formatarDataHora, formatarHoraLocal } from "@/lib/dateUtils";
 import { env } from "@/lib/env";
 
 export default function DistribuicaoPage() {
   const [previsoes, setPrevisoes] = useState<PrevisaoFila[]>([]);
+  const [recentes, setRecentes] = useState<DistribuicaoLogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -38,23 +44,28 @@ export default function DistribuicaoPage() {
   const [simulando, setSimulando] = useState(false);
   const [resultadoSimulacao, setResultadoSimulacao] = useState<DistribuirResponse | null>(null);
 
-  const loadPrevisoes = async (showLoading = true) => {
+  const loadData = useCallback(async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
       else setRefreshing(true);
 
-      const data = await distribuicaoService.getPrevisaoFilas();
-      setPrevisoes(data);
+      const [filasData, logsRecentes] = await Promise.all([
+        distribuicaoService.getPrevisaoFilas().catch(() => []),
+        distribuicaoService.getRecentLogs(25).catch(() => []),
+      ]);
+
+      setPrevisoes(filasData);
+      setRecentes(logsRecentes);
     } catch (err) {
-      console.error("Erro ao carregar previsão de filas:", err);
+      console.error("Erro ao carregar previsão e histórico de distribuições:", err);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    loadPrevisoes();
+    loadData();
 
     // 🟢 Conexão SSE em tempo real para sincronização instantânea
     let sse: EventSource | null = null;
@@ -66,21 +77,21 @@ export default function DistribuicaoPage() {
         try {
           const payload = JSON.parse(event.data);
           if (payload.entity === "distribuicao" || payload.entity === "atendimento") {
-            loadPrevisoes(false);
+            loadData(false);
           }
         } catch {}
       });
     } catch {}
 
     const interval = setInterval(() => {
-      loadPrevisoes(false);
+      loadData(false);
     }, 10000); // Polling de backup
 
     return () => {
       if (sse) sse.close();
       clearInterval(interval);
     };
-  }, []);
+  }, [loadData]);
 
   const handleSimularDistribuicao = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +107,7 @@ export default function DistribuicaoPage() {
         ignorarApisExternas,
       });
       setResultadoSimulacao(res);
-      loadPrevisoes(false);
+      loadData(false);
     } catch (err: any) {
       setResultadoSimulacao({
         sucesso: false,
@@ -118,7 +129,7 @@ export default function DistribuicaoPage() {
   };
 
   return (
-    <div className="space-y-4 max-w-7xl mx-auto font-sans antialiased text-left">
+    <div className="space-y-5 max-w-7xl mx-auto font-sans antialiased text-left">
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-900/50 p-5 rounded-lg border border-zinc-800 shadow-xs">
         <div>
@@ -135,19 +146,19 @@ export default function DistribuicaoPage() {
                 </span>
               </div>
               <p className="text-xs text-zinc-400 mt-0.5">
-                Monitore o próximo analista de cada equipe e valide as regras de roteamento inteligente.
+                Monitore a fila em tempo real, execute simulações e consulte o histórico de distribuições persistidas.
               </p>
             </div>
           </div>
         </div>
 
         <button
-          onClick={() => loadPrevisoes(false)}
+          onClick={() => loadData(false)}
           disabled={refreshing}
           className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-md border border-zinc-700 transition-all cursor-pointer shadow-xs"
         >
           <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${refreshing ? "animate-spin" : ""}`} />
-          <span>Atualizar Filas</span>
+          <span>Atualizar Dados</span>
         </button>
       </div>
 
@@ -217,7 +228,7 @@ export default function DistribuicaoPage() {
           <div>
             <h2 className="text-xs font-semibold text-zinc-100 uppercase tracking-wider">Simulador de Triagem e Distribuição</h2>
             <p className="text-[11px] text-zinc-400">
-              Simule a requisição do n8n e verifique o cálculo de decisão do backend em tempo real.
+              Simule a requisição do n8n e verifique o cálculo de decisão do backend persistido no banco de dados.
             </p>
           </div>
         </div>
@@ -251,6 +262,7 @@ export default function DistribuicaoPage() {
               type="text"
               value={ticketId}
               onChange={(e) => setTicketId(e.target.value)}
+              placeholder="Ex: 18001"
               className="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
             />
           </div>
@@ -291,7 +303,7 @@ export default function DistribuicaoPage() {
                     : "bg-red-500/10 border border-red-500/20 text-red-400"
                 }`}
               >
-                {resultadoSimulacao.sucesso ? "Sucesso (200 OK)" : "Falha"}
+                {resultadoSimulacao.sucesso ? "Sucesso (Gravado no Banco)" : "Falha"}
               </span>
             </div>
 
@@ -324,6 +336,88 @@ export default function DistribuicaoPage() {
                 )}
               </div>
             </div>
+          </div>
+        )}
+      </div>
+
+      {/* HISTÓRICO DE DISTRIBUIÇÕES RECENTES SALVAS NO BANCO */}
+      <div className="bg-zinc-900/40 border border-zinc-800 rounded-lg p-4 space-y-3 shadow-xs">
+        <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+          <div className="flex items-center gap-2">
+            <History className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-xs font-semibold text-zinc-100 uppercase tracking-wider">
+              Histórico de Distribuições Persistidas no Banco ({recentes.length})
+            </h2>
+          </div>
+          <span className="text-[10px] text-zinc-500 font-mono">Últimas 25 distribuições salvas</span>
+        </div>
+
+        {recentes.length === 0 ? (
+          <div className="p-6 text-center text-zinc-500 text-xs italic">
+            Nenhuma distribuição gravada no banco até o momento. Execute uma simulação acima ou envie um chamado via n8n.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs text-zinc-300">
+              <thead className="bg-zinc-950 text-zinc-400 uppercase text-[10px] tracking-wider border-b border-zinc-800">
+                <tr>
+                  <th className="p-2.5">Ticket / Ref</th>
+                  <th className="p-2.5">Atendente</th>
+                  <th className="p-2.5">Equipe / Fila</th>
+                  <th className="p-2.5">Modo de Distribuição</th>
+                  <th className="p-2.5">Carga Calculada</th>
+                  <th className="p-2.5 text-right">Data & Hora</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-800/60">
+                {recentes.map((dist) => {
+                  const isFallback = (dist.modoDistribuicao || "").toLowerCase().includes("fallback");
+                  return (
+                    <tr key={dist.id} className="hover:bg-zinc-800/40 transition-colors">
+                      <td className="p-2.5 font-mono text-zinc-200">
+                        #{dist.ticketId || dist.numero || "Novo Chat"}
+                        {dist.pushName && <span className="block text-[10px] text-zinc-500 font-sans">{dist.pushName}</span>}
+                      </td>
+                      <td className="p-2.5">
+                        <span className="font-semibold text-zinc-100">{dist.atendenteNome || "Nenhum (Fallback)"}</span>
+                        {dist.atendenteEmail && (
+                          <span className="block text-[10px] text-zinc-400">{dist.atendenteEmail}</span>
+                        )}
+                      </td>
+                      <td className="p-2.5">
+                        <span className="text-zinc-200">{dist.equipeNome || dist.queueName || "N1-Suporte"}</span>
+                        {dist.queueId && (
+                          <span className="block text-[10px] text-zinc-500 font-mono">Fila #{dist.queueId}</span>
+                        )}
+                      </td>
+                      <td className="p-2.5">
+                        <span
+                          className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${
+                            isFallback
+                              ? "bg-amber-500/10 border-amber-500/20 text-amber-300"
+                              : "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+                          }`}
+                        >
+                          {dist.modoDistribuicao}
+                        </span>
+                      </td>
+                      <td className="p-2.5 font-mono text-[11px] text-zinc-400">
+                        {dist.metricas ? (
+                          <span>
+                            {dist.metricas.abertos} ab / {dist.metricas.pendentes} pend (Score: {dist.pontuacaoCarga || 0})
+                          </span>
+                        ) : (
+                          <span className="text-zinc-500">-</span>
+                        )}
+                      </td>
+                      <td className="p-2.5 text-right font-mono text-[11px] text-zinc-400 whitespace-nowrap">
+                        {formatarDataHora(dist.createdAt)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
       </div>

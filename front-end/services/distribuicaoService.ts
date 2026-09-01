@@ -46,6 +46,59 @@ export interface DistribuirResponse {
   error?: string;
 }
 
+export interface DistribuicaoLogItem {
+  id: string;
+  ticketId?: string | null;
+  clienteId?: string | null;
+  numero?: string | null;
+  pushName?: string | null;
+  departamento?: string | null;
+  fila?: string | null;
+  equipeNome?: string | null;
+  queueId?: number | null;
+  queueName?: string | null;
+  userId?: number | null;
+  atendenteNome?: string | null;
+  atendenteEmail?: string | null;
+  atendenteSlack?: string | null;
+  modoDistribuicao: string;
+  pontuacaoCarga?: number | null;
+  metricas?: {
+    abertos: number;
+    pendentes: number;
+    fechadosHoje: number;
+  } | null;
+  sucesso: boolean;
+  status: string;
+  detalhes?: any;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DistribuicaoLogFilterParams {
+  page?: number;
+  limit?: number;
+  modo?: string;
+  atendente?: string;
+  equipeNome?: string;
+  busca?: string;
+  sucesso?: boolean;
+  dataInicio?: string;
+  dataFim?: string;
+}
+
+export interface DistribuicaoLogPaginationResponse {
+  data: DistribuicaoLogItem[];
+  pagination: {
+    totalRecords: number;
+    currentPage: number;
+    totalPages: number;
+    perPage: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
 export const distribuicaoService = {
   getPrevisaoFilas: async (): Promise<PrevisaoFila[]> => {
     const response = await api.get<PrevisaoFila[]>("/atendimentos/previsao");
@@ -54,6 +107,20 @@ export const distribuicaoService = {
 
   distribuir: async (input: DistribuirInput): Promise<DistribuirResponse> => {
     const response = await api.post<DistribuirResponse>("/atendimentos/distribuir", input);
+    return response.data;
+  },
+
+  getLogs: async (params?: DistribuicaoLogFilterParams): Promise<DistribuicaoLogPaginationResponse> => {
+    const response = await api.get<DistribuicaoLogPaginationResponse>("/atendimentos/distribuicao/logs", {
+      params,
+    });
+    return response.data;
+  },
+
+  getRecentLogs: async (limit = 50): Promise<DistribuicaoLogItem[]> => {
+    const response = await api.get<DistribuicaoLogItem[]>("/atendimentos/distribuicao/recentes", {
+      params: { limit },
+    });
     return response.data;
   },
 };

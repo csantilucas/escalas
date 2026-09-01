@@ -1,4 +1,5 @@
 import { EquipeRepository } from "../repository/equipeRepo.js";
+import { DistribuicaoLogRepository, type DistribuicaoLogFilterQuery } from "../repository/distribuicaoLogRepo.js";
 import { externalApiService, type TicketUserData } from "./externalApiService.js";
 import { sseEventBus } from "../../config/sseEvents.js";
 
@@ -95,12 +96,57 @@ export function isWithinShift(
 
 export class DistributionService {
   private equipeRepo: EquipeRepository;
+  private distribuicaoLogRepo?: DistribuicaoLogRepository;
   private readonly PESO_ABERTOS = 10;
   private readonly PESO_PENDENTES = 5;
   private readonly PESO_TOTAL_DIA = 1;
 
-  constructor(equipeRepository: EquipeRepository) {
+  constructor(equipeRepository: EquipeRepository, distribuicaoLogRepository?: DistribuicaoLogRepository) {
     this.equipeRepo = equipeRepository;
+    this.distribuicaoLogRepo = distribuicaoLogRepository;
+  }
+
+  private async persistLog(input: DistribuirInput, result: DistribuirResult): Promise<void> {
+    try {
+      if (this.distribuicaoLogRepo) {
+        await this.distribuicaoLogRepo.create({
+          ticketId: input.ticketId !== undefined && input.ticketId !== null ? String(input.ticketId) : null,
+          clienteId: input.clienteId !== undefined && input.clienteId !== null ? String(input.clienteId) : null,
+          numero: input.numero ? String(input.numero) : null,
+          pushName: input.pushName ? String(input.pushName) : null,
+          departamento: input.departamento ? String(input.departamento) : null,
+          fila: input.fila ? String(input.fila) : null,
+          equipeNome: result.equipeNome || null,
+          queueId: result.queueId || null,
+          queueName: result.queueName || null,
+          userId: result.userId || null,
+          atendenteNome: result.atendenteNome || null,
+          atendenteEmail: result.atendenteEmail || null,
+          atendenteSlack: result.atendenteSlack || null,
+          modoDistribuicao: result.modoDistribuicao,
+          pontuacaoCarga: result.pontuacaoCarga || 0,
+          metricas: result.metricas || null,
+          sucesso: result.sucesso,
+          status: result.status,
+          detalhes: {
+            input,
+            result,
+          },
+        });
+      }
+    } catch (error: any) {
+      console.error("❌ [DistributionService] Erro ao persistir log de distribuição:", error.message || error);
+    }
+  }
+
+  async getLogs(filters: DistribuicaoLogFilterQuery) {
+    if (!this.distribuicaoLogRepo) return { data: [], pagination: { totalRecords: 0, currentPage: 1, totalPages: 0, perPage: 20, hasNextPage: false, hasPrevPage: false } };
+    return await this.distribuicaoLogRepo.findWithFilters(filters);
+  }
+
+  async getRecentLogs(limit = 50) {
+    if (!this.distribuicaoLogRepo) return [];
+    return await this.distribuicaoLogRepo.findRecent(limit);
   }
 
   async distribuir(input: DistribuirInput): Promise<DistribuirResult> {
@@ -118,7 +164,7 @@ export class DistributionService {
     }
 
     if (!equipe) {
-      return {
+      const res: DistribuirResult = {
         sucesso: false,
         status: "pending",
         userId: null,
@@ -127,6 +173,8 @@ export class DistributionService {
         queueName: filaName || "N1-Suporte",
         modoDistribuicao: "sem_equipes_cadastradas",
       };
+      await this.persistLog(input, res);
+      return res;
     }
 
     const queueId = equipe.queueId || 6;
@@ -134,7 +182,7 @@ export class DistributionService {
     const membrosAtivos = (equipe.membros || []).filter((m: any) => m.ativo && m.user);
 
     if (membrosAtivos.length === 0) {
-      return {
+      const res: DistribuirResult = {
         sucesso: true,
         status: "pending",
         userId: null,
@@ -144,6 +192,8 @@ export class DistributionService {
         equipeNome: equipe.nome,
         modoDistribuicao: "equipe_sem_membros",
       };
+      await this.persistLog(input, res);
+      return res;
     }
 
     // 2. Filtrar membros elegíveis por turno
@@ -322,6 +372,8 @@ export class DistributionService {
         metricas: metricasEscolhidas,
       };
 
+      await this.persistLog(input, result);
+
       sseEventBus.notify("distribuicao", "create", {
         ...result,
         ticketId: input.ticketId,
@@ -343,6 +395,8 @@ export class DistributionService {
       equipeNome: equipe.nome,
       modoDistribuicao: "fallback_no_online",
     };
+
+    await this.persistLog(input, fallbackResult);
 
     sseEventBus.notify("distribuicao", "create", {
       ...fallbackResult,

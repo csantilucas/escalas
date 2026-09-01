@@ -291,4 +291,26 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
     expect(n1.proximoDaFila).toBeDefined();
     expect(n1.proximoDaFila.nome).toBeDefined();
   });
+
+  it("deve persistir as distribuições no banco de dados e retornar no histórico de logs e recentes", async () => {
+    // 1. Consultar /atendimentos/distribuicao/recentes
+    const resRecentes = await request(app).get("/atendimentos/distribuicao/recentes?limit=10");
+    expect(resRecentes.status).toBe(200);
+    expect(Array.isArray(resRecentes.body)).toBe(true);
+    expect(resRecentes.body.length).toBeGreaterThan(0);
+
+    const ultimoLog = resRecentes.body[0];
+    expect(ultimoLog).toHaveProperty("id");
+    expect(ultimoLog).toHaveProperty("modoDistribuicao");
+    expect(ultimoLog).toHaveProperty("createdAt");
+
+    // 2. Consultar /atendimentos/distribuicao/logs com paginação e busca
+    const resLogs = await request(app).get("/atendimentos/distribuicao/logs?page=1&limit=5");
+    expect(resLogs.status).toBe(200);
+    expect(resLogs.body).toHaveProperty("data");
+    expect(resLogs.body).toHaveProperty("pagination");
+    expect(Array.isArray(resLogs.body.data)).toBe(true);
+    expect(resLogs.body.pagination.totalRecords).toBeGreaterThan(0);
+  });
 });
+

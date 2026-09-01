@@ -11,6 +11,10 @@ router.post("/distribuir", distribution.distribuir);
 router.get("/distribuir", distribution.distribuir);
 router.get("/previsao", distribution.getPrevisao);
 
+// 🟢 Rotas de Histórico e Auditoria de Distribuição
+router.get("/distribuicao/logs", distribution.getLogs);
+router.get("/distribuicao/recentes", distribution.getRecentes);
+
 // Rotas de Atendimentos
 router.post("/", atendimento.create);
 router.patch("/atualizar", atendimento.update);

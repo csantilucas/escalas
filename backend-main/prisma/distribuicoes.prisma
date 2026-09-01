@@ -1,0 +1,27 @@
+model DistribuicaoLog {
+  id                 String   @id @default(uuid())
+  ticketId           String?  // ID/Código do Ticket ZPro
+  clienteId          String?  // ID do Cliente
+  numero             String?  // Telefone/WhatsApp
+  pushName           String?  // Nome de exibição do contato
+  departamento       String?  // Departamento de entrada
+  fila               String?  // Fila solicitada
+  equipeNome         String?  // Nome da equipe selecionada
+  queueId            Int?     // ID da fila Z-PRO
+  queueName          String?  // Nome da fila Z-PRO
+  userId             Int?     // ID do usuário/atendente no Z-PRO
+  atendenteNome      String?  // Nome do analista atribuído
+  atendenteEmail     String?  // E-mail do analista
+  atendenteSlack     String?  // Slack ID do analista
+  modoDistribuicao   String   // Modo (ex: ponderado_menor_carga, fallback_sequencial_round_robin)
+  pontuacaoCarga     Int?     @default(0)
+  metricas           Json?    // Cargas do analista: { abertos, pendentes, fechadosHoje }
+  sucesso            Boolean  @default(true)
+  status             String   @default("open") // open | pending | error
+  detalhes           Json?    // Payload completo / metadados adicionais
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("distribuicoes_logs")
+}

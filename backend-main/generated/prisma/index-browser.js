@@ -172,6 +172,31 @@ exports.Prisma.VerificationScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.DistribuicaoLogScalarFieldEnum = {
+  id: 'id',
+  ticketId: 'ticketId',
+  clienteId: 'clienteId',
+  numero: 'numero',
+  pushName: 'pushName',
+  departamento: 'departamento',
+  fila: 'fila',
+  equipeNome: 'equipeNome',
+  queueId: 'queueId',
+  queueName: 'queueName',
+  userId: 'userId',
+  atendenteNome: 'atendenteNome',
+  atendenteEmail: 'atendenteEmail',
+  atendenteSlack: 'atendenteSlack',
+  modoDistribuicao: 'modoDistribuicao',
+  pontuacaoCarga: 'pontuacaoCarga',
+  metricas: 'metricas',
+  sucesso: 'sucesso',
+  status: 'status',
+  detalhes: 'detalhes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.EquipePlantaoScalarFieldEnum = {
   id: 'id',
   nome: 'nome',
@@ -306,6 +331,7 @@ exports.Prisma.ModelName = {
   Session: 'Session',
   Account: 'Account',
   Verification: 'Verification',
+  DistribuicaoLog: 'DistribuicaoLog',
   EquipePlantao: 'EquipePlantao',
   MembroEquipe: 'MembroEquipe',
   Plantonistas: 'Plantonistas',

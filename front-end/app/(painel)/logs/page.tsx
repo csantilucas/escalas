@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { atendimentoService, tokenService } from "@/services";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { atendimentoService, distribuicaoService, tokenService } from "@/services";
 import {
   Activity,
   Radio,
@@ -34,6 +34,8 @@ interface AuditLog {
 
 export default function LogsPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [isLive, setIsLive] = useState(true);
   const [filterType, setFilterType] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -49,11 +51,25 @@ export default function LogsPage() {
 
   const eventSourceRef = useRef<EventSource | null>(null);
 
-  // Inicializa logs históricos a partir dos atendimentos recentes
-  const carregarHistorico = async () => {
+  // 🟢 Carrega histórico persistido de Distribuições e Atendimentos do Banco
+  const carregarHistorico = useCallback(async (isManualRefresh = false) => {
     try {
-      const atendRes = await atendimentoService.list({ limit: 25 });
-      const historicoInicial: AuditLog[] = (atendRes.data || []).map((at) => ({
+      if (isManualRefresh) setRefreshing(true);
+      else setLoading(true);
+
+      const [atendRes, distRes] = await Promise.all([
+        atendimentoService.list({ limit: 50 }).catch((e) => {
+          console.error("Erro ao buscar atendimentos:", e);
+          return { data: [] };
+        }),
+        distribuicaoService.getRecentLogs(100).catch((e) => {
+          console.error("Erro ao buscar distribuições:", e);
+          return [];
+        }),
+      ]);
+
+      // 1. Mapeia Atendimentos salvos
+      const historicoAtendimentos: AuditLog[] = (atendRes.data || []).map((at) => ({
         id: at.id,
         timestamp: at.createdAt,
         type: "ATENDIMENTO",
@@ -63,7 +79,28 @@ export default function LogsPage() {
         details: at,
       }));
 
-      // Adiciona logs de sistema simulados
+      // 2. Mapeia Distribuições salvas do Banco de Dados
+      const historicoDistribuicoes: AuditLog[] = (distRes || []).map((dist) => {
+        const isFallback = (dist.modoDistribuicao || "").toLowerCase().includes("fallback");
+        const type: "DISTRIBUICAO" | "FALLBACK" = isFallback ? "FALLBACK" : "DISTRIBUICAO";
+        const severity: "success" | "warning" | "error" = !dist.sucesso
+          ? "error"
+          : isFallback
+          ? "warning"
+          : "success";
+
+        return {
+          id: dist.id,
+          timestamp: dist.createdAt,
+          type,
+          severity,
+          title: `Distribuição #${dist.ticketId || dist.numero || "Novo Chat"}`,
+          description: `Atendente: ${dist.atendenteNome || "Nenhum (Fallback)"} | Fila: ${dist.equipeNome || dist.queueName || "N1"} | Modo: ${dist.modoDistribuicao || "Ponderado"}`,
+          details: dist,
+        };
+      });
+
+      // 3. Log de Sistema
       const systemLogs: AuditLog[] = [
         {
           id: "sys-1",
@@ -75,15 +112,26 @@ export default function LogsPage() {
         },
       ];
 
-      setLogs([...historicoInicial, ...systemLogs]);
+      // Unifica todos os logs e ordena pelo mais recente
+      const todosLogs = [...historicoDistribuicoes, ...historicoAtendimentos, ...systemLogs].sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      setLogs(todosLogs);
+      if (todosLogs.length > 0 && !selectedLog) {
+        setSelectedLog(todosLogs[0]);
+      }
     } catch (err) {
       console.error("Erro ao buscar histórico de logs:", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, [selectedLog]);
 
   useEffect(() => {
     carregarHistorico();
-  }, []);
+  }, [carregarHistorico]);
 
   // Conexão SSE em tempo real
   useEffect(() => {
@@ -116,7 +164,7 @@ export default function LogsPage() {
           let description = "Evento processado pelo servidor.";
 
           if (entity === "distribuicao") {
-            const isFallback = data.modoDistribuicao?.includes("fallback");
+            const isFallback = (data.modoDistribuicao || "").toLowerCase().includes("fallback");
             type = isFallback ? "FALLBACK" : "DISTRIBUICAO";
             severity = isFallback ? "warning" : "success";
             title = `Distribuição #${data.ticketId || data.numero || "Novo Chat"}`;
@@ -134,8 +182,8 @@ export default function LogsPage() {
           }
 
           const newLog: AuditLog = {
-            id: `sse-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-            timestamp: payload.timestamp || new Date().toISOString(),
+            id: data.id || `sse-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+            timestamp: payload.timestamp || data.createdAt || new Date().toISOString(),
             type,
             severity,
             title,
@@ -143,7 +191,12 @@ export default function LogsPage() {
             details: data,
           };
 
-          setLogs((prev) => [newLog, ...prev.slice(0, 199)]);
+          setLogs((prev) => {
+            // Evita duplicação se o item já estiver na lista pelo ID
+            const exists = prev.some((l) => l.id === newLog.id);
+            if (exists) return prev;
+            return [newLog, ...prev.slice(0, 199)];
+          });
         } catch (err) {
           console.error("Erro ao processar evento SSE no painel de logs:", err);
         }
@@ -218,16 +271,25 @@ export default function LogsPage() {
                 </span>
               </div>
               <p className="text-sm text-zinc-400">
-                Acompanhe em tempo real todas as decisões de roteamento, atendimentos e sincronizações.
+                Acompanhe em tempo real todas as decisões de roteamento, atendimentos e sincronizações persistidas no banco.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => carregarHistorico(true)}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-xl border border-zinc-700 transition-all cursor-pointer"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 text-blue-400 ${refreshing ? "animate-spin" : ""}`} />
+            <span>Atualizar Logs</span>
+          </button>
+
           <button
             onClick={() => setIsLive(!isLive)}
-            className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl border transition-all ${
+            className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
               isLive
                 ? "bg-amber-500/10 border-amber-500/30 text-amber-300 hover:bg-amber-500/20"
                 : "bg-emerald-500/10 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/20"
@@ -239,7 +301,7 @@ export default function LogsPage() {
 
           <button
             onClick={exportarLogsJSON}
-            className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-xl border border-zinc-700 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold rounded-xl border border-zinc-700 transition-colors cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Exportar JSON</span>
@@ -290,7 +352,7 @@ export default function LogsPage() {
           <Search className="w-3.5 h-3.5 text-zinc-500 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Buscar nos eventos..."
+            placeholder="Buscar nos eventos salvos..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-8 pr-3 py-1.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
@@ -304,7 +366,7 @@ export default function LogsPage() {
             onChange={(e) => setFilterType(e.target.value)}
             className="px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-md text-xs text-zinc-200 focus:outline-none focus:border-blue-500"
           >
-            <option value="ALL">Todos os Eventos</option>
+            <option value="ALL">Todos os Eventos ({logs.length})</option>
             <option value="DISTRIBUICAO">Distribuição Ponderada</option>
             <option value="FALLBACK">Fallback Round-Robin</option>
             <option value="ATENDIMENTO">Atendimentos</option>
@@ -320,17 +382,24 @@ export default function LogsPage() {
           <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
             <h2 className="text-xs font-semibold text-zinc-100 flex items-center gap-1.5 uppercase tracking-wider">
               <Layers className="w-3.5 h-3.5 text-blue-400" />
-              Feed de Eventos em Tempo Real
+              Feed de Eventos e Auditoria
             </h2>
-            <span className="text-[10px] text-zinc-500 font-mono">{filteredLogs.length} eventos filtrados</span>
+            <span className="text-[10px] text-zinc-500 font-mono">
+              {loading ? "Carregando histórico..." : `${filteredLogs.length} eventos listados`}
+            </span>
           </div>
 
-          {filteredLogs.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center p-12 text-zinc-400 text-xs">
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-2" />
+              Carregando histórico persistido...
+            </div>
+          ) : filteredLogs.length === 0 ? (
             <div className="p-8 text-center text-zinc-500 text-xs">
               Nenhum log encontrado para os critérios informados.
             </div>
           ) : (
-            <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
+            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
               {filteredLogs.map((item) => (
                 <div
                   key={item.id}
@@ -343,7 +412,7 @@ export default function LogsPage() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
-                      <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold border ${getSeverityBadge(item.severity)}`}>
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${getSeverityBadge(item.severity)}`}>
                         {item.type}
                       </span>
                       <h3 className="text-xs font-semibold text-zinc-200 truncate">{item.title}</h3>
@@ -386,7 +455,7 @@ export default function LogsPage() {
               {selectedLog.details && (
                 <div>
                   <p className="text-[10px] font-semibold text-zinc-400 mb-1">Payload / Dados Técnicos</p>
-                  <pre className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-[10px] font-mono text-zinc-300 overflow-x-auto max-h-[200px]">
+                  <pre className="p-2.5 bg-zinc-950 border border-zinc-800 rounded-md text-[10px] font-mono text-zinc-300 overflow-x-auto max-h-[220px]">
                     {JSON.stringify(selectedLog.details, null, 2)}
                   </pre>
                 </div>
