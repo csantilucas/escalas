@@ -172,34 +172,51 @@ export default function DashboardPage() {
 
       {/* Seção: Métricas de Chamados */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
-            <span>Produtividade dos Analistas (Hoje)</span>
-          </h2>
-          <span className="text-xs text-zinc-500 font-medium">
-            {report.length} {report.length === 1 ? "Analista" : "Analistas"}
-          </span>
-        </div>
+        {(() => {
+          const analistasValidos = report.filter(
+            (analista) =>
+              analista &&
+              analista.name &&
+              analista.name.trim() !== "" &&
+              analista.name.trim().toLowerCase() !== "sem nome" &&
+              analista.name.trim().toLowerCase() !== "null" &&
+              analista.name.trim().toLowerCase() !== "undefined" &&
+              analista.name.trim().toLowerCase() !== "sem atendente"
+          );
 
-        {loading ? (
-          <div className="text-xs text-zinc-500 animate-pulse">Sincronizando métricas em tempo real...</div>
-        ) : report.length === 0 ? (
-          <div className="text-xs text-zinc-500 p-4 border border-zinc-800 rounded-lg bg-zinc-900/20 text-center">
-            Nenhuma atividade registrada no microsserviço até o momento.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 items-stretch">
-            {report.map((analista: TicketUserData, index: number) => {
-              const keyUnica = `analista-${analista.email || analista.name || "desconhecido"}-${index}`;
-              return (
-                <div key={keyUnica} className="h-full">
-                  <AnalistaMetricCard dados={analista} />
+          return (
+            <>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                  <span>Produtividade dos Analistas (Hoje)</span>
+                </h2>
+                <span className="text-xs text-zinc-500 font-medium">
+                  {analistasValidos.length} {analistasValidos.length === 1 ? "Analista" : "Analistas"}
+                </span>
+              </div>
+
+              {loading ? (
+                <div className="text-xs text-zinc-500 animate-pulse">Sincronizando métricas em tempo real...</div>
+              ) : analistasValidos.length === 0 ? (
+                <div className="text-xs text-zinc-500 p-4 border border-zinc-800 rounded-lg bg-zinc-900/20 text-center">
+                  Nenhuma atividade registrada no microsserviço até o momento.
                 </div>
-              );
-            })}
-          </div>
-        )}
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 items-stretch">
+                  {analistasValidos.map((analista: TicketUserData, index: number) => {
+                    const keyUnica = `analista-${analista.email || analista.name || "desconhecido"}-${index}`;
+                    return (
+                      <div key={keyUnica} className="h-full">
+                        <AnalistaMetricCard dados={analista} />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          );
+        })()}
       </div>
     </div>
   );

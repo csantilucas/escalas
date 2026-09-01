@@ -102,9 +102,11 @@ export function normalizeTicketUserData(item: any): TicketUserData {
     mediaAvaliacao = Number(item.avgRating);
   }
 
+  const rawName = (item.name || item.nome || item.userName || "").trim();
+
   return {
     email: item.email || "",
-    name: item.name || item.nome || item.userName || "Analista",
+    name: rawName,
     qtd_em_atendimento: abertos,
     qtd_pendentes: pendentes,
     qtd_resolvidos: resolvidos,
@@ -282,8 +284,20 @@ class ExternalApiService {
 
       if (response.data && response.data.success) {
         const raw = response.data.data || [];
-        const registros = raw.map((item: any) => normalizeTicketUserData(item));
-        console.log(`✅ [ExternalApi - Alpha Dash] Conexão bem sucedida (Status ${response.status}). ${registros.length} analistas normalizados.`);
+        const registros = raw
+          .map((item: any) => normalizeTicketUserData(item))
+          .filter((u: TicketUserData) => {
+            const n = (u.name || "").trim().toLowerCase();
+            return (
+              n !== "" &&
+              n !== "null" &&
+              n !== "undefined" &&
+              n !== "sem nome" &&
+              n !== "sem atendente" &&
+              n !== "nenhum"
+            );
+          });
+        console.log(`✅ [ExternalApi - Alpha Dash] Conexão bem sucedida (Status ${response.status}). ${registros.length} analistas com nome válido retornados.`);
         this.ticketsCache[cacheKey] = { data: registros, timestamp: Date.now() };
         return registros;
       }
@@ -311,18 +325,15 @@ class ExternalApiService {
       "tomticket",
       "TOMTICKET_BEARER_TOKEN",
       "TOMTICKET_API_URL",
-      "https://api.tomticket.com/v2.0/chat/list"
+      "https://api.tomticket.com/v2.0/ticket/list"
     );
 
     if (!config.token) {
       throw new Error("Token do Tomticket não configurado.");
     }
 
-    let baseUrl = (config.apiUrl || "https://api.tomticket.com/v2.0/chat/list").replace(/\/$/, "");
-    if (baseUrl.includes("ticket/list")) {
-      baseUrl = baseUrl.replace("ticket/list", "chat/list");
-    }
-    console.log(`🔗 [Tomticket Chat API] Endpoint: ${baseUrl} | Token: ${config.token.substring(0, 6)}...`);
+    const baseUrl = (config.apiUrl || "https://api.tomticket.com/v2.0/ticket/list").replace(/\/$/, "");
+    console.log(`🔗 [Tomticket Ticket API] Endpoint: ${baseUrl} | Token: ${config.token.substring(0, 6)}...`);
 
     const relatorioUsuarios: Record<string, any> = {};
 
