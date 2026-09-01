@@ -4,7 +4,7 @@ services:
     container_name: alpha_db
     restart: unless-stopped
     ports:
-      - "${POSTGRES_PORT:-5006}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-admin}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-112658}
@@ -52,7 +52,7 @@ services:
       JWT_SECRET_ACCESS_TOKEN: ${JWT_SECRET_ACCESS_TOKEN:-vgkv5wC$$aaafs0-a$$Q#qfajklwçvar}
       JWT_SECRET: ${JWT_SECRET:-vgkv5wC$$aaafs0-a$$Q#qfajklwçvar}
       JWT_ACCESS_TOKEN_EXPIRATION: ${JWT_ACCESS_TOKEN_EXPIRATION:-15d}
-      TOMTICKET_BEARER_TOKEN: ${TOMTICKET_BEARER_TOKEN:-6db3d0d76429766ec8d65e5f10b8e481}
+      TOMTICKET_BEARER_TOKEN: ${TOMTICKET_BEARER_TOKEN:-}
       ALPHA_API_TOKEN: ${ALPHA_API_TOKEN:-}
       ZPRO_API_TOKEN: ${ZPRO_API_TOKEN:-}
       RUN_SEED: ${RUN_SEED:-false}
@@ -66,6 +66,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://${SERVER_IP:-localhost}:${BACKEND_PORT:-5005}}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://${SERVER_IP:-localhost}:${FRONTEND_PORT:-5004}}
     container_name: alpha_frontend
     restart: unless-stopped
     depends_on:
@@ -79,6 +80,7 @@ services:
       - FRONTEND_PORT=${FRONTEND_PORT:-5004}
       - BACKEND_PORT=${BACKEND_PORT:-5005}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://${SERVER_IP:-localhost}:${BACKEND_PORT:-5005}}
+      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://${SERVER_IP:-localhost}:${FRONTEND_PORT:-5004}}
     networks:
       - alpha-net
 
