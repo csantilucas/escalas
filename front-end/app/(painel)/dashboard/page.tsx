@@ -171,10 +171,16 @@ export default function DashboardPage() {
       </div>
 
       {/* Seção: Métricas de Chamados */}
-      <div className="space-y-2.5">
-        <h2 className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">
-          Produtividade dos Analistas (Hoje)
-        </h2>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xs font-bold text-zinc-300 uppercase tracking-wider flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span>Produtividade dos Analistas (Hoje)</span>
+          </h2>
+          <span className="text-xs text-zinc-500 font-medium">
+            {report.length} {report.length === 1 ? "Analista" : "Analistas"}
+          </span>
+        </div>
 
         {loading ? (
           <div className="text-xs text-zinc-500 animate-pulse">Sincronizando métricas em tempo real...</div>
@@ -183,7 +189,7 @@ export default function DashboardPage() {
             Nenhuma atividade registrada no microsserviço até o momento.
           </div>
         ) : (
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-3 items-stretch">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5 items-stretch">
             {report.map((analista: TicketUserData, index: number) => {
               const keyUnica = `analista-${analista.email || analista.name || "desconhecido"}-${index}`;
               return (

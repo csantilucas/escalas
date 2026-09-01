@@ -142,7 +142,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("dark");
-  const [palette, setPaletteState] = useState<ColorPaletteId>("emerald");
+  const [palette, setPaletteState] = useState<ColorPaletteId>("blue");
   const [darkBg, setDarkBgState] = useState<DarkBgVariant>("zinc");
   const [mounted, setMounted] = useState(false);
 
@@ -169,7 +169,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     root.setAttribute("data-palette", novaPaleta);
     root.setAttribute("data-dark-bg", novoFundo);
 
-    const config = PALETTES_CONFIG.find((p) => p.id === novaPaleta) || PALETTES_CONFIG[0];
+    const config = PALETTES_CONFIG.find((p) => p.id === novaPaleta) || PALETTES_CONFIG.find((p) => p.id === "blue") || PALETTES_CONFIG[0];
     root.style.setProperty("--brand-primary", config.primary);
     root.style.setProperty("--brand-primary-hover", config.primaryHover);
     root.style.setProperty("--brand-accent", config.accentText);
@@ -193,7 +193,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       const initialPalette: ColorPaletteId =
         savedPalette && PALETTES_CONFIG.some((p) => p.id === savedPalette)
           ? savedPalette
-          : "emerald";
+          : "blue";
 
       const initialDarkBg: DarkBgVariant =
         savedDarkBg && DARK_BG_OPTIONS.some((d) => d.id === savedDarkBg)
@@ -205,7 +205,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setDarkBgState(initialDarkBg);
       aplicarConfiguracoesVisuais(initialTheme, initialPalette, initialDarkBg);
     } catch {
-      aplicarConfiguracoesVisuais("dark", "emerald", "zinc");
+      aplicarConfiguracoesVisuais("dark", "blue", "zinc");
     } finally {
       setMounted(true);
     }
@@ -242,9 +242,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const resetToDefaults = () => {
     setThemeState("dark");
-    setPaletteState("emerald");
+    setPaletteState("blue");
     setDarkBgState("zinc");
-    aplicarConfiguracoesVisuais("dark", "emerald", "zinc");
+    aplicarConfiguracoesVisuais("dark", "blue", "zinc");
     try {
       localStorage.removeItem("alpha_theme");
       localStorage.removeItem("alpha_palette");
