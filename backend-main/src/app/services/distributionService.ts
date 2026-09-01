@@ -6,6 +6,7 @@ import { sseEventBus } from "../../config/sseEvents.js";
 export interface DistribuirInput {
   departamento?: string;
   fila?: string;
+  queueId?: number | string;
   ticketId?: number | string;
   clienteId?: number | string;
   numero?: string;
@@ -157,8 +158,12 @@ export class DistributionService {
         ? input.horarioMinutosOverride
         : getCurrentManausMinutes();
 
-    // 1. Identificar a equipe correspondente ao departamento/fila
-    let equipe = depto ? await this.equipeRepo.findByDepartamento(depto) : null;
+    // 1. Identificar a equipe correspondente ao departamento/fila/queueId
+    let equipe = await this.equipeRepo.findByDepartamentoOuFila(
+      input.departamento,
+      input.fila,
+      input.queueId
+    );
     if (!equipe) {
       equipe = await this.equipeRepo.findFallbackEquipe();
     }

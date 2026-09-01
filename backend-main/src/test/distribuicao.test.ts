@@ -312,5 +312,23 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
     expect(Array.isArray(resLogs.body.data)).toBe(true);
     expect(resLogs.body.pagination.totalRecords).toBeGreaterThan(0);
   });
+
+  it("deve distribuir corretamente para a fila N2 quando informado departamento suporte_fiscal ou fila N2-Suporte", async () => {
+    const res = await request(app)
+      .post("/atendimentos/distribuir")
+      .send({
+        departamento: "suporte_fiscal",
+        fila: "N2-Suporte",
+        ticketId: "18297",
+        clienteId: "1068",
+        numero: "556992162902",
+        ignorarApisExternas: true,
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.sucesso).toBe(true);
+    expect(res.body.queueId).toBe(7);
+    expect(res.body.queueName).toBe("N2-Suporte");
+  });
 });
 

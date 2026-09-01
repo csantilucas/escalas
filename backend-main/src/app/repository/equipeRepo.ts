@@ -56,7 +56,20 @@ export class EquipeRepository extends BaseRepository<EquipePlantao> {
   }
 
   async findByDepartamento(departamento: string): Promise<any | null> {
-    const cleanDep = departamento.trim().toLowerCase();
+    return await this.findByDepartamentoOuFila(departamento);
+  }
+
+  async findByDepartamentoOuFila(
+    departamento?: string,
+    fila?: string,
+    queueId?: number | string
+  ): Promise<any | null> {
+    const cleanDep = (departamento || "").trim().toLowerCase();
+    const cleanFila = (fila || "").trim().toLowerCase();
+    const numQueueId = queueId !== undefined && queueId !== null && !isNaN(Number(queueId)) ? Number(queueId) : null;
+
+    if (!cleanDep && !cleanFila && !numQueueId) return null;
+
     const equipes = await prisma.equipePlantao.findMany({
       where: {
         ativo: true,
@@ -82,11 +95,53 @@ export class EquipeRepository extends BaseRepository<EquipePlantao> {
       },
     });
 
-    const match = equipes.find((e) =>
-      e.departamentos.some((d) => d.toLowerCase() === cleanDep)
-    );
+    // 1. Match por queueId explícito
+    if (numQueueId) {
+      const matchQueue = equipes.find((e) => e.queueId === numQueueId);
+      if (matchQueue) return matchQueue;
+    }
 
-    return match || null;
+    // 2. Match por departamento na lista de departamentos da equipe
+    if (cleanDep) {
+      const matchDep = equipes.find((e) =>
+        e.departamentos.some((d) => {
+          const normD = d.toLowerCase().trim();
+          return normD === cleanDep || normD.replace(/[-_]/g, "") === cleanDep.replace(/[-_]/g, "");
+        })
+      );
+      if (matchDep) return matchDep;
+    }
+
+    // 3. Match por fila na lista de departamentos
+    if (cleanFila) {
+      const matchFilaDep = equipes.find((e) =>
+        e.departamentos.some((d) => {
+          const normD = d.toLowerCase().trim();
+          return normD === cleanFila || normD.replace(/[-_]/g, "") === cleanFila.replace(/[-_]/g, "");
+        })
+      );
+      if (matchFilaDep) return matchFilaDep;
+    }
+
+    // 4. Match por queueName ou nome da equipe
+    const termos = [cleanFila, cleanDep].filter(Boolean);
+    for (const termo of termos) {
+      const termoNormalizado = termo.replace(/[-_\s]/g, "");
+      const matchName = equipes.find((e) => {
+        const qName = (e.queueName || "").toLowerCase().trim();
+        const nome = (e.nome || "").toLowerCase().trim();
+        const qNorm = qName.replace(/[-_\s]/g, "");
+        const nomeNorm = nome.replace(/[-_\s]/g, "");
+
+        return (
+          (qName && (termo === qName || termo.startsWith(qName) || qName.startsWith(termo) || termoNormalizado.includes(qNorm) || qNorm.includes(termoNormalizado))) ||
+          (nome && (termo === nome || termo.startsWith(nome) || nome.startsWith(termo) || termoNormalizado.includes(nomeNorm) || nomeNorm.includes(termoNormalizado)))
+        );
+      });
+      if (matchName) return matchName;
+    }
+
+    return null;
   }
 
   async findFallbackEquipe(): Promise<any | null> {

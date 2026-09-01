@@ -4,13 +4,19 @@ import { distributionService } from "../../containers/distribution.container.js"
 export class DistributionController {
   distribuir = async (req: Request, res: Response): Promise<Response> => {
     try {
+      const headers = (typeof req.headers === "object" && req.headers ? req.headers : {}) as Record<string, any>;
+      const query = (typeof req.query === "object" && req.query ? req.query : {}) as Record<string, any>;
+      const body = (typeof req.body === "object" && req.body ? req.body : {}) as Record<string, any>;
+
       const data = {
-        ...(typeof req.query === "object" && req.query ? req.query : {}),
-        ...(typeof req.body === "object" && req.body ? req.body : {}),
+        ...headers,
+        ...query,
+        ...body,
       };
 
       const departamento = data.departamento || data.depto || data.area || data.department;
       const fila = data.fila || data.queue || data.queueName;
+      const queueId = data.queueId || data.queueid || data.queue_id;
       const ticketId = data.ticketId || data.ticketID || data.ticket;
       const clienteId = data.clienteId || data.clienteID;
       const numero = data.numero || data.Number || data.phone || data.number;
@@ -24,6 +30,7 @@ export class DistributionController {
       const resultado = await distributionService.distribuir({
         departamento: departamento ? String(departamento) : undefined,
         fila: fila ? String(fila) : undefined,
+        queueId: queueId !== undefined && queueId !== null ? Number(queueId) : undefined,
         ticketId,
         clienteId,
         numero: numero ? String(numero) : undefined,

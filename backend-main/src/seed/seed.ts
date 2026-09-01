@@ -12,22 +12,24 @@ const EQUIPES_SEED = [
   {
     nome: "N1",
     queueId: 6,
-    queueName: "N1",
+    queueName: "N1-Suporte",
     descricao: "Fila N1 - Suporte operacional e atendimento geral",
     cor: "#3B82F6",
     isFallback: true,
     departamentos: [
-      "suporte",
       "suporte_operacional",
       "operacional",
+      "suporte",
+      "N1-Suporte",
+      "N1",
       "nao_urgente",
       "atendimento_normal",
-        ],
+    ],
   },
   {
     nome: "N2",
     queueId: 7,
-    queueName: "N2",
+    queueName: "N2-Suporte",
     descricao: "Fila N2 - Suporte fiscal e notas",
     cor: "#10B981",
     isFallback: false,
@@ -35,6 +37,8 @@ const EQUIPES_SEED = [
       "suporte_fiscal",
       "fiscal",
       "notas",
+      "N2-Suporte",
+      "N2",
     ],
   },
   {
@@ -45,10 +49,12 @@ const EQUIPES_SEED = [
     cor: "#8B5CF6",
     isFallback: false,
     departamentos: [
-      "suporte",
-      "suporte_n2",
-      "suporte_n3",
       "suporte_avancado",
+      "suporte_n3",
+      "suporte_n2",
+      "avancado",
+      "N3-Suporte",
+      "N3",
     ],
   },
   {
@@ -59,8 +65,10 @@ const EQUIPES_SEED = [
     cor: "#F59E0B",
     isFallback: false,
     departamentos: [
+      "suporte_financeiro",
       "financeiro",
-      "suporte_financeiro"
+      "cobranca",
+      "Financeiro",
     ],
   },
 ];
