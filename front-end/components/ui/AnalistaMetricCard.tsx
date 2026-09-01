@@ -15,11 +15,11 @@ export function AnalistaMetricCard({ dados, compact = false }: AnalistaMetricCar
 
   if (compact) {
     return (
-      <div className="w-full h-full bg-zinc-900/80 border border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3.5 shadow-md select-none font-sans text-left transition-all hover:border-zinc-700">
+      <div className="w-full h-full bg-zinc-900/80 border border-zinc-800 rounded-xl p-2 sm:p-2.5 2xl:p-3 flex flex-col justify-between gap-1.5 shadow-md select-none font-sans text-left transition-all hover:border-zinc-700 min-h-0 overflow-hidden">
         {/* Cabeçalho Modo TV: Avatar + Nome em destaque */}
-        <div className="flex items-center gap-3.5 border-b border-zinc-800/80 pb-3 shrink-0">
+        <div className="flex items-center gap-2 border-b border-zinc-800/80 pb-1.5 shrink-0">
           <div
-            className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl border-2 flex items-center justify-center text-base sm:text-lg font-black shrink-0 shadow-sm"
+            className="w-7 h-7 sm:w-8 sm:h-8 2xl:w-9 2xl:h-9 rounded-lg border flex items-center justify-center text-[11px] sm:text-xs font-black shrink-0 shadow-xs"
             style={{
               backgroundColor: currentPaletteConfig.subtleBg,
               borderColor: currentPaletteConfig.subtleBorder,
@@ -30,61 +30,61 @@ export function AnalistaMetricCard({ dados, compact = false }: AnalistaMetricCar
           </div>
           <div className="min-w-0 flex-1">
             <h4
-              className="text-lg sm:text-xl lg:text-2xl font-black text-white truncate tracking-tight leading-snug"
+              className="text-xs sm:text-sm font-black text-white truncate tracking-tight leading-tight"
               title={dados.name || ""}
             >
               {dados.name || "Analista"}
             </h4>
-            <p className="text-xs sm:text-sm text-zinc-400 truncate">
+            <p className="text-[9px] sm:text-[10px] text-zinc-400 truncate leading-none mt-0.5">
               {dados.email || "Atendimento Helpdesk"}
             </p>
           </div>
         </div>
 
         {/* 3 Cards de Status: Em curso, Pendentes, Resolvidos */}
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-3 flex-1 items-stretch min-w-0">
+        <div className="grid grid-cols-3 gap-1 sm:gap-1.5 flex-1 items-stretch min-w-0 my-0.5">
           {/* Em Atendimento / Em Curso */}
-          <div className="flex flex-col justify-between items-center bg-zinc-950/90 border border-amber-500/30 p-2.5 sm:p-3 rounded-xl text-center shadow-xs min-w-0">
-            <div className="flex items-center gap-1 text-amber-400 min-w-0">
-              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-              <span className="text-[11px] sm:text-xs font-bold text-amber-400 uppercase tracking-wider truncate">
+          <div className="flex flex-col justify-between items-center bg-zinc-950/90 border border-amber-500/30 p-1 sm:p-1.5 rounded-lg text-center shadow-xs min-w-0">
+            <div className="flex items-center gap-0.5 sm:gap-1 text-amber-400 min-w-0">
+              <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" />
+              <span className="text-[8px] sm:text-[9px] font-bold text-amber-400 uppercase tracking-wider truncate">
                 Em curso
               </span>
             </div>
-            <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-amber-400 mt-1">
+            <span className="text-sm sm:text-base lg:text-lg 2xl:text-xl font-black text-amber-400 mt-0.5 truncate w-full leading-none">
               {dados.qtd_em_atendimento || "0"}
             </span>
           </div>
 
           {/* Pendentes */}
-          <div className="flex flex-col justify-between items-center bg-zinc-950/90 border border-blue-500/30 p-2.5 sm:p-3 rounded-xl text-center shadow-xs min-w-0">
-            <div className="flex items-center gap-1 text-blue-400 min-w-0">
-              <MessageSquare className="w-3.5 h-3.5 shrink-0 text-blue-400" />
-              <span className="text-[11px] sm:text-xs font-bold text-blue-400 uppercase tracking-wider truncate">
+          <div className="flex flex-col justify-between items-center bg-zinc-950/90 border border-blue-500/30 p-1 sm:p-1.5 rounded-lg text-center shadow-xs min-w-0">
+            <div className="flex items-center gap-0.5 sm:gap-1 text-blue-400 min-w-0">
+              <MessageSquare className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0 text-blue-400" />
+              <span className="text-[8px] sm:text-[9px] font-bold text-blue-400 uppercase tracking-wider truncate">
                 Pendente
               </span>
             </div>
-            <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-blue-400 mt-1">
+            <span className="text-sm sm:text-base lg:text-lg 2xl:text-xl font-black text-blue-400 mt-0.5 truncate w-full leading-none">
               {dados.qtd_pendentes || "0"}
             </span>
           </div>
 
           {/* Resolvidos */}
-          <div className="flex flex-col justify-between items-center bg-zinc-950/90 border border-emerald-500/30 p-2.5 sm:p-3 rounded-xl text-center shadow-xs min-w-0">
-            <div className="flex items-center gap-1 text-emerald-400 min-w-0">
-              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-              <span className="text-[11px] sm:text-xs font-bold text-emerald-400 uppercase tracking-wider truncate">
+          <div className="flex flex-col justify-between items-center bg-zinc-950/90 border border-emerald-500/30 p-1 sm:p-1.5 rounded-lg text-center shadow-xs min-w-0">
+            <div className="flex items-center gap-0.5 sm:gap-1 text-emerald-400 min-w-0">
+              <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" />
+              <span className="text-[8px] sm:text-[9px] font-bold text-emerald-400 uppercase tracking-wider truncate">
                 Resolvido
               </span>
             </div>
-            <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-emerald-400 mt-1">
+            <span className="text-sm sm:text-base lg:text-lg 2xl:text-xl font-black text-emerald-400 mt-0.5 truncate w-full leading-none">
               {dados.qtd_resolvidos || "0"}
             </span>
           </div>
         </div>
 
         {/* Rodapé: Total e Tempos Médios */}
-        <div className="bg-zinc-950/80 border border-zinc-800 rounded-xl px-3.5 py-2 flex items-center justify-between text-xs sm:text-sm text-zinc-400 shrink-0">
+        <div className="bg-zinc-950/80 border border-zinc-800 rounded-lg px-2 py-1 flex items-center justify-between text-[9px] sm:text-[10px] text-zinc-400 shrink-0">
           <span className="font-semibold text-zinc-200">
             Total: <span className="font-black text-white">{dados.qtd_por_usuario || "0"}</span>
           </span>

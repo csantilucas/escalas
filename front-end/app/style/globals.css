@@ -298,3 +298,19 @@ html.light ::-webkit-scrollbar-thumb:hover,
 html:not(.dark) ::-webkit-scrollbar-thumb:hover {
   background: #a1a1aa;
 }
+
+/* ======================================================== */
+/* 📺 OTIMIZAÇÕES MODO TV (TELAS 1366x768, 720p, 1080p, 4K) */
+/* ======================================================== */
+@media (max-height: 800px) {
+  /* Garante espaçamento proporcional em telas com altura compacta (1366x768 / 720p) */
+  .tv-container {
+    padding: 0.5rem !important;
+  }
+}
+
+@media (max-height: 680px) {
+  .tv-container {
+    padding: 0.375rem !important;
+  }
+}
