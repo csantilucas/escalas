@@ -232,8 +232,6 @@ class ExternalApiService {
         timeout: 15000,
       });
 
-      console.log("🔍 [Z-PRO Statistics - Resposta Bruta da API]:", JSON.stringify(response.data, null, 2));
-
       let rawData: any[] = [];
       if (Array.isArray(response.data)) {
         rawData = response.data;
@@ -280,7 +278,7 @@ class ExternalApiService {
         timeout: 15000,
       });
 
-      console.log("🔍 [Alpha Dash - Resposta Bruta da API]:", JSON.stringify(response.data, null, 2));
+
 
       if (response.data && response.data.success) {
         const raw = response.data.data || [];
