@@ -11,12 +11,12 @@ Documentação técnica completa e atualizada da arquitetura, rotas HTTP, modelo
 3. [Padrões de Autenticação e Segurança](#3-padrões-de-autenticação-e-segurança)
 4. [Autenticação (`/api/auth`)](#4-autenticação-apiauth)
 5. [Distribuição Inteligente de Atendimentos (`/atendimentos`)](#5-distribuição-inteligente-de-atendimentos-atendimentos)
-6. [Gestão de Atendimentos (`/atendimentos`)](#6-gestão-de-atendimentos-atendimentos)
+6. [Gestão de Atendimentos & Ciclo de Vida (`/atendimentos`)](#6-gestão-de-atendimentos--ciclo-de-vida-atendimentos)
 7. [Equipes de Plantão e Filas Z-PRO (`/equipes`)](#7-equipes-de-plantão-e-filas-z-pro-equipes)
 8. [Membros de Equipes e Turnos (`/equipes/:id/membros`)](#8-membros-de-equipes-e-turnos-equipesidmembros)
 9. [Plantonistas Oficiais (`/plantao`)](#9-plantonistas-oficiais-plantao)
 10. [Escalas e Registros de Plantão (`/register`)](#10-escalas-e-registros-de-plantão-register)
-11. [Dashboard & Streaming SSE em Tempo Real (`/dashboard`)](#11-dashboard--streaming-sse-em-tempo-real-dashboard)
+11. [Dashboard & Produtividade dos Analistas (`/dashboard`)](#11-dashboard--produtividade-dos-analistas-dashboard)
 12. [Tokens de Serviços Externos (`/tokens`)](#12-tokens-de-serviços-externos-tokens)
 13. [Usuários do Sistema (`/users`)](#13-usuários-do-sistema-users)
 14. [Tratamento de Datas e Fusos Horários (GMT-4 / UTC)](#14-tratamento-de-datas-e-fusos-horários-gmt-4--utc)
@@ -27,26 +27,30 @@ Documentação técnica completa e atualizada da arquitetura, rotas HTTP, modelo
 ## 1. Visão Geral & Arquitetura
 
 O ecossistema é composto por:
-- **Backend (Node.js / Express / TypeScript / Prisma ORM / Better Auth)**: Executa na porta `3001` (ou configurada via `PORT`), gerenciando regras de negócio, balanceamento de carga, conexões SSE e integrações externas.
+- **Backend (Node.js / Express 5 / TypeScript / Prisma ORM / Better Auth)**: Executa na porta `3001` (ou configurada via `PORT`), gerenciando regras de negócio, balanceamento de carga, conexões SSE e persistência relacional.
 - **Frontend (Next.js 16 App Router / React 19 / Tailwind CSS / Vanilla CSS)**: Painel operacional administrativo e **Modo TV / Wallboard** de monitoramento dinâmico em tempo real.
-- **Banco de Dados (PostgreSQL)**: Persistência relacional de usuários, equipes, membros, escalas, plantonistas, logs de auditoria e tokens.
+- **Banco de Dados (PostgreSQL)**: Persistência relacional de usuários, atendimentos, equipes, membros, escalas, plantonistas, logs de auditoria e tokens.
 
 ---
 
 ## 2. Estrutura Oficial de Equipes e Plantonistas
 
-### 🏢 2.1. Equipes Operacionais Oficiais
+### 🏢 2.1. Equipes Operacionais Oficiais & Filas Z-PRO
 
-| Equipe | Queue ID (Z-PRO) | Queue Name | Departamentos Vinculados | É Fallback Geral? |
+As filas são sincronizadas com os roteamentos dos fluxos do n8n e do chatbot:
+
+| Equipe | Queue ID (Z-PRO) | Queue Name | Departamentos & Aliases Vinculados | É Fallback Geral? |
 | :--- | :---: | :--- | :--- | :---: |
-| **N1 - Suporte** | `6` | `N1-Suporte` | `["suporte", "suporte_operacional", "operacional"]` | ✅ Sim |
-| **N2 - Suporte Fiscal** | `7` | `N2-Suporte` | `["suporte_fiscal", "fiscal", "notas"]` | ❌ Não |
-| **N3 - Engenharia** | `8` | `N3-Engenharia` | `["n3", "engenharia", "desenvolvimento", "bugs"]` | ❌ Não |
-| **Financeiro** | `2` | `Financeiro` | `["financeiro", "cobranca", "boletos"]` | ❌ Não |
+| **N1 - Suporte** | `6` | `N1-Suporte` | `["suporte_operacional", "operacional", "suporte", "N1-Suporte", "N1", "nao_urgente", "atendimento_normal"]` | ✅ Sim |
+| **N2 - Suporte Fiscal** | `7` | `N2-Suporte` | `["suporte_fiscal", "fiscal", "notas", "N2-Suporte", "N2"]` | ❌ Não |
+| **N3 - Engenharia** | `8` | `N3` | `["suporte_avancado", "suporte_n3", "suporte_n2", "avancado", "N3-Suporte", "N3"]` | ❌ Não |
+| **Financeiro** | `2` | `Financeiro` | `["suporte_financeiro", "financeiro", "cobranca", "Financeiro"]` | ❌ Não |
+
+---
 
 ### 👨‍💼 2.2. Rotação Oficial de Plantonistas (8 Integrantes)
 
-A rotação cíclica oficial de plantonistas segue rigorosamente a sequência de posições:
+A rotação cíclica oficial de plantonistas segue a sequência fixa de posições:
 
 1. **Gabriel** (`posicao: 0`)
 2. **Geneses** (`posicao: 1`)
@@ -63,7 +67,7 @@ A rotação cíclica oficial de plantonistas segue rigorosamente a sequência de
 
 ## 3. Padrões de Autenticação e Segurança
 
-A API utiliza o **Better Auth** com persistência em PostgreSQL. 
+A API utiliza o **Better Auth** com persistência em PostgreSQL.
 Para rotas protegidas, o cliente pode se autenticar por:
 - **Cookies de Sessão HTTP-Only**: Enviados automaticamente pelos navegadores via `credentials: 'include'`. Cookie: `better-auth.session_token`.
 - **Bearer Token**: Cabeçalho `Authorization: Bearer <session_token>`.
@@ -120,15 +124,16 @@ Rotas nativas do *Better Auth*:
 
 ## 5. Distribuição Inteligente de Atendimentos (`/atendimentos`)
 
-Módulo que centraliza a inteligência de triagem e balanceamento de carga para chamados do WhatsApp e Z-PRO.
+Módulo que centraliza a inteligência de triagem, identificação de filas e balanceamento de carga para chamados do WhatsApp e Z-PRO.
 
 ### 5.1. Distribuir Atendimento
 - **Método**: `POST` ou `GET`
 - **Rota**: `/atendimentos/distribuir`
-- **Acesso**: 🌐 Pública (consumido pelo n8n e webhooks)
-- **Parâmetros Suportados** (via JSON body ou Query Params):
-  - `departamento` / `depto` / `area` / `department`: Nome do departamento do chatbot.
-  - `fila` / `queue` / `queueName`: Nome da fila de destino.
+- **Acesso**: 🌐 Pública (consumido pelo n8n, chatbots e webhooks)
+- **Origem dos Parâmetros**: Unifica dados recebidos via JSON Body, Query String e Headers HTTP.
+- **Parâmetros Suportados**:
+  - `departamento` / `depto` / `area` / `department`: Nome ou alias do departamento do chatbot (ex: `suporte_fiscal`, `suporte_operacional`).
+  - `fila` / `queue` / `queueName` / `queueId`: Identificador ou nome da fila de destino (ex: `N2-Suporte`, `7`).
   - `ticketId` / `ticketID` / `ticket`: ID do ticket gerado no Z-PRO.
   - `clienteId` / `clienteID`: ID do cliente no Z-PRO.
   - `numero` / `Number` / `phone` / `number`: Telefone/WhatsApp do cliente.
@@ -136,24 +141,25 @@ Módulo que centraliza a inteligência de triagem e balanceamento de carga para 
   - `horarioMinutosOverride`: Minutos do dia para forçar simulação de horário (ex: `600` = 10:00).
   - `ignorarApisExternas`: `true` | `false` (força fallback sequencial para testes).
 
-#### 🧮 Lógica de Balanceamento:
-1. **Roteamento de Fila**: Identifica a equipe pelo nome ou alias de departamento cadastrado. Se não encontrar, assume a equipe fallback (**N1** - Queue 6).
-2. **Turno e Expediente**: Filtra analistas ativos cujo horário atual esteja dentro de seus turnos de trabalho (com margem de tolerância configurada, padrão $\pm 5$ minutos em GMT-4).
-3. **Status Online no Z-PRO**: Consulta `/listUsers` do Z-PRO para verificar quem está online.
-4. **Cálculo Ponderado de Carga (Alpha Software)**:
-   $$\text{Score} = (\text{abertos} \times 10) + (\text{pendentes} \times 5) + (\text{resolvidosHoje} \times 1)$$
-   O analista com menor $\text{Score}$ é selecionado. Em caso de empate, escolhe quem recebeu atendimento há mais tempo.
-5. **Fallback Round-Robin**: Se as APIs externas estiverem offline ou nenhum analista estiver logado no Z-PRO, ordena os membros da escala por `ultimoAtendimentoEm ASC` e `ordemSequencial ASC`.
-6. **Notificação SSE & Auditoria**: Dispara evento em tempo real via SSE (`dashboard_update`) para o painel de Logs e Wallboard TV, além de atualizar o timestamp de `ultimoAtendimentoEm` no banco.
+#### 🧮 Fluxo de Processamento e Regras:
+1. **Identificação Flexível de Fila**: O método `findByDepartamentoOuFila` realiza o match por `queueId`, `departamento`, `fila`, `queueName` ou `nome`. Se nenhuma fila bater, encaminha para a fila de fallback (**N1 - Suporte**).
+2. **Turno e Expediente**: Filtra os analistas ativos da equipe cujo horário atual esteja dentro de seus turnos de trabalho (com margem de tolerância configurada em GMT-4).
+3. **Cálculo Ponderado de Carga**:
+   $$\text{Score} = (\text{abertos} \times 10) + (\text{pendentes} \times 5) + (\text{fechadosHoje} \times 1)$$
+   O analista com menor $\text{Score}$ é selecionado. Em caso de empate, escolhe quem recebeu atendimento há mais tempo (`ultimoAtendimentoEm ASC`).
+4. **Fallback Round-Robin**: Se as APIs externas estiverem offline ou nenhum analista estiver logado no Z-PRO, ordena os membros da escala por `ultimoAtendimentoEm ASC` e `ordemSequencial ASC`.
+5. **Atualização Automática do Atendente no Banco**:
+   - Assim que o analista é escolhido, o sistema atualiza ou cria o registro correspondente na tabela `atendimentos` (`ticketZpro == input.ticketId`) com `atendente = analistaEscolhido.name` e `sincronizado: false`.
+6. **Notificação SSE & Auditoria**: Emite evento em tempo real (`distribuicao:create` e `atendimento:update`), atualizando instantaneamente os cards de produtividade do Dashboard e do Modo TV.
 
 #### Exemplo de Requisição (JSON):
 ```json
 {
-  "departamento": "suporte_operacional",
-  "fila": "N1-Suporte",
-  "ticketId": 18055,
-  "clienteId": 1089,
-  "numero": "556999999999",
+  "departamento": "suporte_fiscal",
+  "fila": "N2-Suporte",
+  "ticketId": "18297",
+  "clienteId": "1068",
+  "numero": "556992162902",
   "pushName": "Empresa Alfa"
 }
 ```
@@ -167,10 +173,10 @@ Módulo que centraliza a inteligência de triagem e balanceamento de carga para 
   "atendenteNome": "Guilherme",
   "atendenteEmail": "guilherme@alphasoftware.com.br",
   "atendenteSlack": "U09S869N1P0",
-  "queueId": 6,
-  "queueName": "N1-Suporte",
-  "equipeNome": "N1 - Suporte",
-  "modoDistribuicao": "algoritmo_ponderado",
+  "queueId": 7,
+  "queueName": "N2-Suporte",
+  "equipeNome": "N2 - Suporte Fiscal",
+  "modoDistribuicao": "ponderado_menor_carga",
   "pontuacaoCarga": 8,
   "metricas": {
     "abertos": 0,
@@ -190,7 +196,17 @@ Módulo que centraliza a inteligência de triagem e balanceamento de carga para 
 
 ---
 
-## 6. Gestão de Atendimentos (`/atendimentos`)
+## 6. Gestão de Atendimentos & Ciclo de Vida (`/atendimentos`)
+
+### 🔄 Ciclo de Vida dos Atendimentos:
+
+| Etapa | Ação / Endpoint | Efeito no Banco (`atendimentos`) | Efeito nos Cards de Produtividade |
+| :--- | :--- | :--- | :---: |
+| **1. Criação Inicial** | `POST /atendimentos` | Cria o registro com `sincronizado: false`. | — |
+| **2. Distribuição / Transferência** | `POST /atendimentos/distribuir` | Define `atendente = nomeAnalista` e `sincronizado: false`. | 🟡 **Em curso (+1)**<br>🔵 **Pendente (+1)** |
+| **3. Conclusão Tomticket** | `PUT /atendimentos` (com `ticketTomticket`) | Define **`sincronizado: true`** e armazena o protocolo Tomticket. | 🟢 **Resolvido (+1)**<br>*(sai de "Em curso")* |
+
+---
 
 ### 6.1. Criar Atendimento (Webhook n8n)
 - **Método**: `POST`
@@ -199,26 +215,26 @@ Módulo que centraliza a inteligência de triagem e balanceamento de carga para 
 - **Payload**:
   ```json
   {
-    "ticket_zpro": 18055,
-    "cliente_id": 1089,
-    "cnpj": "12.345.678/0001-90",
+    "ticketZpro": "18055",
+    "clienteId": "1089",
+    "cnpj": "12345678000190",
     "atendente": "Gabriel",
     "protocolo": "PROT-20260831",
-    "nome_contato": "João Silva",
-    "tipo_atendimento": "N1"
+    "nomeContato": "João Silva",
+    "tipoAtendimento": "N1"
   }
   ```
 
 ### 6.2. Atualizar Atendimento com Dados do Tomticket
-- **Método**: `PATCH`
-- **Rota**: `/atendimentos/atualizar`
+- **Método**: `PUT`
+- **Rota**: `/atendimentos`
 - **Acesso**: 🌐 Pública
 - **Payload**:
   ```json
   {
-    "ticket_zpro": 18055,
-    "ticket_tomticket": "TT-99882",
-    "tipo_atendimento": "Suporte Fiscal",
+    "ticketZpro": "18055",
+    "ticketTomticket": "TT-99882",
+    "tipoAtendimento": "Suporte Fiscal",
     "atendente": "Pedro"
   }
   ```
@@ -297,9 +313,39 @@ Módulo que centraliza a inteligência de triagem e balanceamento de carga para 
 
 ---
 
-## 11. Dashboard & Streaming SSE em Tempo Real (`/dashboard`)
+## 11. Dashboard & Produtividade dos Analistas (`/dashboard`)
 
-### 11.1. Conexão SSE (Server-Sent Events)
+### 11.1. Produtividade dos Analistas (Calculada Localmente)
+- **Método**: `GET`
+- **Rota**: `/dashboard/tickets`
+- **Acesso**: 🔒 Autenticado
+- **Query Params**: `startDate` (`YYYY-MM-DD`), `endDate` (`YYYY-MM-DD`).
+- **Motor de Dados**: Consulta diretamente a tabela `atendimentos` do PostgreSQL, agrupando por analista.
+- **Filtro de Atividade**: Retorna apenas analistas que possuem atendimentos no período consultado (`total > 0`). Se não houver atendimentos, retorna `[]`.
+
+#### Formato do Payload Retornado:
+```json
+[
+  {
+    "name": "geneses",
+    "email": "geneses@alphasoftware.com.br",
+    "qtd_em_atendimento": "1",
+    "qtd_pendentes": "1",
+    "qtd_resolvidos": "0",
+    "qtd_por_usuario": "1"
+  },
+  {
+    "name": "guilherme",
+    "email": "guilherme@alphasoftware.com.br",
+    "qtd_em_atendimento": "0",
+    "qtd_pendentes": "0",
+    "qtd_resolvidos": "2",
+    "qtd_por_usuario": "2"
+  }
+]
+```
+
+### 11.2. Conexão SSE (Server-Sent Events)
 - **Método**: `GET`
 - **Rotas**: `/dashboard/stream` ou `/dashboard/events`
 - **Headers**: `Content-Type: text/event-stream`, `Cache-Control: no-cache`
@@ -307,27 +353,6 @@ Módulo que centraliza a inteligência de triagem e balanceamento de carga para 
   - `connected`: Boas-vindas ao estabelecer conexão.
   - `ping`: Heartbeat periódico a cada 25 segundos para manter canais abertos.
   - `dashboard_update`: Evento emitido a cada distribuição, alteração em equipes, atendimentos ou escalas.
-
-#### Estrutura do Payload SSE:
-```json
-{
-  "entity": "distribuicao",
-  "action": "create",
-  "data": {
-    "sucesso": true,
-    "status": "open",
-    "userId": 5,
-    "atendenteNome": "Gabriel",
-    "atendenteEmail": "gabriel@alphasoftware.com.br",
-    "queueId": 6,
-    "queueName": "N1-Suporte",
-    "equipeNome": "N1 - Suporte",
-    "modoDistribuicao": "algoritmo_ponderado",
-    "ticketId": 18055
-  },
-  "timestamp": "2026-08-31T14:35:00.000Z"
-}
-```
 
 ---
 

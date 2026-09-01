@@ -17,6 +17,8 @@ router.get("/distribuicao/recentes", distribution.getRecentes);
 
 // Rotas de Atendimentos
 router.post("/", atendimento.create);
+router.put("/", atendimento.update);
+router.patch("/", atendimento.update);
 router.patch("/atualizar", atendimento.update);
 router.get("/", atendimento.getAll);
 
