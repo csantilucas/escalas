@@ -481,43 +481,43 @@ export default function ModoTvFullscreenPage() {
           {/* ============================================================ */}
           {/* SLIDE 1: FILAS DE ATENDIMENTO */}
           {/* ============================================================ */}
-          <div className="w-full h-full shrink-0 flex flex-col justify-between gap-1.5 px-0.5 min-h-0 overflow-hidden">
+          <div className="w-full h-full shrink-0 flex flex-col justify-between gap-2 sm:gap-2.5 px-0.5 min-h-0 overflow-hidden">
             <div className="flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5 sm:gap-3">
                 <div
-                  className="p-1.5 rounded-lg border shrink-0"
+                  className="p-2 sm:p-2.5 rounded-xl border shrink-0"
                   style={{
                     backgroundColor: currentPaletteConfig.subtleBg,
                     borderColor: currentPaletteConfig.subtleBorder,
                     color: currentPaletteConfig.accentText,
                   }}
                 >
-                  <GitFork className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <GitFork className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <h2 className="text-sm sm:text-base lg:text-lg font-black text-white tracking-tight leading-tight">
+                  <h2 className="text-base sm:text-lg lg:text-xl font-black text-white tracking-tight leading-tight">
                     Filas de Atendimento
                   </h2>
-                  <p className="text-[10px] sm:text-xs text-zinc-400 font-medium">
+                  <p className="text-xs sm:text-sm text-zinc-400 font-medium">
                     Próximos analistas da vez por equipe
                   </p>
                 </div>
               </div>
-              <span className="text-[11px] sm:text-xs font-bold text-zinc-200 bg-zinc-900 px-2.5 py-0.5 rounded-lg border border-zinc-800 shrink-0">
+              <span className="text-xs sm:text-sm font-bold text-zinc-200 bg-zinc-900 px-3 py-1 rounded-xl border border-zinc-800 shrink-0">
                 {previsoes.length} Filas Ativas
               </span>
             </div>
 
             {previsoes.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-4 text-center border border-zinc-800 rounded-xl bg-zinc-900/30">
-                <p className="text-zinc-200 text-sm sm:text-base font-bold">Nenhuma fila cadastrada</p>
-                <p className="text-zinc-500 text-xs mt-0.5">Cadastre equipes no painel para ativar o roteamento.</p>
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center border border-zinc-800 rounded-2xl bg-zinc-900/30">
+                <p className="text-zinc-200 text-base sm:text-lg font-bold">Nenhuma fila cadastrada</p>
+                <p className="text-zinc-500 text-xs sm:text-sm mt-1">Cadastre equipes no painel para ativar o roteamento.</p>
               </div>
             ) : (
               <div
-                className={`flex-1 w-full gap-2 sm:gap-2.5 items-stretch min-h-0 overflow-hidden ${
+                className={`flex-1 w-full gap-2.5 sm:gap-3 lg:gap-4 items-stretch min-h-0 overflow-hidden ${
                   previsoes.length === 1
-                    ? "grid grid-cols-1 max-w-2xl mx-auto"
+                    ? "grid grid-cols-1 max-w-3xl mx-auto"
                     : previsoes.length === 2
                     ? "grid grid-cols-1 md:grid-cols-2 grid-rows-1"
                     : "grid grid-cols-1 md:grid-cols-2 auto-rows-fr"
@@ -526,21 +526,21 @@ export default function ModoTvFullscreenPage() {
                 {previsoes.slice(0, 4).map((p) => (
                   <div
                     key={p.equipeId}
-                    className="bg-zinc-900/60 border border-zinc-800 rounded-xl p-2.5 sm:p-3 flex flex-col justify-between gap-1 shadow-md h-full min-h-0 overflow-hidden"
+                    className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-3.5 sm:p-4 lg:p-5 flex flex-col justify-between gap-2 shadow-md h-full min-h-0 overflow-hidden"
                   >
                     {/* TOPO DO CARD */}
                     <div className="flex items-center justify-between gap-2 shrink-0">
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-black text-xs sm:text-sm lg:text-base text-white truncate tracking-tight">
+                        <h3 className="font-black text-base sm:text-lg lg:text-xl 2xl:text-2xl text-white truncate tracking-tight">
                           {p.equipeNome}
                         </h3>
-                        <p className="text-[9px] sm:text-[10px] text-zinc-400 truncate mt-0.5">
-                          {p.totalMembros} membros • {p.departamentos?.join(", ") || "Todos os Deptos"}
+                        <p className="text-xs sm:text-sm text-zinc-400 truncate mt-0.5 font-medium">
+                          {p.totalMembros} membros • {p.departamentos?.join(", ") || "Todos os Departamentos"}
                         </p>
                       </div>
                       {p.queueId && (
                         <span
-                          className="px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-mono font-bold border shrink-0"
+                          className="px-3 py-1 rounded-xl text-xs sm:text-sm font-mono font-bold border shrink-0 shadow-xs"
                           style={{
                             backgroundColor: currentPaletteConfig.subtleBg,
                             borderColor: currentPaletteConfig.subtleBorder,
@@ -552,20 +552,20 @@ export default function ModoTvFullscreenPage() {
                       )}
                     </div>
 
-                    {/* CORPO: PRÓXIMO ANALISTA */}
-                    <div className="my-auto flex-1 min-h-0 flex flex-col justify-center p-2 sm:p-2.5 bg-zinc-950/90 border border-zinc-800 rounded-xl gap-1 overflow-hidden">
+                    {/* CORPO: PRÓXIMO ANALISTA (AMPLIADO & BEM LEGÍVEL) */}
+                    <div className="my-auto flex-1 min-h-0 flex flex-col justify-center p-3 sm:p-3.5 lg:p-4 bg-zinc-950/90 border border-zinc-800 rounded-2xl gap-2 overflow-hidden shadow-inner">
                       <span
-                        className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shrink-0"
+                        className="text-[11px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shrink-0"
                         style={{ color: currentPaletteConfig.accentText }}
                       >
-                        <Zap className="w-3 h-3" />
+                        <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         Próximo da Vez:
                       </span>
 
                       {p.proximoDaFila ? (
-                        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                           <div
-                            className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-xl border flex items-center justify-center text-xs sm:text-sm font-black shrink-0 shadow-xs"
+                            className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-2xl border-2 flex items-center justify-center text-base sm:text-lg lg:text-xl font-black shrink-0 shadow-md"
                             style={{
                               backgroundColor: currentPaletteConfig.subtleBg,
                               borderColor: currentPaletteConfig.subtleBorder,
@@ -575,29 +575,29 @@ export default function ModoTvFullscreenPage() {
                             {p.proximoDaFila.nome.substring(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <p className="font-black text-xs sm:text-sm lg:text-base text-white truncate leading-tight">
+                            <p className="font-black text-base sm:text-lg lg:text-xl 2xl:text-2xl text-white truncate leading-tight">
                               {p.proximoDaFila.nome}
                             </p>
-                            <p className="text-[9px] sm:text-[10px] text-zinc-400 truncate mt-0.5">
+                            <p className="text-xs sm:text-sm text-zinc-300 font-medium truncate mt-0.5">
                               {p.proximoDaFila.email}
                             </p>
                           </div>
                         </div>
                       ) : (
-                        <p className="text-[11px] text-zinc-500 italic py-1 text-center font-medium">
+                        <p className="text-xs sm:text-sm text-zinc-500 italic py-1 text-center font-medium">
                           Aguardando analistas online na fila...
                         </p>
                       )}
                     </div>
 
                     {/* RODAPÉ DO CARD */}
-                    <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-zinc-500 pt-1 border-t border-zinc-800/80 shrink-0">
-                      <span className="flex items-center gap-1 text-zinc-400 font-medium">
-                        <ShieldCheck className="w-3 h-3" style={{ color: currentPaletteConfig.accentText }} />
-                        Roteamento Ativo
+                    <div className="flex items-center justify-between text-xs text-zinc-400 pt-2 border-t border-zinc-800/80 shrink-0 font-medium">
+                      <span className="flex items-center gap-1.5">
+                        <ShieldCheck className="w-4 h-4" style={{ color: currentPaletteConfig.accentText }} />
+                        Roteamento Inteligente
                       </span>
-                      <span className="font-bold text-[9px] sm:text-[10px]" style={{ color: currentPaletteConfig.accentText }}>
-                        ● Online
+                      <span className="font-bold text-xs" style={{ color: currentPaletteConfig.accentText }}>
+                        ● Fila Ativa
                       </span>
                     </div>
                   </div>
@@ -764,56 +764,56 @@ export default function ModoTvFullscreenPage() {
           {/* ============================================================ */}
           {/* SLIDE 3: ESCALA DE PLANTÃO */}
           {/* ============================================================ */}
-          <div className="w-full h-full shrink-0 flex flex-col justify-between gap-1.5 px-0.5 min-h-0 overflow-hidden">
+          <div className="w-full h-full shrink-0 flex flex-col justify-between gap-2 sm:gap-3 px-0.5 min-h-0 overflow-hidden">
             <div className="flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5 sm:gap-3">
                 <div
-                  className="p-1.5 rounded-lg border shrink-0"
+                  className="p-2 sm:p-2.5 rounded-xl border shrink-0"
                   style={{
                     backgroundColor: currentPaletteConfig.subtleBg,
                     borderColor: currentPaletteConfig.subtleBorder,
                     color: currentPaletteConfig.accentText,
                   }}
                 >
-                  <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <CalendarDays className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <h2 className="text-sm sm:text-base lg:text-lg font-black text-white tracking-tight leading-tight">
+                  <h2 className="text-base sm:text-lg lg:text-xl 2xl:text-2xl font-black text-white tracking-tight leading-tight">
                     Escala de Plantão
                   </h2>
-                  <p className="text-[10px] sm:text-xs text-zinc-400 font-medium">
-                    Plantonista da vez e próximos agendados
+                  <p className="text-xs sm:text-sm text-zinc-400 font-medium">
+                    Plantonista da vez e cronograma agendado
                   </p>
                 </div>
               </div>
-              <span className="text-[11px] sm:text-xs font-bold text-zinc-200 bg-zinc-900 px-2.5 py-0.5 rounded-lg border border-zinc-800 shrink-0">
-                {escalas.length} Plantões
+              <span className="text-xs sm:text-sm font-bold text-zinc-200 bg-zinc-900 px-3 py-1 rounded-xl border border-zinc-800 shrink-0">
+                {escalas.length} Plantões Cadastrados
               </span>
             </div>
 
-            <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-2 sm:gap-2.5 items-stretch min-h-0 overflow-hidden">
-              {/* CARD PLANTONISTA ATUAL */}
-              <div className="lg:col-span-5 bg-zinc-900/60 border border-zinc-800 rounded-xl p-2.5 sm:p-3 flex flex-col justify-between gap-1.5 shadow-md h-full min-h-0 overflow-hidden">
+            <div className="flex-1 w-full grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch min-h-0 overflow-hidden">
+              {/* CARD PLANTONISTA ATUAL (GRANDE & DESTACADO) */}
+              <div className="lg:col-span-5 bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-md h-full min-h-0 overflow-hidden">
                 <div className="shrink-0 flex items-center justify-between">
                   <span
-                    className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[10px] sm:text-xs font-black uppercase tracking-wider border shadow-xs"
+                    className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-black uppercase tracking-wider border shadow-xs"
                     style={{
                       backgroundColor: currentPaletteConfig.subtleBg,
                       borderColor: currentPaletteConfig.subtleBorder,
                       color: currentPaletteConfig.accentText,
                     }}
                   >
-                    <Flame className="w-3.5 h-3.5" />
+                    <Flame className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     Plantonista da Vez
                   </span>
-                  <span className="text-[9px] sm:text-[10px] font-mono text-zinc-400 font-bold bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800">
+                  <span className="text-xs font-mono text-zinc-400 font-bold bg-zinc-950 px-3 py-1 rounded-lg border border-zinc-800">
                     Suporte TI
                   </span>
                 </div>
 
-                <div className="my-auto flex-1 min-h-0 flex flex-col items-center justify-center text-center p-2.5 sm:p-3 bg-zinc-950 border border-zinc-800 rounded-xl gap-1 shadow-inner overflow-hidden">
+                <div className="my-auto flex-1 min-h-0 flex flex-col items-center justify-center text-center p-4 sm:p-5 bg-zinc-950 border border-zinc-800 rounded-2xl gap-2 sm:gap-3 shadow-inner overflow-hidden">
                   <div
-                    className="w-11 h-11 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-2xl border-2 flex items-center justify-center text-base sm:text-lg lg:text-2xl font-black shadow-md shrink-0"
+                    className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-3xl border-3 flex items-center justify-center text-2xl sm:text-3xl lg:text-4xl font-black shadow-lg shrink-0"
                     style={{
                       backgroundColor: currentPaletteConfig.subtleBg,
                       borderColor: currentPaletteConfig.subtleBorder,
@@ -824,21 +824,21 @@ export default function ModoTvFullscreenPage() {
                   </div>
 
                   <div className="min-w-0 max-w-full">
-                    <h3 className="text-xs sm:text-sm lg:text-base 2xl:text-lg font-black text-white tracking-tight leading-tight truncate">
+                    <h3 className="text-xl sm:text-2xl lg:text-3xl 2xl:text-4xl font-black text-white tracking-tight leading-tight truncate">
                       {plantonistaAtivo?.user?.name || plantonistaAtivo?.nome || "A Definir"}
                     </h3>
-                    <p className="text-[10px] sm:text-xs text-zinc-300 mt-0.5 font-medium truncate">
+                    <p className="text-xs sm:text-sm lg:text-base text-zinc-300 mt-1 font-medium truncate">
                       {plantonistaAtivo?.user?.email || "Plantonista Ativo no Sistema"}
                     </p>
                   </div>
                 </div>
 
-                <div className="p-2 bg-zinc-950/90 border border-zinc-800 rounded-lg shrink-0">
-                  <p className="text-[9px] sm:text-[10px] font-black text-zinc-400 uppercase tracking-wider">
+                <div className="p-3 sm:p-3.5 bg-zinc-950/90 border border-zinc-800 rounded-xl shrink-0">
+                  <p className="text-[11px] sm:text-xs font-black text-zinc-400 uppercase tracking-wider">
                     Data do Plantão:
                   </p>
                   <p
-                    className="text-xs sm:text-sm lg:text-base font-black capitalize mt-0.5 tracking-tight truncate"
+                    className="text-lg sm:text-xl lg:text-2xl 2xl:text-3xl font-black capitalize mt-0.5 tracking-tight truncate"
                     style={{ color: currentPaletteConfig.accentText }}
                   >
                     {plantonistaAtivo?.data
@@ -848,38 +848,38 @@ export default function ModoTvFullscreenPage() {
                 </div>
               </div>
 
-              {/* LISTA DOS PRÓXIMOS */}
-              <div className="lg:col-span-7 bg-zinc-900/60 border border-zinc-800 rounded-xl p-2.5 sm:p-3 flex flex-col justify-between gap-1.5 shadow-md h-full min-h-0 overflow-hidden">
-                <div className="flex items-center justify-between shrink-0 pb-1.5 border-b border-zinc-800">
-                  <h3 className="text-[11px] sm:text-xs lg:text-sm font-black text-zinc-100 uppercase tracking-wider flex items-center gap-1.5">
-                    <CalendarDays className="w-3.5 h-3.5" style={{ color: currentPaletteConfig.accentText }} />
+              {/* LISTA DOS PRÓXIMOS (LEGÍVEL & BEM PROPORCIONADA) */}
+              <div className="lg:col-span-7 bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3 shadow-md h-full min-h-0 overflow-hidden">
+                <div className="flex items-center justify-between shrink-0 pb-2 border-b border-zinc-800">
+                  <h3 className="text-xs sm:text-sm lg:text-base font-black text-zinc-100 uppercase tracking-wider flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: currentPaletteConfig.accentText }} />
                     Próximos Plantões Agendados
                   </h3>
-                  <span className="text-[9px] sm:text-[10px] text-zinc-400 font-mono font-medium">Ordem Cronológica</span>
+                  <span className="text-xs text-zinc-400 font-mono font-medium">Ordem Cronológica</span>
                 </div>
 
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 items-stretch content-start min-h-0 overflow-y-auto pr-0.5">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 items-stretch content-start min-h-0 overflow-y-auto pr-0.5">
                   {listaEscalasExibir.map((item, idx) => (
                     <div
                       key={item.id || idx}
-                      className="p-1.5 sm:p-2 bg-zinc-950 border border-zinc-800/90 rounded-lg flex items-center justify-between gap-2 shadow-xs min-h-0"
+                      className="p-2.5 sm:p-3 bg-zinc-950 border border-zinc-800/90 rounded-xl flex items-center justify-between gap-2.5 shadow-xs min-h-0"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md bg-zinc-800 border border-zinc-700 flex items-center justify-center font-black text-zinc-100 text-[10px] sm:text-xs shrink-0 shadow-xs">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center font-black text-zinc-100 text-xs sm:text-sm shrink-0 shadow-xs">
                           #{idx + 1}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <p className="font-black text-[11px] sm:text-xs lg:text-sm text-white truncate leading-tight">
+                          <p className="font-black text-sm sm:text-base lg:text-lg text-white truncate leading-tight">
                             {item.user?.name || "Analista"}
                           </p>
-                          <p className="text-[9px] sm:text-[10px] text-zinc-300 font-semibold capitalize truncate mt-0.5">
+                          <p className="text-xs sm:text-sm text-zinc-300 font-semibold capitalize truncate mt-0.5">
                             {formatarDiaSemana(item.data, "short")}
                           </p>
                         </div>
                       </div>
 
                       <span
-                        className="px-2 py-0.5 rounded-md text-[10px] sm:text-xs font-black bg-zinc-900 border shrink-0 shadow-xs"
+                        className="px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black bg-zinc-900 border shrink-0 shadow-xs"
                         style={{
                           borderColor: currentPaletteConfig.subtleBorder,
                           color: currentPaletteConfig.accentText,
@@ -891,9 +891,9 @@ export default function ModoTvFullscreenPage() {
                   ))}
                 </div>
 
-                <div className="flex items-center justify-between text-[9px] sm:text-[10px] text-zinc-500 pt-1 border-t border-zinc-800 shrink-0">
-                  <span className="text-zinc-400 font-medium">Escalas automáticas ativas</span>
-                  <span className="text-zinc-400 font-medium">Sincronizado com o banco</span>
+                <div className="flex items-center justify-between text-xs text-zinc-400 pt-2 border-t border-zinc-800 shrink-0 font-medium">
+                  <span>Escalas automáticas ativas</span>
+                  <span>Sincronizado com o banco</span>
                 </div>
               </div>
             </div>
@@ -902,42 +902,42 @@ export default function ModoTvFullscreenPage() {
           {/* ============================================================ */}
           {/* SLIDE 4: PRODUTIVIDADE DOS ANALISTAS */}
           {/* ============================================================ */}
-          <div className="w-full h-full shrink-0 flex flex-col justify-between gap-1.5 px-0.5 min-h-0 overflow-hidden">
+          <div className="w-full h-full shrink-0 flex flex-col justify-between gap-2 sm:gap-2.5 px-0.5 min-h-0 overflow-hidden">
             <div className="flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2.5 sm:gap-3">
                 <div
-                  className="p-1.5 rounded-lg border shrink-0"
+                  className="p-2 sm:p-2.5 rounded-xl border shrink-0"
                   style={{
                     backgroundColor: currentPaletteConfig.subtleBg,
                     borderColor: currentPaletteConfig.subtleBorder,
                     color: currentPaletteConfig.accentText,
                   }}
                 >
-                  <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
                 <div>
-                  <h2 className="text-sm sm:text-base lg:text-lg font-black text-white tracking-tight leading-tight">
+                  <h2 className="text-base sm:text-lg lg:text-xl 2xl:text-2xl font-black text-white tracking-tight leading-tight">
                     Produtividade dos Analistas
                   </h2>
-                  <p className="text-[10px] sm:text-xs text-zinc-400 font-medium">
-                    Chamados em curso, pendentes e resolvidos
+                  <p className="text-xs sm:text-sm text-zinc-400 font-medium">
+                    Chamados em curso, pendentes e resolvidos por atendente
                   </p>
                 </div>
               </div>
-              <span className="text-[11px] sm:text-xs font-bold text-zinc-200 bg-zinc-900 px-2.5 py-0.5 rounded-lg border border-zinc-800 shrink-0">
+              <span className="text-xs sm:text-sm font-bold text-zinc-200 bg-zinc-900 px-3 py-1 rounded-xl border border-zinc-800 shrink-0">
                 {analistasValidos.length} Analistas Ativos
               </span>
             </div>
 
             {analistasValidos.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center p-4 text-center border border-zinc-800 rounded-xl bg-zinc-900/30">
-                <p className="text-zinc-200 text-sm sm:text-base font-bold">Nenhuma atividade registrada hoje</p>
-                <p className="text-zinc-500 text-xs mt-0.5">Os dados são sincronizados automaticamente em tempo real.</p>
+              <div className="flex-1 flex flex-col items-center justify-center p-6 text-center border border-zinc-800 rounded-2xl bg-zinc-900/30">
+                <p className="text-zinc-200 text-base sm:text-lg font-bold">Nenhuma atividade registrada hoje</p>
+                <p className="text-zinc-500 text-xs sm:text-sm mt-1">Os dados são sincronizados automaticamente em tempo real.</p>
               </div>
             ) : (
-              <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-2.5 content-start items-stretch overflow-y-auto max-h-full pr-1">
+              <div className="flex-1 min-h-0 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-3 lg:gap-3.5 content-start items-stretch overflow-y-auto max-h-full pr-1">
                 {analistasValidos.map((analista, idx) => (
-                  <div key={analista.email || analista.name || idx} className="h-full min-h-[110px] sm:min-h-[120px] overflow-hidden">
+                  <div key={analista.email || analista.name || idx} className="h-full min-h-[130px] sm:min-h-[145px] lg:min-h-[155px] overflow-hidden">
                     <AnalistaMetricCard dados={analista} compact={true} />
                   </div>
                 ))}
