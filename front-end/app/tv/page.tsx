@@ -204,7 +204,7 @@ export default function ModoTvFullscreenPage() {
         atendimentoService.getMetrics({ dataInicio: hojeStr, dataFim: hojeStr }).catch(() => null),
         atendimentoService.list({ limit: 50 }).catch(() => ({ data: [] })),
         registroService.list(1, 50).catch(() => ({ registros: [] })),
-        dashboardService.getTicketsReport(hojeStr, hojeStr).catch(() => []),
+        atendimentoService.getProdutividade(hojeStr, hojeStr).catch(() => []),
         registroService.next().catch(() => null),
       ]);
 

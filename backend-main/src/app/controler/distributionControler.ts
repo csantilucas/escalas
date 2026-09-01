@@ -14,13 +14,40 @@ export class DistributionController {
         ...body,
       };
 
-      const departamento = data.departamento || data.depto || data.area || data.department;
-      const fila = data.fila || data.queue || data.queueName;
-      const queueId = data.queueId || data.queueid || data.queue_id;
-      const ticketId = data.ticketId || data.ticketID || data.ticket;
-      const clienteId = data.clienteId || data.clienteID;
-      const numero = data.numero || data.Number || data.phone || data.number;
-      const pushName = data.pushName || data.contactName || data.name;
+      const departamento =
+        data.departamento ?? data.depto ?? data.area ?? data.department ?? data.tipoAtendimento ?? data.tipo_atendimento;
+      const fila = data.fila ?? data.queue ?? data.queueName ?? data.queue_name ?? data.nomeFila;
+      const queueId = data.queueId ?? data.queueid ?? data.queue_id ?? data.id_queue;
+      const ticketId =
+        data.ticketId ??
+        data.ticketID ??
+        data.ticket ??
+        data.ticket_id ??
+        data.ticket_zpro ??
+        data.ticketZpro ??
+        data.id_ticket ??
+        data.ticket_tomticket ??
+        data.ticketTomticket;
+      const clienteId =
+        data.clienteId ??
+        data.clienteID ??
+        data.cliente_id ??
+        data.cliente ??
+        data.id_cliente ??
+        data.customer_id;
+      const numero =
+        data.numero ?? data.Number ?? data.phone ?? data.number ?? data.telefone ?? data.whatsapp ?? data.celular;
+      const pushName =
+        data.pushName ??
+        data.pushname ??
+        data.nome_contato ??
+        data.nomeContato ??
+        data.contactName ??
+        data.name ??
+        data.nome ??
+        data.contato;
+      const cnpj = data.cnpj ?? data.cpf_cnpj ?? data.cpf ?? data.documento;
+      const protocolo = data.protocolo ?? data.protocol;
       const horarioMinutosOverride = data.horarioMinutosOverride
         ? Number(data.horarioMinutosOverride)
         : undefined;
@@ -31,10 +58,12 @@ export class DistributionController {
         departamento: departamento ? String(departamento) : undefined,
         fila: fila ? String(fila) : undefined,
         queueId: queueId !== undefined && queueId !== null ? Number(queueId) : undefined,
-        ticketId,
-        clienteId,
+        ticketId: ticketId !== undefined && ticketId !== null ? String(ticketId) : undefined,
+        clienteId: clienteId !== undefined && clienteId !== null ? String(clienteId) : undefined,
         numero: numero ? String(numero) : undefined,
         pushName: pushName ? String(pushName) : undefined,
+        cnpj: cnpj ? String(cnpj) : undefined,
+        protocolo: protocolo ? String(protocolo) : undefined,
         horarioMinutosOverride,
         ignorarApisExternas,
       });

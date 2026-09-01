@@ -49,6 +49,7 @@ export async function setupTestUsers(prefix: string = "test") {
       email: atendenteEmail,
       password: "password_123",
       id_atendente: `ATEND-USR-${uid}`,
+      role: "comum",
       typeUser: "atendente",
     });
 

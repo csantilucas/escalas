@@ -68,17 +68,23 @@ class DashboardServices {
     return response.data;
   }
 
-  // GET /dashboard/tickets -> Método original da Alpha Software
+  // GET /atendimentos/produtividade -> Produtividade calculada da tabela local de Atendimentos
   async getTicketsReport(startDate: string, endDate: string): Promise<TicketUserData[]> {
     if (!startDate || !endDate) {
       throw new Error("As datas de início e fim são obrigatórias.");
     }
     
-    const response = await api.get("/dashboard/tickets", {
-      params: { startDate, endDate }
-    });
-    
-    return response.data;
+    try {
+      const response = await api.get("/atendimentos/produtividade", {
+        params: { startDate, endDate }
+      });
+      return response.data;
+    } catch {
+      const fallback = await api.get("/dashboard/tickets", {
+        params: { startDate, endDate }
+      });
+      return fallback.data;
+    }
   }
 
   // 🟢 Método único para o Tomticket (Busca do banco ou consulta a API se não existir)

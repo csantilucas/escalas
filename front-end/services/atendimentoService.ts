@@ -80,6 +80,14 @@ class AtendimentoServices {
     });
     return response.data;
   }
+
+  // 🟢 GET /atendimentos/produtividade -> Buscar produtividade consolidada dos analistas por etapas de atendimento
+  async getProdutividade(startDate?: string, endDate?: string): Promise<any[]> {
+    const response = await api.get("/atendimentos/produtividade", {
+      params: { startDate, endDate },
+    });
+    return response.data;
+  }
 }
 
 export const atendimentoService = new AtendimentoServices();

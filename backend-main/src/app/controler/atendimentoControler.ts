@@ -33,22 +33,39 @@ export class AtendimentoController {
     try {
       const {
         ticket_zpro,
+        ticketZpro,
+        ticket_id,
+        ticketId,
+        ticket,
         cliente_id,
+        clienteId,
         cnpj,
+        cpf_cnpj,
         atendente,
         protocolo,
+        protocol,
         nome_contato,
+        nomeContato,
+        pushName,
         tipo_atendimento,
-      } = req.body;
+        tipoAtendimento,
+      } = req.body || {};
+
+      const zproId = ticket_zpro ?? ticketZpro ?? ticket_id ?? ticketId ?? ticket;
+      const cId = cliente_id ?? clienteId;
+      const docCnpj = cnpj ?? cpf_cnpj;
+      const prot = protocolo ?? protocol;
+      const contactName = nome_contato ?? nomeContato ?? pushName;
+      const tipoAtend = tipo_atendimento ?? tipoAtendimento;
 
       const novoAtendimento = await atendimentoService.createAtendimento({
-        ticketZpro: ticket_zpro,
-        clienteId: cliente_id,
-        cnpj,
-        atendente,
-        protocolo,
-        nomeContato: nome_contato,
-        tipoAtendimento: tipo_atendimento,
+        ticketZpro: zproId,
+        clienteId: cId ? String(cId) : null,
+        cnpj: docCnpj ? String(docCnpj) : null,
+        atendente: atendente ? String(atendente) : null,
+        protocolo: prot ? String(prot) : null,
+        nomeContato: contactName ? String(contactName) : null,
+        tipoAtendimento: tipoAtend ? String(tipoAtend) : null,
       });
 
       return res.status(201).json(novoAtendimento);
@@ -169,6 +186,21 @@ export class AtendimentoController {
     } catch (error: any) {
       console.error(`❌ [AtendimentoController.getByAnalista] Erro ao buscar atendimentos do analista '${req.params.analista}':`, error.message || error);
       return res.status(500).json({ error: error.message || "Erro ao buscar atendimentos do analista." });
+    }
+  };
+
+  // 6. Produtividade dos analistas baseada na tabela local de atendimentos
+  getProdutividade = async (req: Request, res: Response): Promise<Response> => {
+    try {
+      const { startDate, endDate, dataInicio, dataFim } = req.query;
+      const start = (startDate || dataInicio || new Date().toISOString().substring(0, 10)) as string;
+      const end = (endDate || dataFim || new Date().toISOString().substring(0, 10)) as string;
+
+      const resultado = await atendimentoService.getProdutividade(start, end);
+      return res.status(200).json(resultado);
+    } catch (error: any) {
+      console.error("❌ [AtendimentoController.getProdutividade] Erro ao buscar produtividade:", error.message || error);
+      return res.status(500).json({ error: error.message || "Erro ao buscar produtividade dos analistas." });
     }
   };
 }

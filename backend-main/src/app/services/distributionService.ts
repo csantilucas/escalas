@@ -12,6 +12,8 @@ export interface DistribuirInput {
   clienteId?: number | string;
   numero?: string;
   pushName?: string;
+  cnpj?: string;
+  protocolo?: string;
   horarioMinutosOverride?: number;
   ignorarApisExternas?: boolean; // Útil para simular e testar o fallback sequencial
 }
@@ -223,22 +225,27 @@ export class DistributionService {
 
     if (!input.ignorarApisExternas) {
       try {
-        const hojeStr = new Date().toISOString().substring(0, 10);
-        console.log("🌐 [DistributionEngine] Consultando Z-PRO (/listUsers) e Alpha Dash (/ticketsPerUser) em tempo real...");
+        console.log("🌐 [DistributionEngine] Consultando usuários online no Z-PRO e carga da tabela local de atendimentos...");
 
-        const [usuariosZpro, cargasAlpha] = await Promise.all([
-          externalApiService.listZproUsers(),
-          externalApiService.getTicketsPerUser(hojeStr, hojeStr),
+        const [usuariosZpro, produtividadeLocal] = await Promise.all([
+          externalApiService.listZproUsers().catch((err) => {
+            console.warn("⚠️ [DistributionEngine] Falha ao listar usuários no Z-PRO:", err.message || err);
+            return [];
+          }),
+          this.atendimentoRepo
+            ? this.atendimentoRepo.getProdutividadePorPeriodo().catch((err) => {
+                console.warn("⚠️ [DistributionEngine] Falha ao consultar produtividade local:", err.message || err);
+                return [];
+              })
+            : Promise.resolve([]),
         ]);
 
-        console.log(
-          `✅ [DistributionEngine] Dados obtidos das APIs externas. Z-PRO: ${usuariosZpro.length} usuários, Alpha: ${cargasAlpha.length} cargas.`
-        );
-
-        const mapaCargas: Record<string, TicketUserData> = {};
-        for (const c of cargasAlpha) {
-          if (c.email) mapaCargas[c.email.toLowerCase().trim()] = c;
-          if (c.name) mapaCargas[c.name.toLowerCase().trim()] = c;
+        const mapaCargas: Record<string, any> = {};
+        for (const p of (produtividadeLocal as any[])) {
+          const emailK = (p.email || "").toLowerCase().trim();
+          const nomeK = (p.name || "").toLowerCase().trim();
+          if (emailK) mapaCargas[emailK] = p;
+          if (nomeK) mapaCargas[nomeK] = p;
         }
 
         const onlineZproMap = new Map<number, any>();
@@ -271,26 +278,25 @@ export class DistributionService {
         });
 
         if (candidatosOnline.length > 0) {
-          // Calcular pontuação de carga para cada candidato online
+          // Calcular pontuação de carga para cada candidato online usando os atendimentos locais
           const pontuados = candidatosOnline.map((m: any) => {
             const emailKey = (m.user.email || "").toLowerCase().trim();
             const nomeKey = (m.user.name || "").toLowerCase().trim();
             const metrica = mapaCargas[emailKey] || mapaCargas[nomeKey];
 
-            const abertos = Number(metrica?.qtd_em_atendimento || 0);
             const pendentes = Number(metrica?.qtd_pendentes || 0);
-            const fechados = Number(metrica?.qtd_resolvidos || metrica?.qtd_por_usuario || 0);
+            const fechados = Number(metrica?.qtd_resolvidos || 0);
+            const total = Number(metrica?.qtd_por_usuario || pendentes + fechados);
 
             const score =
-              abertos * this.PESO_ABERTOS +
               pendentes * this.PESO_PENDENTES +
               fechados * this.PESO_TOTAL_DIA;
 
             return {
               membro: m,
-              abertos,
               pendentes,
               fechados,
+              total,
               score,
               prioridade: m.pesoPrioridade || 0,
             };
@@ -318,9 +324,9 @@ export class DistributionService {
             analistaEscolhido = sorteado.membro;
             pontuacaoCarga = sorteado.score;
             metricasEscolhidas = {
-              abertos: sorteado.abertos,
               pendentes: sorteado.pendentes,
-              fechadosHoje: sorteado.fechados,
+              resolvidos: sorteado.fechados,
+              total: sorteado.total,
             };
 
             if (modoDistribuicao === "pontuacao_ponderada") {
@@ -386,17 +392,29 @@ export class DistributionService {
 
       await this.persistLog(input, result);
 
-      // 6. Atualizar o atendente na tabela de atendimentos e notificar SSE
-      if (input.ticketId && this.atendimentoRepo) {
+      const ticketIdFinal =
+        input.ticketId !== undefined && input.ticketId !== null && String(input.ticketId).trim() !== ""
+          ? String(input.ticketId).trim()
+          : input.protocolo
+          ? String(input.protocolo).trim()
+          : `DIST-${Date.now()}`;
+
+      // 6. Atualizar ou criar o atendimento na tabela de atendimentos e notificar SSE
+      if (this.atendimentoRepo) {
         try {
           const atendAtualizado = await this.atendimentoRepo.upsertAtendentePorTicket(
-            String(input.ticketId),
+            ticketIdFinal,
             analistaEscolhido.user.name,
             {
               clienteId: input.clienteId ? String(input.clienteId) : null,
+              cnpj: input.cnpj ? String(input.cnpj) : null,
+              protocolo: input.protocolo ? String(input.protocolo) : null,
               nomeContato: input.pushName ? String(input.pushName) : null,
               tipoAtendimento: input.departamento ? String(input.departamento) : null,
             }
+          );
+          console.log(
+            `✅ [DistributionService] Atendimento ticketZpro '${ticketIdFinal}' registrado com atendente '${analistaEscolhido.user.name}' (ID: ${atendAtualizado.id})`
           );
           sseEventBus.notify("atendimento", "update", atendAtualizado);
         } catch (atendErr: any) {
@@ -409,7 +427,7 @@ export class DistributionService {
 
       sseEventBus.notify("distribuicao", "create", {
         ...result,
-        ticketId: input.ticketId,
+        ticketId: ticketIdFinal,
         clienteId: input.clienteId,
         numero: input.numero,
         data: new Date().toISOString(),

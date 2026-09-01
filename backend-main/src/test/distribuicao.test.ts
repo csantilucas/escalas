@@ -130,37 +130,19 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
     await prisma.$disconnect();
   });
 
-  it("deve distribuir atendimento por cálculo ponderado de carga quando APIs externas estão online", async () => {
+  it("deve distribuir atendimento por cálculo ponderado de carga consultando usuários online no Z-PRO e carga na tabela local de atendimentos", async () => {
+    // 1. Criar atendimentos prévios no banco local para Gabriel (2 pendentes)
+    await prisma.atendimento.createMany({
+      data: [
+        { ticketZpro: "T-GAB-1", atendente: "Gabriel", sincronizado: false },
+        { ticketZpro: "T-GAB-2", atendente: "Gabriel", sincronizado: false },
+      ],
+    });
+
     // Mock do Z-PRO (ambos Gabriel e Guilherme estão online)
     vi.spyOn(externalApiService, "listZproUsers").mockResolvedValueOnce([
       { id: 5, name: "Gabriel", email: "gabriel@alphasoftware.com.br", isOnline: true },
       { id: 10, name: "Guilherme", email: "guilherme@alphasoftware.com.br", isOnline: true },
-    ]);
-
-    // Mock da Alpha: Gabriel tem 2 abertos (peso 10 = 20) e Guilherme tem 0 abertos (peso 0)
-    vi.spyOn(externalApiService, "getTicketsPerUser").mockResolvedValueOnce([
-      {
-        email: "gabriel@alphasoftware.com.br",
-        name: "Gabriel",
-        qtd_em_atendimento: "2",
-        qtd_pendentes: "0",
-        qtd_resolvidos: "5",
-        qtd_por_usuario: "5",
-        tma: { minutes: 10 },
-        tme: { minutes: 2 },
-        media_avaliacao: 5,
-      },
-      {
-        email: "guilherme@alphasoftware.com.br",
-        name: "Guilherme",
-        qtd_em_atendimento: "0",
-        qtd_pendentes: "1",
-        qtd_resolvidos: "3",
-        qtd_por_usuario: "3",
-        tma: { minutes: 15 },
-        tme: { minutes: 1 },
-        media_avaliacao: 5,
-      },
     ]);
 
     const response = await request(app)
@@ -360,7 +342,6 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
     const primeiro = relatorio[0];
     expect(primeiro).toHaveProperty("name");
     expect(primeiro).toHaveProperty("email");
-    expect(primeiro).toHaveProperty("qtd_em_atendimento");
     expect(primeiro).toHaveProperty("qtd_pendentes");
     expect(primeiro).toHaveProperty("qtd_resolvidos");
     expect(primeiro).toHaveProperty("qtd_por_usuario");

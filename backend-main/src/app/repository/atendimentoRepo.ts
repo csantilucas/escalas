@@ -180,11 +180,10 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
       }),
     ]);
 
-    // Mapa para consolidar as métricas por analista
+    // Mapa para consolidar as métricas por analista (Pendente e Resolvido)
     interface AnalistaMetricsAccumulator {
       name: string;
       email: string;
-      em_atendimento: number;
       pendentes: number;
       resolvidos: number;
       total: number;
@@ -199,7 +198,6 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
         mapaAnalistas.set(chave, {
           name: u.name,
           email: u.email || `${chave}@alphasoftware.com.br`,
-          em_atendimento: 0,
           pendentes: 0,
           resolvidos: 0,
           total: 0,
@@ -231,7 +229,6 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
         registro = {
           name: atendenteNome,
           email: `${chaveBusca}@alphasoftware.com.br`,
-          em_atendimento: 0,
           pendentes: 0,
           resolvidos: 0,
           total: 0,
@@ -243,18 +240,16 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
       if (at.sincronizado) {
         registro.resolvidos += 1;
       } else {
-        registro.em_atendimento += 1;
         registro.pendentes += 1;
       }
     }
 
-    // Converte para o formato de produtividade por etapas de atendimento (filtrando apenas quem possui atendimentos no período)
+    // Converte para o formato de produtividade simplificado (apenas Pendente e Resolvido)
     const resultado = Array.from(mapaAnalistas.values())
       .filter((acc) => acc.total > 0)
       .map((acc) => ({
         name: acc.name,
         email: acc.email,
-        qtd_em_atendimento: String(acc.em_atendimento),
         qtd_pendentes: String(acc.pendentes),
         qtd_resolvidos: String(acc.resolvidos),
         qtd_por_usuario: String(acc.total),
@@ -279,7 +274,12 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
     const ticketStr = String(ticketZpro).trim();
 
     const existente = await prisma.atendimento.findFirst({
-      where: { ticketZpro: ticketStr },
+      where: {
+        OR: [
+          { ticketZpro: ticketStr },
+          ...(dadosExtras?.protocolo ? [{ protocolo: String(dadosExtras.protocolo).trim() }] : []),
+        ],
+      },
     });
 
     if (existente) {
@@ -301,7 +301,7 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
         ticketZpro: ticketStr,
         atendente: atendenteNome,
         clienteId: dadosExtras?.clienteId ? String(dadosExtras.clienteId) : null,
-        cnpj: dadosExtras?.cnpj ? String(dadosExtras.cnpj) : "00000000000",
+        cnpj: dadosExtras?.cnpj ? String(dadosExtras.cnpj) : null,
         protocolo: dadosExtras?.protocolo ? String(dadosExtras.protocolo) : null,
         nomeContato: dadosExtras?.nomeContato ? String(dadosExtras.nomeContato) : null,
         tipoAtendimento: dadosExtras?.tipoAtendimento ? String(dadosExtras.tipoAtendimento) : null,

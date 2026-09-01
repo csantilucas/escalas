@@ -40,16 +40,31 @@ describe("Testes de Atendimentos", () => {
     expect(response.body.sincronizado).toBe(false);
   });
 
-  it("deve retornar 400 se o campo obrigatório cnpj não for informado", async () => {
+  it("deve retornar 400 se o ID do Z-PRO (ticketZpro) não for informado", async () => {
     const response = await request(app)
       .post("/atendimentos")
       .set("Cookie", adminCookie)
       .send({
-        protocolo: "PROTOCOLO-SEM-CNPJ",
+        protocolo: "PROTOCOLO-SEM-ZPRO",
+        cnpj: "03604844000210",
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toContain("cnpj");
+    expect(response.body.error).toContain("ticketZpro");
+  });
+
+  it("deve criar um atendimento com sucesso mesmo sem informar o CNPJ (CNPJ opcional)", async () => {
+    const response = await request(app)
+      .post("/atendimentos")
+      .set("Cookie", adminCookie)
+      .send({
+        ticket_zpro: "ZPRO-SEM-CNPJ-123",
+        nome_contato: "Cliente Sem CNPJ",
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.ticketZpro).toBe("ZPRO-SEM-CNPJ-123");
+    expect(response.body.cnpj).toBeNull();
   });
 
   it("deve atualizar o atendimento buscando pelo ticketZpro e marcar sincronizado=true", async () => {
@@ -94,16 +109,75 @@ describe("Testes de Atendimentos", () => {
     expect(response.body.error).toContain("não encontrado");
   });
 
-  it("deve listar os atendimentos com paginação", async () => {
+  it("deve rejeitar criação com protocolo duplicado", async () => {
     const response = await request(app)
-      .get("/atendimentos?page=1&limit=10")
+      .post("/atendimentos")
+      .set("Cookie", adminCookie)
+      .send({
+        ticket_zpro: "ZPRO-DUPLICADO-999",
+        cnpj: "03604844000210",
+        protocolo: protocoloTeste, // Protocolo já cadastrado
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toContain("Já existe um atendimento registrado com este protocolo");
+  });
+
+  it("deve integrar perfeitamente com a distribuição: atualizar dados sem perder o atendente já atribuído", async () => {
+    const ticketDist = "TICKET-DIST-12345";
+
+    // 1. Simular atendimento criado pela distribuição
+    await prisma.atendimento.create({
+      data: {
+        ticketZpro: ticketDist,
+        atendente: "Gabriel",
+        cnpj: "00000000000",
+        sincronizado: false,
+      },
+    });
+
+    // 2. n8n envia os dados completos do atendimento depois
+    const response = await request(app)
+      .post("/atendimentos")
+      .set("Cookie", adminCookie)
+      .send({
+        ticket_zpro: ticketDist,
+        cliente_id: "CLI-999",
+        cnpj: "11222333000144",
+        nome_contato: "Contato Final",
+        tipo_atendimento: "N1-Suporte",
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.ticketZpro).toBe(ticketDist);
+    // Atendente 'Gabriel' deve ser preservado!
+    expect(response.body.atendente).toBe("Gabriel");
+    expect(response.body.cnpj).toBe("11222333000144");
+    expect(response.body.nomeContato).toBe("Contato Final");
+  });
+
+  it("deve listar os atendimentos com paginação e filtros", async () => {
+    const response = await request(app)
+      .get("/atendimentos?page=1&limit=10&cnpj=11222333000144")
       .set("Cookie", adminCookie);
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("data");
     expect(response.body).toHaveProperty("pagination");
     expect(Array.isArray(response.body.data)).toBe(true);
-    expect(response.body.pagination.totalRecords).toBeGreaterThanOrEqual(1);
+    expect(response.body.data.length).toBe(1);
+    expect(response.body.data[0].ticketZpro).toBe("TICKET-DIST-12345");
+  });
+
+  it("deve consultar atendimentos por analista específico", async () => {
+    const response = await request(app)
+      .get("/atendimentos/analista/Gabriel")
+      .set("Cookie", adminCookie);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("data");
+    expect(Array.isArray(response.body.data)).toBe(true);
+    expect(response.body.data.some((a: any) => a.atendente === "Gabriel")).toBe(true);
   });
 
   it("deve obter métricas consolidadas dos atendimentos", async () => {
@@ -113,6 +187,8 @@ describe("Testes de Atendimentos", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty("metrics");
+    expect(response.body.metrics.total).toBeGreaterThanOrEqual(1);
     expect(response.body).toHaveProperty("porAnalista");
+    expect(Array.isArray(response.body.porAnalista)).toBe(true);
   });
 });

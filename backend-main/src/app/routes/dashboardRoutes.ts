@@ -12,8 +12,8 @@ router.get("/events", authMiddleware.auth, dashboardController.streamEvents);
 // 🟢 Rota de Visão Geral Consolidada
 router.get("/overview", authMiddleware.auth, dashboardController.getOverview);
 
-// Rota 1: Alpha Software
-router.get("/tickets", authMiddleware.auth, dashboardController.getTicketsReport);
+// Rota 1: Produtividade dos Analistas (Tabela Interna de Atendimentos)
+router.get("/tickets", dashboardController.getTicketsReport);
 
 // Rota 2: Tomticket
 router.get("/tomticket", authMiddleware.auth, authMiddleware.authAdminOrGestor, dashboardController.getTomticketReport);

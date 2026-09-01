@@ -4,34 +4,24 @@ import { sseEventBus } from "../../config/sseEvents.js";
 
 
 export interface CreateAtendimentoInput {
-
-    ticketZpro?: string;
-
-    clienteId?: string;
-
-    cnpj: string;
-
-    atendente?: string;
-
-    protocolo?: string;
-
-    nomeContato?: string;
-
-    tipoAtendimento?: string;
-
+    ticketZpro: string | number;
+    clienteId?: string | null;
+    cnpj?: string | null;
+    atendente?: string | null;
+    protocolo?: string | null;
+    nomeContato?: string | null;
+    tipoAtendimento?: string | null;
 }
 
-
-
 export interface UpdateAtendimentoInput {
-    ticketZpro: string;
-    ticketTomticket?: string;
-    tipoAtendimento?: string;
-    atendente?: string;
-    protocolo?: string;
-    clienteId?: string;
-    cnpj?: string;
-    nomeContato?: string;
+    ticketZpro: string | number;
+    ticketTomticket?: string | null;
+    tipoAtendimento?: string | null;
+    atendente?: string | null;
+    protocolo?: string | null;
+    clienteId?: string | null;
+    cnpj?: string | null;
+    nomeContato?: string | null;
 }
 
 export class AtendimentoService {
@@ -57,9 +47,11 @@ export class AtendimentoService {
     }
 
     async createAtendimento(data: CreateAtendimentoInput) {
-        if (!data.cnpj) {
-            throw new Error("O campo 'cnpj' é obrigatório.");
+        if (!data.ticketZpro) {
+            throw new Error("O ID do Z-PRO (ticketZpro) é obrigatório.");
         }
+
+        const ticketZproStr = String(data.ticketZpro).trim();
 
         if (data.protocolo) {
             const exists = await this.atendimentoRepo.findByProtocolo(data.protocolo);
@@ -68,10 +60,25 @@ export class AtendimentoService {
             }
         }
 
+        // Se o atendimento já foi criado previamente pela rota de distribuição, atualiza os dados preservando o atendente
+        const existente = await this.atendimentoRepo.findByTicketZpro(ticketZproStr);
+        if (existente) {
+            const atualizado = await this.atendimentoRepo.update(existente.id, {
+                clienteId: data.clienteId ? String(data.clienteId) : existente.clienteId,
+                cnpj: data.cnpj !== undefined ? (data.cnpj ? String(data.cnpj) : null) : existente.cnpj,
+                atendente: data.atendente || existente.atendente,
+                protocolo: data.protocolo || existente.protocolo,
+                nomeContato: data.nomeContato || existente.nomeContato,
+                tipoAtendimento: data.tipoAtendimento || existente.tipoAtendimento,
+            });
+            sseEventBus.notify("atendimento", "update", atualizado);
+            return atualizado;
+        }
+
         const novoAtendimento = await this.atendimentoRepo.create({
-            ticketZpro: data.ticketZpro ? String(data.ticketZpro) : null,
+            ticketZpro: ticketZproStr,
             clienteId: data.clienteId ? String(data.clienteId) : null,
-            cnpj: String(data.cnpj),
+            cnpj: data.cnpj ? String(data.cnpj) : null,
             atendente: data.atendente || null,
             protocolo: data.protocolo || null,
             nomeContato: data.nomeContato || null,

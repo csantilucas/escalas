@@ -10,6 +10,7 @@ import {
   registroService,
   dashboardService,
   distribuicaoService,
+  atendimentoService,
   TicketUserData,
   PrevisaoFila,
 } from "@/services";
@@ -36,8 +37,8 @@ export default function DashboardPage() {
             console.error("Erro ao buscar escalas:", err);
             return { registros: [] };
           }),
-          dashboardService.getTicketsReport(hojeStr, hojeStr).catch((err) => {
-            console.error("Erro ao buscar métricas de chamados:", err);
+          atendimentoService.getProdutividade(hojeStr, hojeStr).catch((err) => {
+            console.error("Erro ao buscar métricas de produtividade:", err);
             return [];
           }),
           distribuicaoService.getPrevisaoFilas().catch((err) => {

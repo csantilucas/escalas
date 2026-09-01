@@ -212,7 +212,8 @@ Módulo que centraliza a inteligência de triagem, identificação de filas e ba
 - **Método**: `POST`
 - **Rota**: `/atendimentos`
 - **Acesso**: 🌐 Pública
-- **Payload**:
+- **Campos Obrigatórios**: Apenas o ID do Z-PRO (`ticketZpro` ou aliases `ticket_zpro`, `ticket_id`, `ticketId`). O campo `cnpj` é opcional.
+- **Payload Exemplo**:
   ```json
   {
     "ticketZpro": "18055",

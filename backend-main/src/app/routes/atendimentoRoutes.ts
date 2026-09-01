@@ -22,7 +22,8 @@ router.patch("/", atendimento.update);
 router.patch("/atualizar", atendimento.update);
 router.get("/", atendimento.getAll);
 
-// Métricas e Filtros
+// Métricas, Produtividade e Filtros
+router.get("/produtividade", atendimento.getProdutividade);
 router.get("/metrics", atendimento.getMetrics);
 router.get("/analista/:analista", atendimento.getByAnalista);
 
