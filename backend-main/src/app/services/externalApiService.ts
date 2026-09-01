@@ -124,7 +124,10 @@ class ExternalApiService {
       "https://api.alphasoftware.com.br/v2/api/external/9c27a2a0-d676-4aea-a0ed-8da908a4acb6/dash"
     );
 
-    const baseUrl = config.apiUrl.replace(/\/$/, "");
+    let baseUrl = (config.apiUrl || "https://api.alphasoftware.com.br/v2/api/external/9c27a2a0-d676-4aea-a0ed-8da908a4acb6/dash").replace(/\/$/, "");
+    if (!baseUrl.endsWith("/dash") && !baseUrl.includes("/dash/")) {
+      baseUrl = `${baseUrl}/dash`;
+    }
     const url = baseUrl.endsWith("/ticketsPerUser") ? baseUrl : `${baseUrl}/ticketsPerUser`;
 
     try {

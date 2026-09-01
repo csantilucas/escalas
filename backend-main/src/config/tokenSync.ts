@@ -20,18 +20,24 @@ export async function syncExternalTokens(): Promise<void> {
     // 2. Alpha Software / Dash API Token & URL
     const alphaToken = process.env.ALPHA_API_TOKEN || process.env.EXTERNAL_API_TOKEN;
     if (alphaToken) {
+      const desiredUrl =
+        process.env.ALPHA_API_URL ||
+        "https://api.alphasoftware.com.br/v2/api/external/9c27a2a0-d676-4aea-a0ed-8da908a4acb6/dash";
       const existing = await externalTokenRepo.findByServiceName("alpha_dash");
       if (!existing) {
         await externalTokenRepo.upsertByServiceName({
           serviceName: "alpha_dash",
           token: alphaToken,
-          apiUrl:
-            process.env.ALPHA_API_URL ||
-            "https://api.alphasoftware.com.br/v2/api/external/9c27a2a0-d676-4aea-a0ed-8da908a4acb6/dash",
+          apiUrl: desiredUrl,
           description: "Token de autenticação para a API Alpha Dash (definido via .env)",
           isActive: true,
         });
         console.log("🔑 [TokenSync] Token Alpha Dash sincronizado com o banco de dados.");
+      } else if (!existing.apiUrl || (!existing.apiUrl.endsWith("/dash") && !existing.apiUrl.includes("/dash/"))) {
+        await externalTokenRepo.update(existing.id, {
+          apiUrl: desiredUrl,
+        });
+        console.log("🔑 [TokenSync] URL da API Alpha Dash corrigida para incluir /dash.");
       }
     }
 

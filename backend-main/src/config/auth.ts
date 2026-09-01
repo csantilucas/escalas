@@ -62,6 +62,33 @@ export const auth = betterAuth({
         defaultValue: "atendente",
         input: true,
       },
+      typeUser: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      zproId: {
+        type: "number",
+        required: false,
+        input: true,
+      },
+      slackId: {
+        type: "string",
+        required: false,
+        input: true,
+      },
+      isPlantonista: {
+        type: "boolean",
+        required: false,
+        defaultValue: false,
+        input: true,
+      },
+      posicao: {
+        type: "number",
+        required: false,
+        defaultValue: 0,
+        input: true,
+      },
       equipe: {
         type: "string",
         required: false,
