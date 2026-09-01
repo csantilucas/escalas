@@ -3,17 +3,23 @@ import { externalTokenRepo } from "../containers/externalToken.container.js";
 export async function syncExternalTokens(): Promise<void> {
   try {
     // 1. Tomticket Token & API URL
+    const tomticketUrl = process.env.TOMTICKET_API_URL || "https://api.tomticket.com/v2.0/chat/list";
     if (process.env.TOMTICKET_BEARER_TOKEN) {
       const existing = await externalTokenRepo.findByServiceName("tomticket");
       if (!existing) {
         await externalTokenRepo.upsertByServiceName({
           serviceName: "tomticket",
           token: process.env.TOMTICKET_BEARER_TOKEN,
-          apiUrl: process.env.TOMTICKET_API_URL || "https://api.tomticket.com/v2.0/ticket/list",
+          apiUrl: tomticketUrl,
           description: "Token de autenticação para a API do Tomticket (definido via .env)",
           isActive: true,
         });
         console.log("🔑 [TokenSync] Token do Tomticket sincronizado com o banco de dados.");
+      } else if (!existing.apiUrl || existing.apiUrl.includes("ticket/list")) {
+        await externalTokenRepo.update(existing.id, {
+          apiUrl: tomticketUrl,
+        });
+        console.log("🔑 [TokenSync] URL do Tomticket atualizada para /v2.0/chat/list.");
       }
     }
 

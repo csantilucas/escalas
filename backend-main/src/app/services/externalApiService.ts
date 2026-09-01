@@ -32,6 +32,89 @@ export interface RelatorioUsuarioTomticket {
   categorias_atendidas: string[];
 }
 
+export function normalizeTicketUserData(item: any): TicketUserData {
+  // Quantidades de tickets
+  const abertos = String(
+    item.qtd_em_atendimento ??
+    item.open ??
+    item.em_atendimento ??
+    item.inSupport ??
+    item.emCurso ??
+    0
+  );
+
+  const pendentes = String(
+    item.qtd_pendentes ??
+    item.pending ??
+    item.pendente ??
+    0
+  );
+
+  const resolvidos = String(
+    item.qtd_resolvidos ??
+    item.closed ??
+    item.resolvido ??
+    item.finalizado ??
+    0
+  );
+
+  const total = String(
+    item.qtd_por_usuario ??
+    item.tickets ??
+    item.total ??
+    item.count ??
+    (Number(abertos) + Number(pendentes) + Number(resolvidos))
+  );
+
+  // TMA (Tempo Médio de Atendimento em minutos)
+  let tmaMinutes = 0;
+  if (typeof item.tma?.minutes === "number") {
+    tmaMinutes = item.tma.minutes;
+  } else if (typeof item.tma === "number") {
+    tmaMinutes = item.tma > 1000 ? Math.round(item.tma / 60000) : item.tma;
+  } else if (typeof item.avgSupportTime === "number") {
+    tmaMinutes = item.avgSupportTime > 1000 ? Math.round(item.avgSupportTime / 60000) : item.avgSupportTime;
+  } else if (typeof item.avgSupportTime === "string") {
+    const parsed = parseFloat(item.avgSupportTime);
+    tmaMinutes = !isNaN(parsed) ? (parsed > 1000 ? Math.round(parsed / 60000) : Math.round(parsed)) : 0;
+  }
+
+  // TME (Tempo Médio de Espera em minutos)
+  let tmeMinutes = 0;
+  if (typeof item.tme?.minutes === "number") {
+    tmeMinutes = item.tme.minutes;
+  } else if (typeof item.tme === "number") {
+    tmeMinutes = item.tme > 1000 ? Math.round(item.tme / 60000) : item.tme;
+  } else if (typeof item.avgWaitTime === "number") {
+    tmeMinutes = item.avgWaitTime > 1000 ? Math.round(item.avgWaitTime / 60000) : item.avgWaitTime;
+  } else if (typeof item.avgWaitTime === "string") {
+    const parsed = parseFloat(item.avgWaitTime);
+    tmeMinutes = !isNaN(parsed) ? (parsed > 1000 ? Math.round(parsed / 60000) : Math.round(parsed)) : 0;
+  }
+
+  // Média de Avaliação
+  let mediaAvaliacao: number | null = null;
+  if (item.media_avaliacao !== undefined && item.media_avaliacao !== null) {
+    mediaAvaliacao = Number(item.media_avaliacao);
+  } else if (item.rating !== undefined && item.rating !== null) {
+    mediaAvaliacao = Number(item.rating);
+  } else if (item.avgRating !== undefined && item.avgRating !== null) {
+    mediaAvaliacao = Number(item.avgRating);
+  }
+
+  return {
+    email: item.email || "",
+    name: item.name || item.nome || item.userName || "Analista",
+    qtd_em_atendimento: abertos,
+    qtd_pendentes: pendentes,
+    qtd_resolvidos: resolvidos,
+    qtd_por_usuario: total,
+    tma: { minutes: tmaMinutes },
+    tme: { minutes: tmeMinutes },
+    media_avaliacao: mediaAvaliacao,
+  };
+}
+
 class ExternalApiService {
   private pausaMs = 500; // Meio segundo de pausa entre requisições
 
@@ -117,6 +200,60 @@ class ExternalApiService {
       return cached.data;
     }
 
+    // Avança 1 dia na data final para compensar fuso horário do servidor da API (UTC/GMT)
+    let finalEndDate = endDate;
+    try {
+      const d = new Date(`${endDate}T12:00:00Z`);
+      d.setUTCDate(d.getUTCDate() + 1);
+      finalEndDate = d.toISOString().substring(0, 10);
+    } catch { }
+
+    const token =
+      process.env.ZPRO_API_TOKEN ||
+      process.env.ALPHA_API_TOKEN ||
+      (await externalTokenService.getActiveToken("zpro")) ||
+      (await externalTokenService.getActiveToken("alpha_dash"));
+
+    // 1. Tentar primeiro o endpoint oficial detalhado do Z-PRO (statistics-tickets-per-users-detail)
+    const directUrl =
+      process.env.ZPRO_STATISTICS_URL ||
+      "https://api.alphasoftware.com.br/statistics-tickets-per-users-detail";
+
+    try {
+      console.log(`🌐 [ExternalApi - Z-PRO Statistics] Conectando a ${directUrl} (Período: ${startDate} até ${finalEndDate} [+1 dia])...`);
+
+      const response = await axios.get(directUrl, {
+        params: { startDate, endDate: finalEndDate, isGroup: false },
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        timeout: 15000,
+      });
+
+      console.log("🔍 [Z-PRO Statistics - Resposta Bruta da API]:", JSON.stringify(response.data, null, 2));
+
+      let rawData: any[] = [];
+      if (Array.isArray(response.data)) {
+        rawData = response.data;
+      } else if (response.data && Array.isArray(response.data.data)) {
+        rawData = response.data.data;
+      } else if (response.data && Array.isArray(response.data.users)) {
+        rawData = response.data.users;
+      }
+
+      if (rawData.length > 0) {
+        const registros = rawData.map((item) => normalizeTicketUserData(item));
+        console.log(`✅ [ExternalApi - Z-PRO Statistics] Sucesso (Status ${response.status}). ${registros.length} analistas normalizados.`);
+        this.ticketsCache[cacheKey] = { data: registros, timestamp: Date.now() };
+        return registros;
+      } else {
+        console.warn(`⚠️ [ExternalApi - Z-PRO Statistics] Resposta veio com 0 registros.`);
+      }
+    } catch (errDirect: any) {
+      console.warn(`⚠️ [ExternalApi - Z-PRO Statistics] Falha na rota direta: ${errDirect.message}. Tentando endpoint secundário...`);
+    }
+
+    // 2. Fallback para a rota do microsserviço Alpha Dash
     const config = await externalTokenService.getActiveServiceConfig(
       "alpha_dash",
       "ALPHA_API_TOKEN",
@@ -131,19 +268,22 @@ class ExternalApiService {
     const url = baseUrl.endsWith("/ticketsPerUser") ? baseUrl : `${baseUrl}/ticketsPerUser`;
 
     try {
-      console.log(`🌐 [ExternalApi - Alpha Dash] Conectando a ${url} (${startDate} a ${endDate})...`);
+      console.log(`🌐 [ExternalApi - Alpha Dash] Conectando a ${url} (Período: ${startDate} até ${finalEndDate} [+1 dia])...`);
 
       const response = await axios.get(url, {
-        params: { startDate, endDate },
+        params: { startDate, endDate: finalEndDate },
         headers: {
           ...(config.token && { Authorization: `Bearer ${config.token}` }),
         },
         timeout: 15000,
       });
 
+      console.log("🔍 [Alpha Dash - Resposta Bruta da API]:", JSON.stringify(response.data, null, 2));
+
       if (response.data && response.data.success) {
-        const registros = response.data.data || [];
-        console.log(`✅ [ExternalApi - Alpha Dash] Conexão bem sucedida (Status ${response.status}). ${registros.length} analistas retornados.`);
+        const raw = response.data.data || [];
+        const registros = raw.map((item: any) => normalizeTicketUserData(item));
+        console.log(`✅ [ExternalApi - Alpha Dash] Conexão bem sucedida (Status ${response.status}). ${registros.length} analistas normalizados.`);
         this.ticketsCache[cacheKey] = { data: registros, timestamp: Date.now() };
         return registros;
       }
@@ -171,12 +311,18 @@ class ExternalApiService {
       "tomticket",
       "TOMTICKET_BEARER_TOKEN",
       "TOMTICKET_API_URL",
-      "https://api.tomticket.com/v2.0/ticket/list"
+      "https://api.tomticket.com/v2.0/chat/list"
     );
 
     if (!config.token) {
       throw new Error("Token do Tomticket não configurado.");
     }
+
+    let baseUrl = (config.apiUrl || "https://api.tomticket.com/v2.0/chat/list").replace(/\/$/, "");
+    if (baseUrl.includes("ticket/list")) {
+      baseUrl = baseUrl.replace("ticket/list", "chat/list");
+    }
+    console.log(`🔗 [Tomticket Chat API] Endpoint: ${baseUrl} | Token: ${config.token.substring(0, 6)}...`);
 
     const relatorioUsuarios: Record<string, any> = {};
 
@@ -206,9 +352,9 @@ class ExternalApiService {
 
       while (pagina <= totalPaginas) {
         try {
-          console.log(` ↳ Solicitando página ${pagina} de ${totalPaginas}...`);
+          console.log(` ↳ Solicitando página ${pagina} de ${totalPaginas} para departamento ${deptoId}...`);
 
-          const response = await axios.get(config.apiUrl, {
+          const response = await axios.get(baseUrl, {
             params: {
               page: pagina,
               department_id: deptoId,
@@ -219,7 +365,7 @@ class ExternalApiService {
 
           const body = response.data;
           if (!body || body.error === true) {
-            console.warn(` ⚠️ [Tomticket] Resposta inválida ou erro na página ${pagina}. Parando departamento.`);
+            console.warn(` ⚠️ [Tomticket] Resposta inválida ou erro na página ${pagina}:`, body?.message || "Sem mensagem");
             break;
           }
 
@@ -238,38 +384,44 @@ class ExternalApiService {
           let alcancouTicketMaisAntigo = false;
 
           for (const ticket of ticketsPage) {
-            const dataTicketStr = ticket.creation_date ? ticket.creation_date.substring(0, 10) : "";
+            const dataTicketStr = ticket.creation_date
+              ? String(ticket.creation_date).substring(0, 10)
+              : "";
 
-            if (dataTicketStr > dataFimStr) {
+            if (dataTicketStr && dataTicketStr > dataFimStr) {
               continue;
             }
 
-            if (dataTicketStr < dataInicioStr) {
+            if (dataTicketStr && dataTicketStr < dataInicioStr) {
               alcancouTicketMaisAntigo = true;
               break;
             }
 
-            const opId = ticket.operator?.id;
+            const opId = ticket.operator?.id || ticket.operator_id || ticket.attendant?.id;
             if (!opId || !this.operadoresPermitidos[opId]) continue;
 
             ticketsProcessadosNaPagina++;
             const userRecord = relatorioUsuarios[opId];
             userRecord.quantidade_protocolos++;
-            userRecord.protocolos.push(ticket.protocol);
-
-            if (ticket.category?.name && !userRecord.categorias_atendidas.includes(ticket.category.name)) {
-              userRecord.categorias_atendidas.push(ticket.category.name);
+            if (ticket.protocol || ticket.protocolo || ticket.id) {
+              userRecord.protocolos.push(String(ticket.protocol || ticket.protocolo || ticket.id));
             }
 
-            userRecord._soma_tempo_segundos += Number(ticket.work_time) || 0;
+            const categoriaNome = ticket.category?.name || ticket.department?.name;
+            if (categoriaNome && !userRecord.categorias_atendidas.includes(categoriaNome)) {
+              userRecord.categorias_atendidas.push(categoriaNome);
+            }
 
-            const nomeCliente = ticket.customer?.name || "Não identificado";
-            const nota = ticket.evaluation?.grade;
+            userRecord._soma_tempo_segundos += Number(ticket.work_time || ticket.duration || 0);
 
-            if (nota !== null && nota !== undefined) {
+            const nomeCliente = ticket.customer?.name || ticket.customer_name || "Não identificado";
+            const nota = ticket.evaluation?.grade ?? ticket.evaluation?.note ?? ticket.grade ?? null;
+
+            if (nota !== null && nota !== undefined && !isNaN(Number(nota))) {
+              const numNota = Math.round(Number(nota));
               userRecord.chats_com_evaluation++;
               userRecord._soma_notas += Number(nota);
-              userRecord.evaluations[`nota_${nota}`] = (userRecord.evaluations[`nota_${nota}`] || 0) + 1;
+              userRecord.evaluations[`nota_${numNota}`] = (userRecord.evaluations[`nota_${numNota}`] || 0) + 1;
               userRecord.clientes_atendidos.push({ nome: nomeCliente, nota: Number(nota) });
             } else {
               userRecord.chats_sem_evaluation++;
@@ -278,12 +430,12 @@ class ExternalApiService {
           }
 
           console.log(
-            `  ✅ Página ${pagina}/${totalPaginas} concluída (${ticketsProcessadosNaPagina} tickets do período encontrados).`
+            `  ✅ Página ${pagina}/${totalPaginas} concluída (${ticketsProcessadosNaPagina} chats do período encontrados).`
           );
 
           if (alcancouTicketMaisAntigo) {
             console.log(
-              ` 🛑 [Fim do período] Tickets da página ${pagina} alcançaram datas anteriores a ${dataInicioStr}. Encerrando varredura deste departamento.`
+              ` 🛑 [Fim do período] Chats da página ${pagina} alcançaram datas anteriores a ${dataInicioStr}. Encerrando departamento.`
             );
             break;
           }
