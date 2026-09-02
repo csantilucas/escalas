@@ -207,6 +207,7 @@ exports.Prisma.EquipePlantaoScalarFieldEnum = {
   queueName: 'queueName',
   departamentos: 'departamentos',
   isFallback: 'isFallback',
+  posicaoFallback: 'posicaoFallback',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

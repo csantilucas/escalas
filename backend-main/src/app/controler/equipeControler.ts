@@ -4,7 +4,7 @@ import { equipeService } from "../../containers/equipe.container.js";
 export class EquipeController {
   create = async (req: Request, res: Response): Promise<Response> => {
     try {
-      const { nome, descricao, cor, ativo, queueId, queueName, departamentos, isFallback } = req.body;
+      const { nome, descricao, cor, ativo, queueId, queueName, departamentos, isFallback, posicaoFallback } = req.body;
 
       if (!nome || nome.trim() === "") {
         return res.status(400).json({ error: "O nome da equipe é obrigatório." });
@@ -19,6 +19,7 @@ export class EquipeController {
         queueName,
         departamentos,
         isFallback,
+        posicaoFallback: posicaoFallback !== undefined && posicaoFallback !== null && posicaoFallback !== "" ? Number(posicaoFallback) : undefined,
       });
 
       return res.status(201).json(novaEquipe);
@@ -58,7 +59,7 @@ export class EquipeController {
   update = async (req: Request, res: Response): Promise<Response> => {
     try {
       const id = req.params.id as string;
-      const { nome, descricao, cor, ativo, queueId, queueName, departamentos, isFallback } = req.body;
+      const { nome, descricao, cor, ativo, queueId, queueName, departamentos, isFallback, posicaoFallback } = req.body;
 
       const equipeAtualizada = await equipeService.updateEquipe(id, {
         nome,
@@ -69,6 +70,7 @@ export class EquipeController {
         queueName,
         departamentos,
         isFallback,
+        posicaoFallback: posicaoFallback !== undefined && posicaoFallback !== null && posicaoFallback !== "" ? Number(posicaoFallback) : undefined,
       });
 
       return res.status(200).json(equipeAtualizada);

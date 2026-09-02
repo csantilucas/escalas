@@ -143,14 +143,19 @@ Módulo que centraliza a inteligência de triagem, identificação de filas e ba
 
 #### 🧮 Fluxo de Processamento e Regras:
 1. **Identificação Flexível de Fila**: O método `findByDepartamentoOuFila` realiza o match por `queueId`, `departamento`, `fila`, `queueName` ou `nome`. Se nenhuma fila bater, encaminha para a fila de fallback (**N1 - Suporte**).
-2. **Turno e Expediente**: Filtra os analistas ativos da equipe cujo horário atual esteja dentro de seus turnos de trabalho (com margem de tolerância configurada em GMT-4).
-3. **Cálculo Ponderado de Carga**:
-   $$\text{Score} = (\text{abertos} \times 10) + (\text{pendentes} \times 5) + (\text{fechadosHoje} \times 1)$$
-   O analista com menor $\text{Score}$ é selecionado. Em caso de empate, escolhe quem recebeu atendimento há mais tempo (`ultimoAtendimentoEm ASC`).
-4. **Fallback Round-Robin**: Se as APIs externas estiverem offline ou nenhum analista estiver logado no Z-PRO, ordena os membros da escala por `ultimoAtendimentoEm ASC` e `ordemSequencial ASC`.
-5. **Atualização Automática do Atendente no Banco**:
-   - Assim que o analista é escolhido, o sistema atualiza ou cria o registro correspondente na tabela `atendimentos` (`ticketZpro == input.ticketId`) com `atendente = analistaEscolhido.name` e `sincronizado: false`.
-6. **Notificação SSE & Auditoria**: Emite evento em tempo real (`distribuicao:create` e `atendimento:update`), atualizando instantaneamente os cards de produtividade do Dashboard e do Modo TV.
+2. **Turno e Expediente Obrigatórios**: Filtra estritamente os analistas ativos da equipe cujo horário atual esteja dentro de seus turnos de trabalho (`isWithinShift`). Se ninguém estiver no horário, a fila é considerada sem analistas disponíveis (nunca é feito fallback para pessoas fora do expediente).
+3. **Presença Online no Z-PRO**: O analista deve estar logado no Z-PRO (`isOnline === true`).
+4. **Cálculo Ponderado de Carga**:
+   $$\text{Score} = (\text{pendentes} \times 5) + (\text{fechadosHoje} \times 1)$$
+   O analista elegível com menor $\text{Score}$ é selecionado. Em caso de empate, escolhe quem recebeu atendimento há mais tempo (`ultimoAtendimentoEm ASC`).
+5. **Sequência Dinâmica de Fallback entre Filas (`posicaoFallback`)**:
+   Se a fila alvo solicitada inicialmente não possuir analistas no turno e online, o sistema ordena dinamicamente todas as equipes ativas pelo campo `posicaoFallback ASC` (configurável diretamente pelo painel administrativo no Front-End). As equipes com prioridade configurada (ex: N1=1, N2=2, N3=3, Financeiro=4) são consultadas em ordem crescente até encontrar a primeira fila com analista apto. O chamado é transferido e a fila atualizada (modo ex: `fallback_fila_n1`, `fallback_fila_n3`, etc.).
+6. **Retenção na Fila de Espera (Quando Ninguém Estiver Online)**:
+   Se nenhuma das filas da sequência possuir analistas online e no turno, o sistema **NÃO** força a entrega para analistas offline. Em vez disso, retorna:
+   `userId: null`, `queueId: null`, `atendenteNome: null`, `queueName: null` e `status: "pending"` (modo: `aguardando_fila_sem_atendente_online`).
+7. **Atualização Automática do Atendente no Banco**:
+   - Assim que o analista é escolhido, o sistema atualiza ou cria o registro correspondente na tabela `atendimentos` (`ticketZpro == input.ticketId`) com `atendente = analistaEscolhido.name` e `sincronizado: false`. Se ninguém for selecionado, registra como `"Pendente na Fila"`.
+8. **Notificação SSE & Auditoria**: Emite evento em tempo real (`distribuicao:create` e `atendimento:update`), atualizando instantaneamente os cards de produtividade do Dashboard e do Modo TV.
 
 #### Exemplo de Requisição (JSON):
 ```json

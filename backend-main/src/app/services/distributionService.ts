@@ -25,8 +25,8 @@ export interface DistribuirResult {
   atendenteNome: string | null;
   atendenteEmail?: string | null;
   atendenteSlack?: string | null;
-  queueId: number;
-  queueName: string;
+  queueId: number | null;
+  queueName: string | null;
   modoDistribuicao: string;
   pontuacaoCarga?: number;
   metricas?: {
@@ -92,10 +92,32 @@ export function isWithinShift(
   if (parsedTurns.length === 0) return true;
 
   return parsedTurns.some(([start, end]) => {
-    const inicioComMargem = start + margemInicio;
+    const inicioComMargem = Math.max(0, start - margemInicio);
     const fimComMargem = end - margemFim;
     return minutosAtuais >= inicioComMargem && minutosAtuais <= fimComMargem;
   });
+}
+
+export function matchesSequenceName(eq: any, seqName: string): boolean {
+  if (!eq) return false;
+  const normSeq = seqName.toLowerCase().trim();
+  const nome = (eq.nome || "").toLowerCase().trim();
+  const qName = (eq.queueName || "").toLowerCase().trim();
+  const qId = eq.queueId !== undefined && eq.queueId !== null ? Number(eq.queueId) : null;
+
+  if (normSeq === "n1") {
+    return qId === 6 || nome === "n1" || nome.startsWith("n1") || qName === "n1" || qName.startsWith("n1");
+  }
+  if (normSeq === "n2") {
+    return qId === 7 || nome === "n2" || nome.startsWith("n2") || qName === "n2" || qName.startsWith("n2");
+  }
+  if (normSeq === "n3") {
+    return qId === 8 || nome === "n3" || nome.startsWith("n3") || qName === "n3" || qName.startsWith("n3");
+  }
+  if (normSeq === "financeiro") {
+    return qId === 2 || nome.includes("financeiro") || qName.includes("financeiro");
+  }
+  return nome === normSeq || qName === normSeq;
 }
 
 export class DistributionService {
@@ -159,6 +181,137 @@ export class DistributionService {
     return await this.distribuicaoLogRepo.findRecent(limit);
   }
 
+  private selecionarAnalistaNaEquipe(
+    equipe: any,
+    minutosAtuais: number,
+    onlineZproMap: Map<number, any> | null,
+    mapaCargas: Record<string, any>,
+    permitirOffline = false
+  ): {
+    analista: any;
+    score: number;
+    metricas: { abertos: number; pendentes: number; fechadosHoje: number };
+    modo: string;
+  } | null {
+    const membrosAtivos = (equipe.membros || []).filter((m: any) => m.ativo && m.user);
+    if (membrosAtivos.length === 0) return null;
+
+    // 1. Filtrar estritamente membros dentro do turno
+    // NUNCA fazer fallback para membros fora do turno!
+    const membrosNoTurno = membrosAtivos.filter((m: any) =>
+      isWithinShift(minutosAtuais, m.turnos, m.margemInicioMinutos, m.margemFimMinutos)
+    );
+
+    if (membrosNoTurno.length === 0) {
+      return null;
+    }
+
+    // 2. Filtrar quem está ONLINE no Z-PRO
+    let candidatosOnline: any[] = [];
+    if (onlineZproMap) {
+      candidatosOnline = membrosNoTurno.filter((m: any) => {
+        const zId = m.user.zproId ? Number(m.user.zproId) : null;
+        if (zId && onlineZproMap.has(zId)) return true;
+
+        const nomeClean = (m.user.name || "").toLowerCase().trim();
+        const emailClean = (m.user.email || "").toLowerCase().trim();
+        for (const [id, uOnline] of onlineZproMap.entries()) {
+          const uNome = (uOnline.name || "").toLowerCase().trim();
+          const uEmail = (uOnline.email || "").toLowerCase().trim();
+          if (
+            (uNome && (uNome.includes(nomeClean) || nomeClean.includes(uNome))) ||
+            (uEmail && uEmail === emailClean)
+          ) {
+            m.user.zproId = id;
+            return true;
+          }
+        }
+        return false;
+      });
+    } else if (permitirOffline) {
+      candidatosOnline = membrosNoTurno;
+    }
+
+    if (candidatosOnline.length === 0) {
+      return null;
+    }
+
+    // 3. Ponderação de carga com base nos atendimentos salvos no banco local
+    const pontuados = candidatosOnline.map((m: any) => {
+      const emailKey = (m.user.email || "").toLowerCase().trim();
+      const nomeKey = (m.user.name || "").toLowerCase().trim();
+      const metrica = mapaCargas[emailKey] || mapaCargas[nomeKey];
+
+      const pendentes = Number(metrica?.qtd_pendentes || 0);
+      const fechados = Number(metrica?.qtd_resolvidos || 0);
+      const total = Number(metrica?.qtd_por_usuario || pendentes + fechados);
+
+      const score = pendentes * this.PESO_PENDENTES + fechados * this.PESO_TOTAL_DIA;
+
+      return {
+        membro: m,
+        pendentes,
+        fechados,
+        total,
+        score,
+        prioridade: m.pesoPrioridade || 0,
+      };
+    });
+
+    const altaPrioridade = pontuados.filter((p: any) => p.prioridade > 0);
+    const normais = pontuados.filter((p: any) => p.prioridade === 0);
+    const ultimoRecurso = pontuados.filter((p: any) => p.prioridade < 0);
+
+    let grupoAlvo = normais;
+    let modo = "pontuacao_ponderada";
+
+    if (altaPrioridade.length > 0) {
+      grupoAlvo = altaPrioridade;
+      modo = "prioridade_membro";
+    } else if (normais.length === 0 && ultimoRecurso.length > 0) {
+      grupoAlvo = ultimoRecurso;
+      modo = "ultimo_recurso";
+    }
+
+    if (grupoAlvo.length === 0) return null;
+
+    const menorScore = Math.min(...grupoAlvo.map((p: any) => p.score));
+    const empatados = grupoAlvo.filter((p: any) => p.score === menorScore);
+
+    // Desempate: quem atendeu há mais tempo (ultimoAtendimentoEm ASC, nulls primeiro), depois ordemSequencial ASC
+    empatados.sort((a: any, b: any) => {
+      if (!a.membro.ultimoAtendimentoEm && b.membro.ultimoAtendimentoEm) return -1;
+      if (a.membro.ultimoAtendimentoEm && !b.membro.ultimoAtendimentoEm) return 1;
+      if (a.membro.ultimoAtendimentoEm && b.membro.ultimoAtendimentoEm) {
+        const diff =
+          new Date(a.membro.ultimoAtendimentoEm).getTime() -
+          new Date(b.membro.ultimoAtendimentoEm).getTime();
+        if (diff !== 0) return diff;
+      }
+      return (a.membro.ordemSequencial || 0) - (b.membro.ordemSequencial || 0);
+    });
+
+    const escolhido = empatados[0];
+
+    if (modo === "pontuacao_ponderada") {
+      modo =
+        empatados.length > 1
+          ? "ponderado_menor_carga_desempate_antiguidade"
+          : "ponderado_menor_carga";
+    }
+
+    return {
+      analista: escolhido.membro,
+      score: escolhido.score,
+      metricas: {
+        abertos: escolhido.pendentes,
+        pendentes: escolhido.pendentes,
+        fechadosHoje: escolhido.fechados,
+      },
+      modo,
+    };
+  }
+
   async distribuir(input: DistribuirInput): Promise<DistribuirResult> {
     const depto = input.departamento?.trim() || "";
     const filaName = input.fila?.trim() || "";
@@ -167,23 +320,27 @@ export class DistributionService {
         ? input.horarioMinutosOverride
         : getCurrentManausMinutes();
 
-    // 1. Identificar a equipe correspondente ao departamento/fila/queueId
-    let equipe = await this.equipeRepo.findByDepartamentoOuFila(
+    // 1. Carregar todas as equipes ativas e identificar a equipe inicial solicitada
+    const todasEquipes = await this.equipeRepo.findAllWithMembers();
+    const equipesAtivas = (todasEquipes || []).filter((eq: any) => eq.ativo);
+
+    let equipeAlvo = await this.equipeRepo.findByDepartamentoOuFila(
       input.departamento,
       input.fila,
       input.queueId
     );
-    if (!equipe) {
-      equipe = await this.equipeRepo.findFallbackEquipe();
+
+    if (!equipeAlvo && equipesAtivas.length > 0) {
+      equipeAlvo = equipesAtivas.find((e: any) => e.isFallback) || equipesAtivas[0];
     }
 
-    if (!equipe) {
+    if (!equipeAlvo && equipesAtivas.length === 0) {
       const res: DistribuirResult = {
         sucesso: false,
         status: "pending",
         userId: null,
         atendenteNome: null,
-        queueId: 6,
+        queueId: null,
         queueName: filaName || "N1-Suporte",
         modoDistribuicao: "sem_equipes_cadastradas",
       };
@@ -191,45 +348,18 @@ export class DistributionService {
       return res;
     }
 
-    const queueId = equipe.queueId || 6;
-    const queueName = equipe.queueName || filaName || equipe.nome || "N1-Suporte";
-    const membrosAtivos = (equipe.membros || []).filter((m: any) => m.ativo && m.user);
-
-    if (membrosAtivos.length === 0) {
-      const res: DistribuirResult = {
-        sucesso: true,
-        status: "pending",
-        userId: null,
-        atendenteNome: null,
-        queueId,
-        queueName,
-        equipeNome: equipe.nome,
-        modoDistribuicao: "equipe_sem_membros",
-      };
-      await this.persistLog(input, res);
-      return res;
-    }
-
-    // 2. Filtrar membros elegíveis por turno
-    const membrosNoTurno = membrosAtivos.filter((m: any) =>
-      isWithinShift(minutosAtuais, m.turnos, m.margemInicioMinutos, m.margemFimMinutos)
-    );
-
-    const candidatosIniciais = membrosNoTurno.length > 0 ? membrosNoTurno : membrosAtivos;
-
-    // 3. Tentar distribuição inteligente consultando APIs externas do Z-PRO e Alpha
-    let modoDistribuicao = "pontuacao_ponderada";
-    let analistaEscolhido: any = null;
-    let metricasEscolhidas: any = null;
-    let pontuacaoCarga = 0;
+    // 2. Consultar usuários online no Z-PRO e produtividade da tabela local de atendimentos
+    let onlineZproMap: Map<number, any> | null = null;
+    let mapaCargas: Record<string, any> = {};
+    let isApiFailure = false;
 
     if (!input.ignorarApisExternas) {
       try {
-        console.log("🌐 [DistributionEngine] Consultando usuários online no Z-PRO e carga da tabela local de atendimentos...");
-
+        console.log("🌐 [DistributionEngine] Consultando usuários online no Z-PRO e carga da tabela local...");
         const [usuariosZpro, produtividadeLocal] = await Promise.all([
           externalApiService.listZproUsers().catch((err) => {
             console.warn("⚠️ [DistributionEngine] Falha ao listar usuários no Z-PRO:", err.message || err);
+            isApiFailure = true;
             return [];
           }),
           this.atendimentoRepo
@@ -240,7 +370,6 @@ export class DistributionService {
             : Promise.resolve([]),
         ]);
 
-        const mapaCargas: Record<string, any> = {};
         for (const p of (produtividadeLocal as any[])) {
           const emailK = (p.email || "").toLowerCase().trim();
           const nomeK = (p.name || "").toLowerCase().trim();
@@ -248,149 +377,115 @@ export class DistributionService {
           if (nomeK) mapaCargas[nomeK] = p;
         }
 
-        const onlineZproMap = new Map<number, any>();
-        for (const u of usuariosZpro) {
-          if (u.isOnline === true || u.isOnline === "true" || u.isOnline === 1) {
-            onlineZproMap.set(Number(u.id), u);
-          }
-        }
-
-        // Filtrar apenas candidatos que estão ONLINE no Z-PRO
-        const candidatosOnline = candidatosIniciais.filter((m: any) => {
-          const zId = m.user.zproId ? Number(m.user.zproId) : null;
-          if (zId && onlineZproMap.has(zId)) return true;
-
-          // Fallback por nome ou email
-          const nomeClean = (m.user.name || "").toLowerCase().trim();
-          const emailClean = (m.user.email || "").toLowerCase().trim();
-          for (const [id, uOnline] of onlineZproMap.entries()) {
-            const uNome = (uOnline.name || "").toLowerCase().trim();
-            const uEmail = (uOnline.email || "").toLowerCase().trim();
-            if (
-              (uNome && (uNome.includes(nomeClean) || nomeClean.includes(uNome))) ||
-              (uEmail && uEmail === emailClean)
-            ) {
-              m.user.zproId = id;
-              return true;
-            }
-          }
-          return false;
-        });
-
-        if (candidatosOnline.length > 0) {
-          // Calcular pontuação de carga para cada candidato online usando os atendimentos locais
-          const pontuados = candidatosOnline.map((m: any) => {
-            const emailKey = (m.user.email || "").toLowerCase().trim();
-            const nomeKey = (m.user.name || "").toLowerCase().trim();
-            const metrica = mapaCargas[emailKey] || mapaCargas[nomeKey];
-
-            const pendentes = Number(metrica?.qtd_pendentes || 0);
-            const fechados = Number(metrica?.qtd_resolvidos || 0);
-            const total = Number(metrica?.qtd_por_usuario || pendentes + fechados);
-
-            const score =
-              pendentes * this.PESO_PENDENTES +
-              fechados * this.PESO_TOTAL_DIA;
-
-            return {
-              membro: m,
-              pendentes,
-              fechados,
-              total,
-              score,
-              prioridade: m.pesoPrioridade || 0,
-            };
-          });
-
-          // Tratar regras especiais de prioridade
-          const altaPrioridade = pontuados.filter((p: any) => p.prioridade > 0);
-          const normais = pontuados.filter((p: any) => p.prioridade === 0);
-          const ultimoRecurso = pontuados.filter((p: any) => p.prioridade < 0);
-
-          let grupoAlvo = normais;
-          if (altaPrioridade.length > 0) {
-            grupoAlvo = altaPrioridade;
-            modoDistribuicao = "prioridade_membro";
-          } else if (normais.length === 0 && ultimoRecurso.length > 0) {
-            grupoAlvo = ultimoRecurso;
-            modoDistribuicao = "ultimo_recurso";
-          }
-
-          if (grupoAlvo.length > 0) {
-            const menorScore = Math.min(...grupoAlvo.map((p: any) => p.score));
-            const empatados = grupoAlvo.filter((p: any) => p.score === menorScore);
-            const sorteado = empatados[Math.floor(Math.random() * empatados.length)];
-
-            analistaEscolhido = sorteado.membro;
-            pontuacaoCarga = sorteado.score;
-            metricasEscolhidas = {
-              pendentes: sorteado.pendentes,
-              resolvidos: sorteado.fechados,
-              total: sorteado.total,
-            };
-
-            if (modoDistribuicao === "pontuacao_ponderada") {
-              modoDistribuicao =
-                empatados.length > 1
-                  ? "ponderado_desempate_sorteio"
-                  : "ponderado_menor_carga";
+        if (!isApiFailure && Array.isArray(usuariosZpro)) {
+          onlineZproMap = new Map<number, any>();
+          for (const u of usuariosZpro) {
+            if (u.isOnline === true || u.isOnline === "true" || u.isOnline === 1) {
+              onlineZproMap.set(Number(u.id), u);
             }
           }
         }
-      } catch (error: any) {
-        console.warn(
-          "⚠️ [DistributionService] APIs externas indisponíveis. Ativando Fallback Sequencial Round-Robin:",
-          error.message
-        );
+      } catch (err: any) {
+        console.warn("⚠️ [DistributionService] Erro ao carregar APIs externas:", err.message);
+        isApiFailure = true;
       }
     }
 
-    // 4. FALLBACK SEQUENCIAL (ROUND-ROBIN):
-    // Se não foi possível escolher pelas APIs externas, seleciona o próximo da fila no banco
-    if (!analistaEscolhido) {
-      modoDistribuicao = "fallback_sequencial_round_robin";
+    // 3. Tentar encontrar analista na equipe solicitada inicialmente (equipeAlvo)
+    let analistaEscolhido: any = null;
+    let equipeEscolhida: any = equipeAlvo;
+    let pontuacaoCarga = 0;
+    let metricasEscolhidas: any = { abertos: 0, pendentes: 0, fechadosHoje: 0 };
+    let modoDistribuicao = "ponderado_menor_carga";
 
-      // Ordenar por ultimoAtendimentoEm (os mais antigos primeiro, nulls primeiro), depois por ordemSequencial
-      const ordenados = [...candidatosIniciais].sort((a: any, b: any) => {
-        if (!a.ultimoAtendimentoEm && b.ultimoAtendimentoEm) return -1;
-        if (a.ultimoAtendimentoEm && !b.ultimoAtendimentoEm) return 1;
-        if (a.ultimoAtendimentoEm && b.ultimoAtendimentoEm) {
-          const diffTime =
-            new Date(a.ultimoAtendimentoEm).getTime() - new Date(b.ultimoAtendimentoEm).getTime();
-          if (diffTime !== 0) return diffTime;
-        }
-        return (a.ordemSequencial || 0) - (b.ordemSequencial || 0);
-      });
+    if (equipeAlvo) {
+      const selecao = this.selecionarAnalistaNaEquipe(
+        equipeAlvo,
+        minutosAtuais,
+        onlineZproMap,
+        mapaCargas,
+        input.ignorarApisExternas || isApiFailure
+      );
 
-      analistaEscolhido = ordenados[0];
-      metricasEscolhidas = { abertos: 0, pendentes: 0, fechadosHoje: 0 };
+      if (selecao) {
+        analistaEscolhido = selecao.analista;
+        pontuacaoCarga = selecao.score;
+        metricasEscolhidas = selecao.metricas;
+        modoDistribuicao = isApiFailure ? "fallback_sequencial_round_robin" : selecao.modo;
+        equipeEscolhida = equipeAlvo;
+      }
     }
 
-    // 5. Atualizar o timestamp de último atendimento no banco
-    if (analistaEscolhido) {
-      await this.equipeRepo.updateUltimoAtendimento(analistaEscolhido.id);
+    // 4. Se a equipe alvo não tiver analista elegível (fora do turno ou offline),
+    // percorrer a sequência de fallback entre as filas baseando-se na ordem configurada no cadastro (posicaoFallback)
+    if (!analistaEscolhido) {
+      console.log(
+        `ℹ️ [DistributionService] Nenhum analista disponível na fila alvo '${equipeAlvo?.nome || filaName}'. Iniciando sequência de fallback entre filas por posicaoFallback...`
+      );
 
-      const zproUserId =
-        analistaEscolhido.user.zproId !== null && analistaEscolhido.user.zproId !== undefined
-          ? Number(analistaEscolhido.user.zproId)
-          : null;
+      // Ordena equipes ativas por posicaoFallback ASC (definido no cadastro da fila)
+      // Equipes com posicaoFallback > 0 têm prioridade na ordem crescente (1, 2, 3...)
+      // Equipes com posicaoFallback nulo ou 0 vão para o final
+      const equipesOrdenadas = [...equipesAtivas].sort((a: any, b: any) => {
+        const posA = a.posicaoFallback && a.posicaoFallback > 0 ? a.posicaoFallback : 9999;
+        const posB = b.posicaoFallback && b.posicaoFallback > 0 ? b.posicaoFallback : 9999;
+        if (posA !== posB) return posA - posB;
+        return (a.queueId || 0) - (b.queueId || 0);
+      });
 
-      const result: DistribuirResult = {
+      for (const eqCandidata of equipesOrdenadas) {
+        // Se for a mesma equipe que já foi testada e não tinha ninguém, pula
+        if (equipeAlvo && eqCandidata.id === equipeAlvo.id) continue;
+
+        const selecaoFallback = this.selecionarAnalistaNaEquipe(
+          eqCandidata,
+          minutosAtuais,
+          onlineZproMap,
+          mapaCargas,
+          input.ignorarApisExternas || isApiFailure
+        );
+
+        if (selecaoFallback) {
+          analistaEscolhido = selecaoFallback.analista;
+          pontuacaoCarga = selecaoFallback.score;
+          metricasEscolhidas = selecaoFallback.metricas;
+          equipeEscolhida = eqCandidata;
+          modoDistribuicao = `fallback_fila_${(eqCandidata.nome || eqCandidata.queueName || "fila").toLowerCase().replace(/\s+/g, "_")}`;
+          console.log(
+            `✅ [DistributionService] Analista '${analistaEscolhido.user.name}' encontrado na fila de fallback '${eqCandidata.nome}' (Posição: ${eqCandidata.posicaoFallback || 'N/A'}, ID fila: ${eqCandidata.queueId})`
+          );
+          break;
+        }
+      }
+    }
+
+    // 5. Se após percorrer todas as filas (N1, N2, N3, Financeiro) ninguém estiver online/no turno:
+    // Retorna null para o ID da fila e usuário para deixar o chat aguardando na fila!
+    if (!analistaEscolhido) {
+      console.log(
+        `⚠️ [DistributionService] Nenhum atendente online ou no horário em nenhuma das filas (N1, N2, N3, Financeiro). Retendo chat com queueId e userId nulos.`
+      );
+
+      const fallbackResult: DistribuirResult = {
         sucesso: true,
-        status: "open",
-        userId: zproUserId,
-        atendenteNome: analistaEscolhido.user.name,
-        atendenteEmail: analistaEscolhido.user.email,
-        atendenteSlack: analistaEscolhido.user.slackId || null,
-        queueId,
-        queueName,
-        equipeNome: equipe.nome,
-        modoDistribuicao,
-        pontuacaoCarga,
-        metricas: metricasEscolhidas,
+        status: "pending",
+        userId: null,
+        atendenteNome: null,
+        atendenteEmail: null,
+        atendenteSlack: null,
+        queueId: null,
+        queueName: null,
+        equipeNome: equipeAlvo?.nome || "Fila de Espera",
+        modoDistribuicao: "aguardando_fila_sem_atendente_online",
+        pontuacaoCarga: 0,
+        metricas: {
+          abertos: 0,
+          pendentes: 0,
+          fechadosHoje: 0,
+        },
       };
 
-      await this.persistLog(input, result);
+      await this.persistLog(input, fallbackResult);
 
       const ticketIdFinal =
         input.ticketId !== undefined && input.ticketId !== null && String(input.ticketId).trim() !== ""
@@ -399,12 +494,11 @@ export class DistributionService {
           ? String(input.protocolo).trim()
           : `DIST-${Date.now()}`;
 
-      // 6. Atualizar ou criar o atendimento na tabela de atendimentos e notificar SSE
       if (this.atendimentoRepo) {
         try {
           const atendAtualizado = await this.atendimentoRepo.upsertAtendentePorTicket(
             ticketIdFinal,
-            analistaEscolhido.user.name,
+            "Pendente na Fila",
             {
               clienteId: input.clienteId ? String(input.clienteId) : null,
               cnpj: input.cnpj ? String(input.cnpj) : null,
@@ -413,71 +507,93 @@ export class DistributionService {
               tipoAtendimento: input.departamento ? String(input.departamento) : null,
             }
           );
-          console.log(
-            `✅ [DistributionService] Atendimento ticketZpro '${ticketIdFinal}' registrado com atendente '${analistaEscolhido.user.name}' (ID: ${atendAtualizado.id})`
-          );
           sseEventBus.notify("atendimento", "update", atendAtualizado);
         } catch (atendErr: any) {
-          console.warn(
-            "⚠️ [DistributionService] Falha ao atualizar atendente na tabela de atendimentos:",
-            atendErr.message || atendErr
-          );
+          console.warn("⚠️ [DistributionService] Falha ao registrar atendimento pendente:", atendErr.message || atendErr);
         }
       }
 
       sseEventBus.notify("distribuicao", "create", {
-        ...result,
+        ...fallbackResult,
         ticketId: ticketIdFinal,
         clienteId: input.clienteId,
         numero: input.numero,
         data: new Date().toISOString(),
       });
 
-      return result;
+      return fallbackResult;
     }
 
-    const fallbackResult: DistribuirResult = {
+    // 6. Atendente encontrado com sucesso! Atualizar último atendimento e persistir log
+    await this.equipeRepo.updateUltimoAtendimento(analistaEscolhido.id);
+
+    const zproUserId =
+      analistaEscolhido.user.zproId !== null && analistaEscolhido.user.zproId !== undefined
+        ? Number(analistaEscolhido.user.zproId)
+        : null;
+
+    const queueIdFinal = equipeEscolhida?.queueId ? Number(equipeEscolhida.queueId) : null;
+    const queueNameFinal = equipeEscolhida?.queueName || equipeEscolhida?.nome || filaName || null;
+
+    const result: DistribuirResult = {
       sucesso: true,
-      status: "pending",
-      userId: null,
-      atendenteNome: null,
-      queueId,
-      queueName,
-      equipeNome: equipe.nome,
-      modoDistribuicao: "fallback_no_online",
+      status: "open",
+      userId: zproUserId,
+      atendenteNome: analistaEscolhido.user.name,
+      atendenteEmail: analistaEscolhido.user.email,
+      atendenteSlack: analistaEscolhido.user.slackId || null,
+      queueId: queueIdFinal,
+      queueName: queueNameFinal,
+      equipeNome: equipeEscolhida?.nome,
+      modoDistribuicao,
+      pontuacaoCarga,
+      metricas: metricasEscolhidas,
     };
 
-    await this.persistLog(input, fallbackResult);
+    await this.persistLog(input, result);
 
-    if (input.ticketId && this.atendimentoRepo) {
+    const ticketIdFinal =
+      input.ticketId !== undefined && input.ticketId !== null && String(input.ticketId).trim() !== ""
+        ? String(input.ticketId).trim()
+        : input.protocolo
+        ? String(input.protocolo).trim()
+        : `DIST-${Date.now()}`;
+
+    // Atualizar ou criar o atendimento na tabela de atendimentos e notificar SSE
+    if (this.atendimentoRepo) {
       try {
         const atendAtualizado = await this.atendimentoRepo.upsertAtendentePorTicket(
-          String(input.ticketId),
-          "Pendente na Fila",
+          ticketIdFinal,
+          analistaEscolhido.user.name,
           {
             clienteId: input.clienteId ? String(input.clienteId) : null,
+            cnpj: input.cnpj ? String(input.cnpj) : null,
+            protocolo: input.protocolo ? String(input.protocolo) : null,
             nomeContato: input.pushName ? String(input.pushName) : null,
             tipoAtendimento: input.departamento ? String(input.departamento) : null,
           }
         );
+        console.log(
+          `✅ [DistributionService] Atendimento ticketZpro '${ticketIdFinal}' registrado com atendente '${analistaEscolhido.user.name}' na fila '${queueNameFinal}' (ID: ${atendAtualizado.id})`
+        );
         sseEventBus.notify("atendimento", "update", atendAtualizado);
       } catch (atendErr: any) {
         console.warn(
-          "⚠️ [DistributionService] Falha ao atualizar atendimento pendente:",
+          "⚠️ [DistributionService] Falha ao atualizar atendente na tabela de atendimentos:",
           atendErr.message || atendErr
         );
       }
     }
 
     sseEventBus.notify("distribuicao", "create", {
-      ...fallbackResult,
-      ticketId: input.ticketId,
+      ...result,
+      ticketId: ticketIdFinal,
       clienteId: input.clienteId,
       numero: input.numero,
       data: new Date().toISOString(),
     });
 
-    return fallbackResult;
+    return result;
   }
 
   async getPrevisaoFilas(): Promise<any[]> {
@@ -490,8 +606,8 @@ export class DistributionService {
 
     try {
       [usuariosZpro, cargasAlpha] = await Promise.all([
-        externalApiService.listZproUsers(),
-        externalApiService.getTicketsPerUser(hojeStr, hojeStr),
+        externalApiService.listZproUsers().catch(() => []),
+        externalApiService.getTicketsPerUser(hojeStr, hojeStr).catch(() => []),
       ]);
     } catch (e) {}
 
@@ -510,17 +626,15 @@ export class DistributionService {
 
     return equipes.map((eq) => {
       const membros = eq.membros || [];
-      const membrosAtivos = membros.filter((m: any) => m.ativo);
+      const membrosAtivos = membros.filter((m: any) => m.ativo && m.user);
 
-      // 1. Filtrar membros dentro do turno
+      // 1. Filtrar estritamente membros dentro do turno (sem fallback para fora do turno)
       const membrosNoTurno = membrosAtivos.filter((m: any) =>
         isWithinShift(minutosAtuais, m.turnos, m.margemInicioMinutos, m.margemFimMinutos)
       );
 
-      const candidatosIniciais = membrosNoTurno.length > 0 ? membrosNoTurno : membrosAtivos;
-
       // 2. Filtrar quem está ONLINE no Z-PRO
-      const candidatosOnline = candidatosIniciais.filter((m: any) => {
+      const candidatosOnline = membrosNoTurno.filter((m: any) => {
         const zId = m.user.zproId ? Number(m.user.zproId) : null;
         if (zId && onlineZproMap.has(zId)) return true;
 
@@ -583,22 +697,6 @@ export class DistributionService {
         };
       }
 
-      // 3. Fallback sequencial se nenhum membro estiver online
-      if (!escolhido) {
-        modo = "fallback_sequencial";
-        const ordenados = [...candidatosIniciais].sort((a: any, b: any) => {
-          if (!a.ultimoAtendimentoEm && b.ultimoAtendimentoEm) return -1;
-          if (a.ultimoAtendimentoEm && !b.ultimoAtendimentoEm) return 1;
-          if (a.ultimoAtendimentoEm && b.ultimoAtendimentoEm) {
-            return (
-              new Date(a.ultimoAtendimentoEm).getTime() - new Date(b.ultimoAtendimentoEm).getTime()
-            );
-          }
-          return (a.ordemSequencial || 0) - (b.ordemSequencial || 0);
-        });
-        escolhido = ordenados[0];
-      }
-
       const proximo = escolhido?.user
         ? {
             id: escolhido.user.id,
@@ -609,7 +707,7 @@ export class DistributionService {
             ultimoAtendimentoEm: escolhido.ultimoAtendimentoEm,
             metricas: metricasEscolhidas,
             modo,
-            isOnline: candidatosOnline.some((c: any) => c.user.id === escolhido.user.id),
+            isOnline: true,
           }
         : null;
 

@@ -38,6 +38,7 @@ export interface EquipePlantao {
   queueName: string | null;
   departamentos: string[];
   isFallback: boolean;
+  posicaoFallback?: number | null;
   createdAt: string;
   updatedAt: string;
   membros: MembroEquipe[];
@@ -52,6 +53,7 @@ export interface CreateEquipeInput {
   queueName?: string;
   departamentos?: string[];
   isFallback?: boolean;
+  posicaoFallback?: number;
 }
 
 export interface UpdateEquipeInput {
@@ -63,6 +65,7 @@ export interface UpdateEquipeInput {
   queueName?: string;
   departamentos?: string[];
   isFallback?: boolean;
+  posicaoFallback?: number;
 }
 
 export interface VincularMembroInput {

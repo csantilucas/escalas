@@ -54,6 +54,7 @@ export default function EquipesPage() {
   const [queueName, setQueueName] = useState("");
   const [departamentosStr, setDepartamentosStr] = useState("");
   const [isFallback, setIsFallback] = useState(false);
+  const [posicaoFallback, setPosicaoFallback] = useState<number>(0);
   const [ativo, setAtivo] = useState(true);
 
   // Modal Membro (Vincular / Editar)
@@ -100,6 +101,7 @@ export default function EquipesPage() {
     setQueueName("");
     setDepartamentosStr("");
     setIsFallback(false);
+    setPosicaoFallback(equipes.length + 1);
     setAtivo(true);
     setModalEquipeOpen(true);
   };
@@ -113,6 +115,7 @@ export default function EquipesPage() {
     setQueueName(eq.queueName || "");
     setDepartamentosStr(eq.departamentos ? eq.departamentos.join(", ") : "");
     setIsFallback(eq.isFallback || false);
+    setPosicaoFallback(eq.posicaoFallback ?? 0);
     setAtivo(eq.ativo);
     setModalEquipeOpen(true);
   };
@@ -134,6 +137,7 @@ export default function EquipesPage() {
         queueName: queueName || undefined,
         departamentos: deptosArray,
         isFallback,
+        posicaoFallback: Number(posicaoFallback) || 0,
         ativo,
       };
 
@@ -352,7 +356,12 @@ export default function EquipesPage() {
                       )}
                       {equipe.isFallback && (
                         <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-500/10 border border-amber-500/20 text-amber-400">
-                          Fallback
+                          Fallback Padrão
+                        </span>
+                      )}
+                      {equipe.posicaoFallback !== undefined && equipe.posicaoFallback !== null && equipe.posicaoFallback > 0 && (
+                        <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-400" title="Ordem na sequência de fallback entre filas">
+                          Fallback #{equipe.posicaoFallback}
                         </span>
                       )}
                       {!equipe.ativo && (
@@ -600,8 +609,25 @@ export default function EquipesPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
+                  <label className="block text-xs font-semibold text-zinc-300 mb-1">
+                    Posição de Fallback da Fila
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    placeholder="Ex: 1, 2, 3..."
+                    value={posicaoFallback}
+                    onChange={(e) => setPosicaoFallback(Number(e.target.value))}
+                    className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-200 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                  <p className="text-[10px] text-zinc-500 mt-1">
+                    Prioridade no fallback (1 = primeira fila consultada se a fila original estiver sem analistas online).
+                  </p>
+                </div>
+
+                <div>
                   <label className="block text-xs font-semibold text-zinc-300 mb-1">Cor da Tag</label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 pt-1">
                     <input
                       type="color"
                       value={cor}
@@ -611,28 +637,28 @@ export default function EquipesPage() {
                     <span className="text-xs text-zinc-400 font-mono">{cor}</span>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex flex-col justify-center gap-2 pt-2">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-300">
-                    <input
-                      type="checkbox"
-                      checked={isFallback}
-                      onChange={(e) => setIsFallback(e.target.checked)}
-                      className="rounded border-zinc-700 bg-zinc-950 text-blue-600 focus:ring-0"
-                    />
-                    <span>Equipe Padrão (Fallback)</span>
-                  </label>
+              <div className="flex items-center gap-6 pt-2 pb-1 border-t border-zinc-800/60">
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-300">
+                  <input
+                    type="checkbox"
+                    checked={isFallback}
+                    onChange={(e) => setIsFallback(e.target.checked)}
+                    className="rounded border-zinc-700 bg-zinc-950 text-blue-600 focus:ring-0"
+                  />
+                  <span>Equipe Padrão do Sistema</span>
+                </label>
 
-                  <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-300">
-                    <input
-                      type="checkbox"
-                      checked={ativo}
-                      onChange={(e) => setAtivo(e.target.checked)}
-                      className="rounded border-zinc-700 bg-zinc-950 text-blue-600 focus:ring-0"
-                    />
-                    <span>Equipe Ativa</span>
-                  </label>
-                </div>
+                <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-300">
+                  <input
+                    type="checkbox"
+                    checked={ativo}
+                    onChange={(e) => setAtivo(e.target.checked)}
+                    className="rounded border-zinc-700 bg-zinc-950 text-blue-600 focus:ring-0"
+                  />
+                  <span>Equipe Ativa</span>
+                </label>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-800">

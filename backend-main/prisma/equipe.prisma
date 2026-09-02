@@ -6,14 +6,15 @@ model EquipePlantao {
   ativo         Boolean        @default(true)
   
   // Roteamento e Filas do Z-PRO
-  queueId       Int?
-  queueName     String?
-  departamentos String[]       @default([])
-  isFallback    Boolean        @default(false)
+  queueId         Int?
+  queueName       String?
+  departamentos   String[]       @default([])
+  isFallback      Boolean        @default(false)
+  posicaoFallback Int?           @default(0)
 
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  membros       MembroEquipe[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  membros         MembroEquipe[]
 
   @@map("equipes_plantao")
 }

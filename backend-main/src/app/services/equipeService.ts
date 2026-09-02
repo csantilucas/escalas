@@ -11,6 +11,7 @@ export interface CreateEquipeInput {
   queueName?: string;
   departamentos?: string[];
   isFallback?: boolean;
+  posicaoFallback?: number;
 }
 
 export interface UpdateEquipeInput {
@@ -22,6 +23,7 @@ export interface UpdateEquipeInput {
   queueName?: string;
   departamentos?: string[];
   isFallback?: boolean;
+  posicaoFallback?: number;
 }
 
 export interface VincularMembroInput {
@@ -69,6 +71,7 @@ export class EquipeService {
       queueName: data.queueName || null,
       departamentos: Array.isArray(data.departamentos) ? data.departamentos : [],
       isFallback: Boolean(data.isFallback),
+      posicaoFallback: data.posicaoFallback !== undefined && data.posicaoFallback !== null ? Number(data.posicaoFallback) : 0,
     } as any);
 
     sseEventBus.notify("equipe", "create", novaEquipe);
@@ -104,6 +107,7 @@ export class EquipeService {
 
     const payload: any = { ...data };
     if (data.queueId !== undefined) payload.queueId = Number(data.queueId);
+    if (data.posicaoFallback !== undefined) payload.posicaoFallback = Number(data.posicaoFallback);
     if (data.departamentos !== undefined) payload.departamentos = Array.isArray(data.departamentos) ? data.departamentos : [];
 
     const equipeAtualizada = await this.equipeRepo.update(id, payload);

@@ -7671,10 +7671,12 @@ export namespace Prisma {
 
   export type EquipePlantaoAvgAggregateOutputType = {
     queueId: number | null
+    posicaoFallback: number | null
   }
 
   export type EquipePlantaoSumAggregateOutputType = {
     queueId: number | null
+    posicaoFallback: number | null
   }
 
   export type EquipePlantaoMinAggregateOutputType = {
@@ -7686,6 +7688,7 @@ export namespace Prisma {
     queueId: number | null
     queueName: string | null
     isFallback: boolean | null
+    posicaoFallback: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -7699,6 +7702,7 @@ export namespace Prisma {
     queueId: number | null
     queueName: string | null
     isFallback: boolean | null
+    posicaoFallback: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -7713,6 +7717,7 @@ export namespace Prisma {
     queueName: number
     departamentos: number
     isFallback: number
+    posicaoFallback: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -7721,10 +7726,12 @@ export namespace Prisma {
 
   export type EquipePlantaoAvgAggregateInputType = {
     queueId?: true
+    posicaoFallback?: true
   }
 
   export type EquipePlantaoSumAggregateInputType = {
     queueId?: true
+    posicaoFallback?: true
   }
 
   export type EquipePlantaoMinAggregateInputType = {
@@ -7736,6 +7743,7 @@ export namespace Prisma {
     queueId?: true
     queueName?: true
     isFallback?: true
+    posicaoFallback?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -7749,6 +7757,7 @@ export namespace Prisma {
     queueId?: true
     queueName?: true
     isFallback?: true
+    posicaoFallback?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -7763,6 +7772,7 @@ export namespace Prisma {
     queueName?: true
     departamentos?: true
     isFallback?: true
+    posicaoFallback?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -7864,6 +7874,7 @@ export namespace Prisma {
     queueName: string | null
     departamentos: string[]
     isFallback: boolean
+    posicaoFallback: number | null
     createdAt: Date
     updatedAt: Date
     _count: EquipePlantaoCountAggregateOutputType | null
@@ -7897,6 +7908,7 @@ export namespace Prisma {
     queueName?: boolean
     departamentos?: boolean
     isFallback?: boolean
+    posicaoFallback?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     membros?: boolean | EquipePlantao$membrosArgs<ExtArgs>
@@ -7913,6 +7925,7 @@ export namespace Prisma {
     queueName?: boolean
     departamentos?: boolean
     isFallback?: boolean
+    posicaoFallback?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["equipePlantao"]>
@@ -7927,6 +7940,7 @@ export namespace Prisma {
     queueName?: boolean
     departamentos?: boolean
     isFallback?: boolean
+    posicaoFallback?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["equipePlantao"]>
@@ -7941,11 +7955,12 @@ export namespace Prisma {
     queueName?: boolean
     departamentos?: boolean
     isFallback?: boolean
+    posicaoFallback?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type EquipePlantaoOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "nome" | "descricao" | "cor" | "ativo" | "queueId" | "queueName" | "departamentos" | "isFallback" | "createdAt" | "updatedAt", ExtArgs["result"]["equipePlantao"]>
+  export type EquipePlantaoOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "nome" | "descricao" | "cor" | "ativo" | "queueId" | "queueName" | "departamentos" | "isFallback" | "posicaoFallback" | "createdAt" | "updatedAt", ExtArgs["result"]["equipePlantao"]>
   export type EquipePlantaoInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     membros?: boolean | EquipePlantao$membrosArgs<ExtArgs>
     _count?: boolean | EquipePlantaoCountOutputTypeDefaultArgs<ExtArgs>
@@ -7968,6 +7983,7 @@ export namespace Prisma {
       queueName: string | null
       departamentos: string[]
       isFallback: boolean
+      posicaoFallback: number | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["equipePlantao"]>
@@ -8403,6 +8419,7 @@ export namespace Prisma {
     readonly queueName: FieldRef<"EquipePlantao", 'String'>
     readonly departamentos: FieldRef<"EquipePlantao", 'String[]'>
     readonly isFallback: FieldRef<"EquipePlantao", 'Boolean'>
+    readonly posicaoFallback: FieldRef<"EquipePlantao", 'Int'>
     readonly createdAt: FieldRef<"EquipePlantao", 'DateTime'>
     readonly updatedAt: FieldRef<"EquipePlantao", 'DateTime'>
   }
@@ -15834,6 +15851,7 @@ export namespace Prisma {
     queueName: 'queueName',
     departamentos: 'departamentos',
     isFallback: 'isFallback',
+    posicaoFallback: 'posicaoFallback',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -16561,6 +16579,7 @@ export namespace Prisma {
     queueName?: StringNullableFilter<"EquipePlantao"> | string | null
     departamentos?: StringNullableListFilter<"EquipePlantao">
     isFallback?: BoolFilter<"EquipePlantao"> | boolean
+    posicaoFallback?: IntNullableFilter<"EquipePlantao"> | number | null
     createdAt?: DateTimeFilter<"EquipePlantao"> | Date | string
     updatedAt?: DateTimeFilter<"EquipePlantao"> | Date | string
     membros?: MembroEquipeListRelationFilter
@@ -16576,6 +16595,7 @@ export namespace Prisma {
     queueName?: SortOrderInput | SortOrder
     departamentos?: SortOrder
     isFallback?: SortOrder
+    posicaoFallback?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     membros?: MembroEquipeOrderByRelationAggregateInput
@@ -16594,6 +16614,7 @@ export namespace Prisma {
     queueName?: StringNullableFilter<"EquipePlantao"> | string | null
     departamentos?: StringNullableListFilter<"EquipePlantao">
     isFallback?: BoolFilter<"EquipePlantao"> | boolean
+    posicaoFallback?: IntNullableFilter<"EquipePlantao"> | number | null
     createdAt?: DateTimeFilter<"EquipePlantao"> | Date | string
     updatedAt?: DateTimeFilter<"EquipePlantao"> | Date | string
     membros?: MembroEquipeListRelationFilter
@@ -16609,6 +16630,7 @@ export namespace Prisma {
     queueName?: SortOrderInput | SortOrder
     departamentos?: SortOrder
     isFallback?: SortOrder
+    posicaoFallback?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: EquipePlantaoCountOrderByAggregateInput
@@ -16631,6 +16653,7 @@ export namespace Prisma {
     queueName?: StringNullableWithAggregatesFilter<"EquipePlantao"> | string | null
     departamentos?: StringNullableListFilter<"EquipePlantao">
     isFallback?: BoolWithAggregatesFilter<"EquipePlantao"> | boolean
+    posicaoFallback?: IntNullableWithAggregatesFilter<"EquipePlantao"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"EquipePlantao"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"EquipePlantao"> | Date | string
   }
@@ -17670,6 +17693,7 @@ export namespace Prisma {
     queueName?: string | null
     departamentos?: EquipePlantaoCreatedepartamentosInput | string[]
     isFallback?: boolean
+    posicaoFallback?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     membros?: MembroEquipeCreateNestedManyWithoutEquipeInput
@@ -17685,6 +17709,7 @@ export namespace Prisma {
     queueName?: string | null
     departamentos?: EquipePlantaoCreatedepartamentosInput | string[]
     isFallback?: boolean
+    posicaoFallback?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
     membros?: MembroEquipeUncheckedCreateNestedManyWithoutEquipeInput
@@ -17700,6 +17725,7 @@ export namespace Prisma {
     queueName?: NullableStringFieldUpdateOperationsInput | string | null
     departamentos?: EquipePlantaoUpdatedepartamentosInput | string[]
     isFallback?: BoolFieldUpdateOperationsInput | boolean
+    posicaoFallback?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     membros?: MembroEquipeUpdateManyWithoutEquipeNestedInput
@@ -17715,6 +17741,7 @@ export namespace Prisma {
     queueName?: NullableStringFieldUpdateOperationsInput | string | null
     departamentos?: EquipePlantaoUpdatedepartamentosInput | string[]
     isFallback?: BoolFieldUpdateOperationsInput | boolean
+    posicaoFallback?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     membros?: MembroEquipeUncheckedUpdateManyWithoutEquipeNestedInput
@@ -17730,6 +17757,7 @@ export namespace Prisma {
     queueName?: string | null
     departamentos?: EquipePlantaoCreatedepartamentosInput | string[]
     isFallback?: boolean
+    posicaoFallback?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -17744,6 +17772,7 @@ export namespace Prisma {
     queueName?: NullableStringFieldUpdateOperationsInput | string | null
     departamentos?: EquipePlantaoUpdatedepartamentosInput | string[]
     isFallback?: BoolFieldUpdateOperationsInput | boolean
+    posicaoFallback?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -17758,6 +17787,7 @@ export namespace Prisma {
     queueName?: NullableStringFieldUpdateOperationsInput | string | null
     departamentos?: EquipePlantaoUpdatedepartamentosInput | string[]
     isFallback?: BoolFieldUpdateOperationsInput | boolean
+    posicaoFallback?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -18788,12 +18818,14 @@ export namespace Prisma {
     queueName?: SortOrder
     departamentos?: SortOrder
     isFallback?: SortOrder
+    posicaoFallback?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type EquipePlantaoAvgOrderByAggregateInput = {
     queueId?: SortOrder
+    posicaoFallback?: SortOrder
   }
 
   export type EquipePlantaoMaxOrderByAggregateInput = {
@@ -18805,6 +18837,7 @@ export namespace Prisma {
     queueId?: SortOrder
     queueName?: SortOrder
     isFallback?: SortOrder
+    posicaoFallback?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -18818,12 +18851,14 @@ export namespace Prisma {
     queueId?: SortOrder
     queueName?: SortOrder
     isFallback?: SortOrder
+    posicaoFallback?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type EquipePlantaoSumOrderByAggregateInput = {
     queueId?: SortOrder
+    posicaoFallback?: SortOrder
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -20253,6 +20288,7 @@ export namespace Prisma {
     queueName?: string | null
     departamentos?: EquipePlantaoCreatedepartamentosInput | string[]
     isFallback?: boolean
+    posicaoFallback?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -20267,6 +20303,7 @@ export namespace Prisma {
     queueName?: string | null
     departamentos?: EquipePlantaoCreatedepartamentosInput | string[]
     isFallback?: boolean
+    posicaoFallback?: number | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -20346,6 +20383,7 @@ export namespace Prisma {
     queueName?: NullableStringFieldUpdateOperationsInput | string | null
     departamentos?: EquipePlantaoUpdatedepartamentosInput | string[]
     isFallback?: BoolFieldUpdateOperationsInput | boolean
+    posicaoFallback?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -20360,6 +20398,7 @@ export namespace Prisma {
     queueName?: NullableStringFieldUpdateOperationsInput | string | null
     departamentos?: EquipePlantaoUpdatedepartamentosInput | string[]
     isFallback?: BoolFieldUpdateOperationsInput | boolean
+    posicaoFallback?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
