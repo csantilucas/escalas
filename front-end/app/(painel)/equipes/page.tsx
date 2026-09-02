@@ -621,7 +621,7 @@ export default function EquipesPage() {
                     className="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-200 text-sm focus:outline-none focus:border-blue-500"
                   />
                   <p className="text-[10px] text-zinc-500 mt-1">
-                    Prioridade no fallback (1 = primeira fila consultada se a fila original estiver sem analistas online).
+                    Ordem de transbordo (1 = primeira fila). Deixe 0 para desativar esta fila do fallback.
                   </p>
                 </div>
 

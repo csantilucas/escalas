@@ -16,6 +16,7 @@ const EQUIPES_SEED = [
     descricao: "Fila N1 - Suporte operacional e atendimento geral",
     cor: "#3B82F6",
     isFallback: true,
+    posicaoFallback: 1,
     departamentos: [
       "suporte_operacional",
       "operacional",
@@ -33,6 +34,7 @@ const EQUIPES_SEED = [
     descricao: "Fila N2 - Suporte fiscal e notas",
     cor: "#10B981",
     isFallback: false,
+    posicaoFallback: 2,
     departamentos: [
       "suporte_fiscal",
       "fiscal",
@@ -48,6 +50,7 @@ const EQUIPES_SEED = [
     descricao: "Fila N3 - Suporte avançado",
     cor: "#8B5CF6",
     isFallback: false,
+    posicaoFallback: 3,
     departamentos: [
       "suporte_avancado",
       "suporte_n3",
@@ -64,6 +67,7 @@ const EQUIPES_SEED = [
     descricao: "Fila Financeiro - Cobrança, pagamentos e suporte financeiro",
     cor: "#F59E0B",
     isFallback: false,
+    posicaoFallback: 4,
     departamentos: [
       "suporte_financeiro",
       "financeiro",
@@ -257,12 +261,13 @@ async function main() {
         descricao: eq.descricao,
         cor: eq.cor,
         isFallback: eq.isFallback,
+        posicaoFallback: eq.posicaoFallback,
         departamentos: eq.departamentos,
         ativo: true,
       },
     });
     equipesCriadasMap.set(eq.queueId, equipe);
-    console.log(`- Equipe '${equipe.nome}' (Fila #${eq.queueId}) cadastrada com [${eq.departamentos.join(", ")}].`);
+    console.log(`- Equipe '${equipe.nome}' (Fila #${eq.queueId}, Fallback #${eq.posicaoFallback}) cadastrada com [${eq.departamentos.join(", ")}].`);
   }
 
   // 3. Criar Analistas / Atendentes do n8n e vincular às 4 Equipes

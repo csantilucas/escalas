@@ -329,4 +329,52 @@ describe("Testes da Nova Regra de Distribuição, Turnos e Fallback Entre Filas"
     expect(resultado.atendenteNome).toBe("Gustavo");
     expect(resultado.modoDistribuicao).toBe("ponderado_menor_carga");
   });
+
+  it("Abordagem A: Equipe com posicaoFallback = 0 NÃO recebe chamados de transbordo mesmo se estiver online", async () => {
+    // Equipe N1 tem analista Gabriel online, mas está com posicaoFallback: 0 (desativada)
+    // N2 (alvo) sem analistas
+    // N3 com posicaoFallback: 0
+    // Financeiro com posicaoFallback: 0
+    const equipesComFallbackZero = mockEquipes.map((e) => ({
+      ...e,
+      posicaoFallback: 0, // Todas com 0!
+    }));
+
+    const mockEquipeRepo: any = {
+      findAllWithMembers: vi.fn().mockResolvedValue(equipesComFallbackZero),
+      findByDepartamentoOuFila: vi.fn().mockImplementation((dep, fila, qId) => {
+        if (fila === "N2-Suporte" || dep === "suporte_fiscal" || qId === 7) {
+          return Promise.resolve(equipesComFallbackZero.find((e) => e.queueId === 7));
+        }
+        return Promise.resolve(null);
+      }),
+      findFallbackEquipe: vi.fn().mockResolvedValue(equipesComFallbackZero.find((e) => e.isFallback)),
+      updateUltimoAtendimento: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const service = new DistributionService(
+      mockEquipeRepo,
+      { create: vi.fn().mockResolvedValue({ id: "log-1" }) } as any,
+      { getProdutividadePorPeriodo: vi.fn().mockResolvedValue([]), upsertAtendentePorTicket: vi.fn().mockResolvedValue({ id: "atend-1" }) } as any
+    );
+
+    // Gabriel (N1) está online e no turno, mas como N1 está com posicaoFallback 0, N1 NÃO pode receber transbordo!
+    vi.spyOn(externalApiService, "listZproUsers").mockResolvedValue([
+      { id: 5, name: "Gabriel", email: "gabriel@alphasoftware.com.br", isOnline: true },
+    ]);
+
+    const resultado = await service.distribuir({
+      departamento: "suporte_fiscal",
+      fila: "N2-Suporte",
+      numero: "556984242161",
+      horarioMinutosOverride: 450, // 07:30
+    });
+
+    // Deve reter na fila com IDs nulos porque todas as outras filas estão desativadas de fallback (posicaoFallback = 0)
+    expect(resultado.sucesso).toBe(true);
+    expect(resultado.status).toBe("pending");
+    expect(resultado.userId).toBeNull();
+    expect(resultado.queueId).toBeNull();
+    expect(resultado.modoDistribuicao).toBe("aguardando_fila_sem_atendente_online");
+  });
 });

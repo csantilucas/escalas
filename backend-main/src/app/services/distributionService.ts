@@ -423,15 +423,11 @@ export class DistributionService {
         `ℹ️ [DistributionService] Nenhum analista disponível na fila alvo '${equipeAlvo?.nome || filaName}'. Iniciando sequência de fallback entre filas por posicaoFallback...`
       );
 
-      // Ordena equipes ativas por posicaoFallback ASC (definido no cadastro da fila)
-      // Equipes com posicaoFallback > 0 têm prioridade na ordem crescente (1, 2, 3...)
-      // Equipes com posicaoFallback nulo ou 0 vão para o final
-      const equipesOrdenadas = [...equipesAtivas].sort((a: any, b: any) => {
-        const posA = a.posicaoFallback && a.posicaoFallback > 0 ? a.posicaoFallback : 9999;
-        const posB = b.posicaoFallback && b.posicaoFallback > 0 ? b.posicaoFallback : 9999;
-        if (posA !== posB) return posA - posB;
-        return (a.queueId || 0) - (b.queueId || 0);
-      });
+      // Abordagem A: Apenas equipes ativas com posicaoFallback configurado (> 0) participam da rotação de fallback
+      // Equipes com posicaoFallback = 0 ou nulo NÃO recebem chamados transbordados de outras filas
+      const equipesOrdenadas = equipesAtivas
+        .filter((e: any) => e.posicaoFallback && e.posicaoFallback > 0)
+        .sort((a: any, b: any) => (a.posicaoFallback || 0) - (b.posicaoFallback || 0));
 
       for (const eqCandidata of equipesOrdenadas) {
         // Se for a mesma equipe que já foi testada e não tinha ninguém, pula
