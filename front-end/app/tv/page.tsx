@@ -202,7 +202,7 @@ export default function ModoTvFullscreenPage() {
         distribuicaoService.getPrevisaoFilas().catch(() => []),
         dashboardService.getOverview().catch(() => null),
         atendimentoService.getMetrics({ dataInicio: hojeStr, dataFim: hojeStr }).catch(() => null),
-        atendimentoService.list({ limit: 50 }).catch(() => ({ data: [] })),
+        atendimentoService.list({ dataInicio: hojeStr, dataFim: hojeStr, limit: 100 }).catch(() => ({ data: [] })),
         registroService.list(1, 50).catch(() => ({ registros: [] })),
         atendimentoService.getProdutividade(hojeStr, hojeStr).catch(() => []),
         registroService.next().catch(() => null),
@@ -211,8 +211,16 @@ export default function ModoTvFullscreenPage() {
       setPrevisoes(Array.isArray(filasData) ? filasData : []);
       if (overviewData) setOverview(overviewData);
       if (atendMetricsData) setAtendimentoMetrics(atendMetricsData);
-      const listaAtend = atendListaData?.data || (Array.isArray(atendListaData) ? atendListaData : []);
-      setUltimosAtendimentos(listaAtend);
+
+      // Exibir estritamente os atendimentos criados hoje
+      const listaBruta = atendListaData?.data || (Array.isArray(atendListaData) ? atendListaData : []);
+      const listaHoje = listaBruta.filter((at: any) => {
+        if (!at.createdAt) return true;
+        const dataAtendimento = new Date(at.createdAt).toLocaleDateString("en-CA");
+        return dataAtendimento === hojeStr;
+      });
+      setUltimosAtendimentos(listaHoje);
+
       setEscalas(escalasData?.registros || []);
       setRelatorioAnalistas(Array.isArray(relatorioData) ? relatorioData : []);
       setProximoPlantao(proximoPlantaoData);
@@ -671,7 +679,7 @@ export default function ModoTvFullscreenPage() {
               <div className="flex items-center justify-between shrink-0 pb-1 border-b border-zinc-800/80">
                 <h3 className="text-[11px] sm:text-xs font-black text-zinc-100 uppercase tracking-wider flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5" style={{ color: currentPaletteConfig.accentText }} />
-                  Últimos Atendimentos Recebidos
+                  Atendimentos de Hoje
                 </h3>
                 <div className="flex items-center gap-1.5">
                   <span className="text-[9px] sm:text-[10px] font-bold text-zinc-400 bg-zinc-950 px-2 py-0.5 rounded-md border border-zinc-800 hidden sm:inline-flex">
@@ -724,7 +732,7 @@ export default function ModoTvFullscreenPage() {
                     {ultimosAtendimentos.length === 0 ? (
                       <tr>
                         <td colSpan={5} className="py-6 text-center text-zinc-500 font-medium text-xs">
-                          Nenhum atendimento registrado no momento. Aguardando novos chats...
+                          Nenhum atendimento registrado hoje. Aguardando novos chats...
                         </td>
                       </tr>
                     ) : (

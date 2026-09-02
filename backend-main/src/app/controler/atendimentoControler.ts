@@ -6,7 +6,8 @@ function parseFilterStartDate(dateStr?: any): Date | undefined {
   const str = String(dateStr).trim();
   if (!str) return undefined;
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-    return new Date(`${str}T00:00:00.000Z`);
+    const [ano, mes, dia] = str.split("-").map(Number);
+    return new Date(ano, mes - 1, dia, 0, 0, 0, 0);
   }
   const d = new Date(str);
   return isNaN(d.getTime()) ? undefined : d;
@@ -17,12 +18,13 @@ function parseFilterEndDate(dateStr?: any): Date | undefined {
   const str = String(dateStr).trim();
   if (!str) return undefined;
   if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-    return new Date(`${str}T23:59:59.999Z`);
+    const [ano, mes, dia] = str.split("-").map(Number);
+    return new Date(ano, mes - 1, dia, 23, 59, 59, 999);
   }
   const d = new Date(str);
   if (isNaN(d.getTime())) return undefined;
-  if (d.getUTCHours() === 0 && d.getUTCMinutes() === 0 && d.getUTCSeconds() === 0) {
-    d.setUTCHours(23, 59, 59, 999);
+  if (d.getHours() === 0 && d.getMinutes() === 0 && d.getSeconds() === 0) {
+    d.setHours(23, 59, 59, 999);
   }
   return d;
 }

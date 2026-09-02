@@ -167,6 +167,13 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
   });
 
   it("CRÍTICO: deve realizar distribuição sequencial (Round-Robin) como fallback quando APIs externas falharem ou estiverem indisponíveis", async () => {
+    // Reseta estado dos membros para garantir início limpo do round-robin
+    await prisma.membroEquipe.updateMany({
+      data: { ultimoAtendimentoEm: null },
+    });
+    await prisma.distribuicaoLog.deleteMany({});
+    await prisma.atendimento.deleteMany({});
+
     // Simula falha/queda na API externa (Erro de rede / Timeout / 500)
     vi.spyOn(externalApiService, "listZproUsers").mockRejectedValueOnce(
       new Error("Network Error: Z-PRO API Offline")
@@ -262,6 +269,12 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
   });
 
   it("deve retornar previsão de filas e próximo da fila para o dashboard", async () => {
+    vi.spyOn(externalApiService, "listZproUsers").mockResolvedValueOnce([
+      { id: 5, name: "Gabriel", email: "gabriel@alphasoftware.com.br", isOnline: true },
+      { id: 10, name: "Guilherme", email: "guilherme@alphasoftware.com.br", isOnline: true },
+      { id: 6, name: "Pedro", email: "pedro@alphasoftware.com.br", isOnline: true },
+    ]);
+
     const response = await request(app).get("/atendimentos/previsao");
 
     expect(response.status).toBe(200);
