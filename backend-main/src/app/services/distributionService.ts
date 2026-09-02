@@ -483,17 +483,15 @@ export class DistributionService {
 
       await this.persistLog(input, fallbackResult);
 
-      const ticketIdFinal =
-        input.ticketId !== undefined && input.ticketId !== null && String(input.ticketId).trim() !== ""
+      const ticketZproReal =
+        input.ticketId !== undefined && input.ticketId !== null && String(input.ticketId).trim() !== "" && !String(input.ticketId).startsWith("DIST-")
           ? String(input.ticketId).trim()
-          : input.protocolo
-          ? String(input.protocolo).trim()
-          : `DIST-${Date.now()}`;
+          : null;
 
       if (this.atendimentoRepo) {
         try {
           const atendAtualizado = await this.atendimentoRepo.upsertAtendentePorTicket(
-            ticketIdFinal,
+            ticketZproReal,
             "Pendente na Fila",
             {
               clienteId: input.clienteId ? String(input.clienteId) : null,
@@ -503,7 +501,9 @@ export class DistributionService {
               tipoAtendimento: input.departamento ? String(input.departamento) : null,
             }
           );
-          sseEventBus.notify("atendimento", "update", atendAtualizado);
+          if (atendAtualizado) {
+            sseEventBus.notify("atendimento", "update", atendAtualizado);
+          }
         } catch (atendErr: any) {
           console.warn("⚠️ [DistributionService] Falha ao registrar atendimento pendente:", atendErr.message || atendErr);
         }
@@ -511,7 +511,7 @@ export class DistributionService {
 
       sseEventBus.notify("distribuicao", "create", {
         ...fallbackResult,
-        ticketId: ticketIdFinal,
+        ticketId: ticketZproReal || (input.protocolo ? String(input.protocolo).trim() : null),
         clienteId: input.clienteId,
         numero: input.numero,
         data: new Date().toISOString(),
@@ -548,18 +548,16 @@ export class DistributionService {
 
     await this.persistLog(input, result);
 
-    const ticketIdFinal =
-      input.ticketId !== undefined && input.ticketId !== null && String(input.ticketId).trim() !== ""
+    const ticketZproReal =
+      input.ticketId !== undefined && input.ticketId !== null && String(input.ticketId).trim() !== "" && !String(input.ticketId).startsWith("DIST-")
         ? String(input.ticketId).trim()
-        : input.protocolo
-        ? String(input.protocolo).trim()
-        : `DIST-${Date.now()}`;
+        : null;
 
     // Atualizar ou criar o atendimento na tabela de atendimentos e notificar SSE
     if (this.atendimentoRepo) {
       try {
         const atendAtualizado = await this.atendimentoRepo.upsertAtendentePorTicket(
-          ticketIdFinal,
+          ticketZproReal,
           analistaEscolhido.user.name,
           {
             clienteId: input.clienteId ? String(input.clienteId) : null,
@@ -569,10 +567,12 @@ export class DistributionService {
             tipoAtendimento: input.departamento ? String(input.departamento) : null,
           }
         );
-        console.log(
-          `✅ [DistributionService] Atendimento ticketZpro '${ticketIdFinal}' registrado com atendente '${analistaEscolhido.user.name}' na fila '${queueNameFinal}' (ID: ${atendAtualizado.id})`
-        );
-        sseEventBus.notify("atendimento", "update", atendAtualizado);
+        if (atendAtualizado) {
+          console.log(
+            `✅ [DistributionService] Atendimento ticketZpro '${atendAtualizado.ticketZpro || "N/A"}' registrado com atendente '${analistaEscolhido.user.name}' na fila '${queueNameFinal}' (ID: ${atendAtualizado.id})`
+          );
+          sseEventBus.notify("atendimento", "update", atendAtualizado);
+        }
       } catch (atendErr: any) {
         console.warn(
           "⚠️ [DistributionService] Falha ao atualizar atendente na tabela de atendimentos:",
@@ -583,7 +583,7 @@ export class DistributionService {
 
     sseEventBus.notify("distribuicao", "create", {
       ...result,
-      ticketId: ticketIdFinal,
+      ticketId: ticketZproReal || (input.protocolo ? String(input.protocolo).trim() : null),
       clienteId: input.clienteId,
       numero: input.numero,
       data: new Date().toISOString(),

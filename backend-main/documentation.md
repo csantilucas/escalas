@@ -154,7 +154,8 @@ Módulo que centraliza a inteligência de triagem, identificação de filas e ba
    Se nenhuma das filas da sequência possuir analistas online e no turno, o sistema **NÃO** força a entrega para analistas offline. Em vez disso, retorna:
    `userId: null`, `queueId: null`, `atendenteNome: null`, `queueName: null` e `status: "pending"` (modo: `aguardando_fila_sem_atendente_online`).
 7. **Atualização Automática do Atendente no Banco**:
-   - Assim que o analista é escolhido, o sistema atualiza ou cria o registro correspondente na tabela `atendimentos` (`ticketZpro == input.ticketId`) com `atendente = analistaEscolhido.name` e `sincronizado: false`. Se ninguém for selecionado, registra como `"Pendente na Fila"`.
+   - Assim que o analista é escolhido, o sistema atualiza ou cria o registro correspondente na tabela `atendimentos` (`ticketZpro == input.ticketId`) com `atendente = analistaEscolhido.name` e `sincronizado: false`.
+   - **Preservação Estrita do `ticketZpro`**: O sistema preserva estritamente o identificador real do Z-PRO informado (ex: `18297`), **nunca** gravando códigos internos de distribuição (como `DIST-...`) no campo `ticketZpro`. Se nenhum ticket for informado na distribuição, o campo permanece com seu valor original ou nulo. Se ninguém for selecionado, registra como `"Pendente na Fila"`.
 8. **Notificação SSE & Auditoria**: Emite evento em tempo real (`distribuicao:create` e `atendimento:update`), atualizando instantaneamente os cards de produtividade do Dashboard e do Modo TV.
 
 #### Exemplo de Requisição (JSON):

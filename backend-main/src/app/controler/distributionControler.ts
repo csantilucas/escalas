@@ -18,16 +18,41 @@ export class DistributionController {
         data.departamento ?? data.depto ?? data.area ?? data.department ?? data.tipoAtendimento ?? data.tipo_atendimento;
       const fila = data.fila ?? data.queue ?? data.queueName ?? data.queue_name ?? data.nomeFila;
       const queueId = data.queueId ?? data.queueid ?? data.queue_id ?? data.id_queue;
-      const ticketId =
+      let rawTicket =
         data.ticketId ??
         data.ticketID ??
-        data.ticket ??
         data.ticket_id ??
+        data.id_ticket ??
         data.ticket_zpro ??
         data.ticketZpro ??
-        data.id_ticket ??
-        data.ticket_tomticket ??
-        data.ticketTomticket;
+        data.zproTicket ??
+        data.zpro_ticket;
+
+      if (!rawTicket && typeof data.ticket === "object" && data.ticket !== null) {
+        rawTicket = data.ticket.id ?? data.ticket.ticketId ?? data.ticket.ticket_id;
+      } else if (!rawTicket && typeof data.ticket !== "object") {
+        rawTicket = data.ticket;
+      }
+
+      if (!rawTicket && typeof data.chat === "object" && data.chat !== null) {
+        rawTicket = data.chat.id ?? data.chat.ticketId;
+      } else if (!rawTicket) {
+        rawTicket = data.chatId ?? data.chat_id;
+      }
+
+      if (!rawTicket && typeof data.data === "object" && data.data !== null) {
+        rawTicket = data.data.id ?? data.data.ticketId;
+      }
+
+      // Se ainda não achou e data.id existir e não for UUID (ex: 18297 numérico do Z-PRO)
+      if (!rawTicket && data.id && !/^[0-9a-f]{8}-[0-9a-f]{4}/i.test(String(data.id))) {
+        rawTicket = data.id;
+      }
+
+      const ticketId =
+        rawTicket !== undefined && rawTicket !== null && !String(rawTicket).startsWith("DIST-")
+          ? String(rawTicket).trim()
+          : undefined;
       const clienteId =
         data.clienteId ??
         data.clienteID ??

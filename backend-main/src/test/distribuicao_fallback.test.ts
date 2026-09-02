@@ -377,4 +377,62 @@ describe("Testes da Nova Regra de Distribuição, Turnos e Fallback Entre Filas"
     expect(resultado.queueId).toBeNull();
     expect(resultado.modoDistribuicao).toBe("aguardando_fila_sem_atendente_online");
   });
+
+  it("Preservação do Ticket Z-PRO: Deve manter o ID do ticket do Z-PRO e nunca gravar DIST-... no ticketZpro", async () => {
+    const upsertSpy = vi.fn().mockResolvedValue({ id: "atend-1", ticketZpro: "18297" });
+
+    const mockEquipeRepo: any = {
+      findAllWithMembers: vi.fn().mockResolvedValue(mockEquipes),
+      findByDepartamentoOuFila: vi.fn().mockResolvedValue(mockEquipes.find((e) => e.queueId === 7)),
+      findFallbackEquipe: vi.fn().mockResolvedValue(mockEquipes.find((e) => e.isFallback)),
+      updateUltimoAtendimento: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const service = new DistributionService(
+      mockEquipeRepo,
+      { create: vi.fn().mockResolvedValue({ id: "log-1" }) } as any,
+      { getProdutividadePorPeriodo: vi.fn().mockResolvedValue([]), upsertAtendentePorTicket: upsertSpy } as any
+    );
+
+    vi.spyOn(externalApiService, "listZproUsers").mockResolvedValue([
+      { id: 7, name: "Gustavo", email: "gustavo@alphasoftware.com.br", isOnline: true },
+    ]);
+
+    // Cenário 1: Passando o ticket real do Z-PRO "18297"
+    await service.distribuir({
+      departamento: "suporte_fiscal",
+      fila: "N2-Suporte",
+      ticketId: "18297",
+      numero: "556984242161",
+      horarioMinutosOverride: 540, // 09:00
+    });
+
+    expect(upsertSpy).toHaveBeenCalledWith(
+      "18297",
+      "Gustavo",
+      expect.anything()
+    );
+
+    upsertSpy.mockClear();
+
+    // Cenário 2: Sem passar ticketId (ou nulo) -> NUNCA deve passar "DIST-..." para upsertAtendentePorTicket
+    await service.distribuir({
+      departamento: "suporte_fiscal",
+      fila: "N2-Suporte",
+      ticketId: undefined,
+      numero: "556984242161",
+      horarioMinutosOverride: 540, // 09:00
+    });
+
+    expect(upsertSpy).toHaveBeenCalledWith(
+      null,
+      "Gustavo",
+      expect.anything()
+    );
+    expect(upsertSpy).not.toHaveBeenCalledWith(
+      expect.stringMatching(/^DIST-/),
+      expect.anything(),
+      expect.anything()
+    );
+  });
 });

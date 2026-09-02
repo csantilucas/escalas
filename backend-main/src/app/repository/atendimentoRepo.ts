@@ -261,7 +261,7 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
 
   // 🟢 Atualizar ou registrar o atendente de um ticket durante a distribuição
   async upsertAtendentePorTicket(
-    ticketZpro: string,
+    ticketZpro: string | null | undefined,
     atendenteNome: string,
     dadosExtras?: {
       clienteId?: string | null;
@@ -270,39 +270,59 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
       nomeContato?: string | null;
       tipoAtendimento?: string | null;
     }
-  ): Promise<Atendimento> {
-    const ticketStr = String(ticketZpro).trim();
+  ): Promise<Atendimento | null> {
+    const rawTicket = ticketZpro ? String(ticketZpro).trim() : null;
+    // O ID interno de distribuição 'DIST-...' NUNCA deve ser gravado no campo ticketZpro!
+    const ticketReal = rawTicket && !rawTicket.startsWith("DIST-") ? rawTicket : null;
+    const protocoloReal = dadosExtras?.protocolo ? String(dadosExtras.protocolo).trim() : null;
+    const clienteIdReal = dadosExtras?.clienteId ? String(dadosExtras.clienteId).trim() : null;
 
-    const existente = await prisma.atendimento.findFirst({
-      where: {
-        OR: [
-          { ticketZpro: ticketStr },
-          ...(dadosExtras?.protocolo ? [{ protocolo: String(dadosExtras.protocolo).trim() }] : []),
-        ],
-      },
-    });
+    const whereConditions: any[] = [];
+    if (ticketReal) whereConditions.push({ ticketZpro: ticketReal });
+    if (protocoloReal) whereConditions.push({ protocolo: protocoloReal });
+    if (clienteIdReal) whereConditions.push({ clienteId: clienteIdReal });
+
+    let existente = null;
+    if (whereConditions.length > 0) {
+      existente = await prisma.atendimento.findFirst({
+        where: {
+          OR: whereConditions,
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }
 
     if (existente) {
       return await prisma.atendimento.update({
         where: { id: existente.id },
         data: {
           atendente: atendenteNome,
-          ...(dadosExtras?.clienteId ? { clienteId: String(dadosExtras.clienteId) } : {}),
+          // Mantém estritamente o ticketZpro existente do Z-PRO!
+          // Só preenche se o registro não tinha ticketZpro ou tinha um 'DIST-' antigo e agora temos o ticketReal
+          ...(ticketReal && (!existente.ticketZpro || existente.ticketZpro.startsWith("DIST-"))
+            ? { ticketZpro: ticketReal }
+            : {}),
+          ...(clienteIdReal ? { clienteId: clienteIdReal } : {}),
           ...(dadosExtras?.cnpj ? { cnpj: String(dadosExtras.cnpj) } : {}),
-          ...(dadosExtras?.protocolo ? { protocolo: String(dadosExtras.protocolo) } : {}),
+          ...(protocoloReal ? { protocolo: protocoloReal } : {}),
           ...(dadosExtras?.nomeContato ? { nomeContato: String(dadosExtras.nomeContato) } : {}),
           ...(dadosExtras?.tipoAtendimento ? { tipoAtendimento: String(dadosExtras.tipoAtendimento) } : {}),
         },
       });
     }
 
+    // Se não existir e não temos nem ticketZpro real nem protocolo nem clienteId, não cria registro avulso
+    if (!ticketReal && !protocoloReal && !clienteIdReal) {
+      return null;
+    }
+
     return await prisma.atendimento.create({
       data: {
-        ticketZpro: ticketStr,
+        ticketZpro: ticketReal, // Mantém estritamente o ticket do Z-PRO (ou null). NUNCA grava DIST-...
         atendente: atendenteNome,
-        clienteId: dadosExtras?.clienteId ? String(dadosExtras.clienteId) : null,
+        clienteId: clienteIdReal,
         cnpj: dadosExtras?.cnpj ? String(dadosExtras.cnpj) : null,
-        protocolo: dadosExtras?.protocolo ? String(dadosExtras.protocolo) : null,
+        protocolo: protocoloReal,
         nomeContato: dadosExtras?.nomeContato ? String(dadosExtras.nomeContato) : null,
         tipoAtendimento: dadosExtras?.tipoAtendimento ? String(dadosExtras.tipoAtendimento) : null,
         sincronizado: false,
