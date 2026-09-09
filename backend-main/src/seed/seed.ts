@@ -41,6 +41,7 @@ const EQUIPES_SEED = [
       "notas",
       "N2-Suporte",
       "N2",
+      "suporte_n2",
     ],
   },
   {
@@ -54,7 +55,6 @@ const EQUIPES_SEED = [
     departamentos: [
       "suporte_avancado",
       "suporte_n3",
-      "suporte_n2",
       "avancado",
       "N3-Suporte",
       "N3",

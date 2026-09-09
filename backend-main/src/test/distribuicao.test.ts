@@ -12,6 +12,7 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
   let userGabrielId: string;
   let userGuilhermeId: string;
   let userPedroId: string;
+  let userGenesesId: string;
 
   beforeAll(async () => {
     await clearDatabase();
@@ -52,6 +53,18 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
       },
     });
     userPedroId = pedro.id;
+
+    const geneses = await prisma.user.create({
+      data: {
+        name: "Geneses",
+        email: "geneses@alphasoftware.com.br",
+        id_atendente: "9",
+        zproId: 9,
+        slackId: "U08554P3BA4",
+        typeUser: "atendente",
+      },
+    });
+    userGenesesId = geneses.id;
 
     // 2. Criar Equipe N1 - Suporte vinculando filas e departamentos dinâmicos
     const eqN1 = await prisma.equipePlantao.create({
@@ -107,7 +120,7 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
         descricao: "Rotinas fiscais e N2",
         queueId: 7,
         queueName: "N2-Suporte",
-        departamentos: ["suporte_fiscal", "fiscal", "notas"],
+        departamentos: ["suporte_fiscal", "fiscal", "notas", "suporte_n2"],
         isFallback: false,
       },
     });
@@ -116,9 +129,20 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
     await prisma.membroEquipe.create({
       data: {
         equipeId: equipeN2Id,
-        userId: userPedroId,
+        userId: userGenesesId,
         cargo: "analista_n2",
         ordemSequencial: 1,
+        pesoPrioridade: 0,
+        turnos: [{ inicio: "08:00", fim: "18:00" }],
+      },
+    });
+
+    await prisma.membroEquipe.create({
+      data: {
+        equipeId: equipeN2Id,
+        userId: userPedroId,
+        cargo: "analista_n2",
+        ordemSequencial: 2,
         pesoPrioridade: 0,
         turnos: [{ inicio: "08:00", fim: "18:00" }],
       },
@@ -362,6 +386,61 @@ describe("Testes de Distribuição Dinâmica e Fallback Sequencial de Atendiment
     // O analista que recebeu o ticket 18297 deve ter ao menos 1 atendimento registrado
     const totalGeral = relatorio.reduce((acc, r) => acc + Number(r.qtd_por_usuario), 0);
     expect(totalGeral).toBeGreaterThanOrEqual(1);
+  });
+
+  it("deve alternar a distribuição rotativa entre múltiplos analistas na fila N2 (rotatividade justa)", async () => {
+    // Ambos Geneses e Pedro estão online no Z-PRO
+    vi.spyOn(externalApiService, "listZproUsers").mockResolvedValue([
+      { id: 9, name: "Geneses Souza", email: "geneses@alphasoftware.com.br", isOnline: true },
+      { id: 6, name: "Pedro Mittmann", email: "pedro@alphasoftware.com.br", isOnline: true },
+    ]);
+
+    // Reseta estado dos membros do N2
+    await prisma.membroEquipe.updateMany({
+      where: { equipeId: equipeN2Id },
+      data: { ultimoAtendimentoEm: null },
+    });
+
+    // 1º Chamado para N2 -> deve escolher Geneses (ordem 1, ambos com carga 0)
+    const res1 = await request(app)
+      .post("/atendimentos/distribuir")
+      .send({
+        departamento: "suporte_n2",
+        ticketId: "TICKET-N2-01",
+        horarioMinutosOverride: 600, // 10:00
+      });
+
+    expect(res1.status).toBe(200);
+    expect(res1.body.sucesso).toBe(true);
+    expect(res1.body.atendenteNome).toBe("Geneses");
+    expect(res1.body.userId).toBe(9);
+
+    // 2º Chamado para N2 -> agora Geneses tem carga 1 (pendente), Pedro tem carga 0 -> deve escolher Pedro!
+    const res2 = await request(app)
+      .post("/atendimentos/distribuir")
+      .send({
+        fila: "N2-Suporte",
+        ticketId: "TICKET-N2-02",
+        horarioMinutosOverride: 600,
+      });
+
+    expect(res2.status).toBe(200);
+    expect(res2.body.sucesso).toBe(true);
+    expect(res2.body.atendenteNome).toBe("Pedro");
+    expect(res2.body.userId).toBe(6);
+
+    // 3º Chamado para N2 -> ambos empatados com carga 1. Desempate por quem atendeu há mais tempo (Geneses atendeu antes de Pedro) -> deve escolher Geneses!
+    const res3 = await request(app)
+      .post("/atendimentos/distribuir")
+      .send({
+        fila: "N2",
+        ticketId: "TICKET-N2-03",
+        horarioMinutosOverride: 600,
+      });
+
+    expect(res3.status).toBe(200);
+    expect(res3.body.sucesso).toBe(true);
+    expect(res3.body.atendenteNome).toBe("Geneses");
   });
 });
 

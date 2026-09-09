@@ -21,6 +21,7 @@ export class DashboardController {
         totalAtendimentos,
         atendimentosHoje,
         sincronizados,
+        sincronizadosHoje,
         totalEquipes,
         totalUsuarios,
         proximoPlantao,
@@ -28,6 +29,7 @@ export class DashboardController {
         prisma.atendimento.count(),
         prisma.atendimento.count({ where: { createdAt: { gte: startOfToday } } }),
         prisma.atendimento.count({ where: { sincronizado: true } }),
+        prisma.atendimento.count({ where: { createdAt: { gte: startOfToday }, sincronizado: true } }),
         prisma.equipePlantao.count({ where: { ativo: true } }),
         prisma.user.count({ where: { typeUser: "atendente" } }),
         prisma.registros.findFirst({
@@ -40,17 +42,21 @@ export class DashboardController {
         }),
       ]);
 
+      const pendentesHoje = Math.max(0, atendimentosHoje - sincronizadosHoje);
       const taxaSincronizacao =
-        totalAtendimentos > 0
-          ? Math.round((sincronizados / totalAtendimentos) * 100)
-          : 0;
+        atendimentosHoje > 0
+          ? Math.round((sincronizadosHoje / atendimentosHoje) * 100)
+          : (totalAtendimentos > 0 ? Math.round((sincronizados / totalAtendimentos) * 100) : 0);
 
       return res.status(200).json({
         atendimentos: {
           total: totalAtendimentos,
+          totalGeral: totalAtendimentos,
           hoje: atendimentosHoje,
           sincronizados,
+          sincronizadosHoje,
           pendentes: totalAtendimentos - sincronizados,
+          pendentesHoje,
           taxaSincronizacao: `${taxaSincronizacao}%`,
         },
         equipes: {

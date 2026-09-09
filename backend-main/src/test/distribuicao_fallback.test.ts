@@ -73,7 +73,7 @@ describe("Testes da Nova Regra de Distribuição, Turnos e Fallback Entre Filas"
       nome: "N2",
       queueId: 7,
       queueName: "N2",
-      departamentos: ["suporte_fiscal", "fiscal", "notas"],
+      departamentos: ["suporte_fiscal", "fiscal", "notas", "suporte_n2"],
       posicaoFallback: 2,
       ativo: true,
       membros: [
@@ -434,5 +434,94 @@ describe("Testes da Nova Regra de Distribuição, Turnos e Fallback Entre Filas"
       expect.anything(),
       expect.anything()
     );
+  });
+
+  it("Alternância e Equilíbrio de Carga na Fila N2: Distribui de forma justa e rotativa entre Geneses e Gustavo", async () => {
+    // Clona mockEquipes para isolar o teste
+    const equipesN2Test = JSON.parse(JSON.stringify(mockEquipes));
+    const eqN2 = equipesN2Test.find((e: any) => e.queueId === 7);
+    const mGeneses = eqN2.membros.find((m: any) => m.user.name === "Geneses");
+    const mGustavo = eqN2.membros.find((m: any) => m.user.name === "Gustavo");
+
+    const produtividadeMock: any[] = [];
+
+    const mockEquipeRepo: any = {
+      findAllWithMembers: vi.fn().mockResolvedValue(equipesN2Test),
+      findByDepartamentoOuFila: vi.fn().mockImplementation((dep, fila) => {
+        if (fila === "N2" || fila === "N2-Suporte" || dep === "suporte_n2" || dep === "suporte_fiscal") {
+          return eqN2;
+        }
+        return null;
+      }),
+      updateUltimoAtendimento: vi.fn().mockImplementation((membroId: string) => {
+        const target = eqN2.membros.find((m: any) => m.id === membroId);
+        if (target) {
+          target.ultimoAtendimentoEm = new Date();
+        }
+        return Promise.resolve();
+      }),
+    };
+
+    const mockAtendimentoRepo: any = {
+      getProdutividadePorPeriodo: vi.fn().mockImplementation(() => Promise.resolve(produtividadeMock)),
+      upsertAtendentePorTicket: vi.fn().mockImplementation((ticket, atendente) => {
+        // Simula incremento de ticket do analista
+        let entry = produtividadeMock.find((p) => p.name.toLowerCase() === atendente.toLowerCase());
+        if (!entry) {
+          entry = { name: atendente, email: `${atendente.toLowerCase()}@alphasoftware.com.br`, qtd_pendentes: "0", qtd_resolvidos: "0", qtd_por_usuario: "0" };
+          produtividadeMock.push(entry);
+        }
+        entry.qtd_pendentes = String(Number(entry.qtd_pendentes) + 1);
+        entry.qtd_por_usuario = String(Number(entry.qtd_por_usuario) + 1);
+        return Promise.resolve({ id: `atend-${ticket}`, atendente });
+      }),
+    };
+
+    const service = new DistributionService(
+      mockEquipeRepo,
+      { create: vi.fn().mockResolvedValue({ id: "log-1" }) } as any,
+      mockAtendimentoRepo
+    );
+
+    // Ambos online no Z-PRO (com nomes reais do Z-PRO)
+    vi.spyOn(externalApiService, "listZproUsers").mockResolvedValue([
+      { id: 9, name: "Gêneses Souza", email: "geneses@alphasoftware.com.br", isOnline: true },
+      { id: 7, name: "Gustavo Maciel", email: "gustavo@alphasoftware.com.br", isOnline: true },
+    ]);
+
+    // 1º Ticket -> Ambos carga 0, Geneses tem ordemSequencial menor (2 vs 4) -> Escolhe Geneses
+    const r1 = await service.distribuir({
+      departamento: "suporte_n2",
+      ticketId: "TICKET-1",
+      horarioMinutosOverride: 540,
+    });
+    expect(r1.sucesso).toBe(true);
+    expect(r1.atendenteNome).toBe("Geneses");
+    expect(r1.userId).toBe(9);
+
+    // 2º Ticket -> Geneses tem carga 1 pendente, Gustavo tem carga 0 -> Escolhe Gustavo!
+    const r2 = await service.distribuir({
+      fila: "N2",
+      ticketId: "TICKET-2",
+      horarioMinutosOverride: 540,
+    });
+    expect(r2.sucesso).toBe(true);
+    expect(r2.atendenteNome).toBe("Gustavo");
+    expect(r2.userId).toBe(7);
+
+    // 3º Ticket -> Ambos empatados com carga 1. Desempate por quem atendeu há mais tempo (Geneses atendeu antes de Gustavo) -> Escolhe Geneses!
+    const r3 = await service.distribuir({
+      fila: "N2",
+      ticketId: "TICKET-3",
+      horarioMinutosOverride: 540,
+    });
+    expect(r3.sucesso).toBe(true);
+    expect(r3.atendenteNome).toBe("Geneses");
+
+    // 4º Previsão de Filas -> Reflete que o próximo na vez do N2 agora é Gustavo
+    const previsoes = await service.getPrevisaoFilas();
+    const prevN2 = previsoes.find((p) => p.queueId === 7);
+    expect(prevN2).toBeDefined();
+    expect(prevN2.proximoDaFila?.nome).toBe("Gustavo");
   });
 });

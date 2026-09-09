@@ -82,13 +82,18 @@ class DashboardEventBus extends EventEmitter {
     };
 
     this.broadcast("dashboard_update", payload);
+    if (entity) {
+      this.broadcast(entity, payload);
+    }
   }
 
   private broadcast(eventName: string, data: any) {
-    const message = `event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`;
+    const namedMessage = `event: ${eventName}\ndata: ${JSON.stringify(data)}\n\n`;
+    const defaultMessage = `data: ${JSON.stringify({ ...data, eventType: eventName })}\n\n`;
     for (const client of this.clients) {
       try {
-        client.write(message);
+        client.write(namedMessage);
+        client.write(defaultMessage);
       } catch (err) {
         this.clients.delete(client);
       }

@@ -120,6 +120,15 @@ export function matchesSequenceName(eq: any, seqName: string): boolean {
   return nome === normSeq || qName === normSeq;
 }
 
+export function normalizeName(name?: string | null): string {
+  if (!name) return "";
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 export class DistributionService {
   private equipeRepo: EquipeRepository;
   private distribuicaoLogRepo?: DistribuicaoLogRepository;
@@ -210,13 +219,15 @@ export class DistributionService {
     let candidatosOnline: any[] = [];
     if (onlineZproMap) {
       candidatosOnline = membrosNoTurno.filter((m: any) => {
-        const zId = m.user.zproId ? Number(m.user.zproId) : null;
+        const zId = m.user.zproId
+          ? Number(m.user.zproId)
+          : (m.user.id_atendente && !isNaN(Number(m.user.id_atendente)) ? Number(m.user.id_atendente) : null);
         if (zId && onlineZproMap.has(zId)) return true;
 
-        const nomeClean = (m.user.name || "").toLowerCase().trim();
+        const nomeClean = normalizeName(m.user.name);
         const emailClean = (m.user.email || "").toLowerCase().trim();
         for (const [id, uOnline] of onlineZproMap.entries()) {
-          const uNome = (uOnline.name || "").toLowerCase().trim();
+          const uNome = normalizeName(uOnline.name || uOnline.nome);
           const uEmail = (uOnline.email || "").toLowerCase().trim();
           if (
             (uNome && (uNome.includes(nomeClean) || nomeClean.includes(uNome))) ||
@@ -240,7 +251,18 @@ export class DistributionService {
     const pontuados = candidatosOnline.map((m: any) => {
       const emailKey = (m.user.email || "").toLowerCase().trim();
       const nomeKey = (m.user.name || "").toLowerCase().trim();
-      const metrica = mapaCargas[emailKey] || mapaCargas[nomeKey];
+      let metrica = mapaCargas[emailKey] || mapaCargas[nomeKey];
+
+      if (!metrica) {
+        const normNome = normalizeName(m.user.name);
+        for (const [k, v] of Object.entries(mapaCargas)) {
+          const normK = normalizeName(k);
+          if (normK === normNome || (normK && normNome && (normK.includes(normNome) || normNome.includes(normK)))) {
+            metrica = v;
+            break;
+          }
+        }
+      }
 
       const pendentes = Number(metrica?.qtd_pendentes || 0);
       const fechados = Number(metrica?.qtd_resolvidos || 0);
@@ -595,22 +617,23 @@ export class DistributionService {
   async getPrevisaoFilas(): Promise<any[]> {
     const equipes = await this.equipeRepo.findAllWithMembers();
     const minutosAtuais = getCurrentManausMinutes();
-    const hojeStr = new Date().toISOString().substring(0, 10);
 
     let usuariosZpro: any[] = [];
-    let cargasAlpha: TicketUserData[] = [];
+    let produtividadeLocal: any[] = [];
 
     try {
-      [usuariosZpro, cargasAlpha] = await Promise.all([
+      [usuariosZpro, produtividadeLocal] = await Promise.all([
         externalApiService.listZproUsers().catch(() => []),
-        externalApiService.getTicketsPerUser(hojeStr, hojeStr).catch(() => []),
+        this.atendimentoRepo
+          ? this.atendimentoRepo.getProdutividadePorPeriodo().catch(() => [])
+          : Promise.resolve([]),
       ]);
     } catch (e) {}
 
-    const mapaCargas: Record<string, TicketUserData> = {};
-    for (const c of cargasAlpha) {
-      if (c.email) mapaCargas[c.email.toLowerCase().trim()] = c;
-      if (c.name) mapaCargas[c.name.toLowerCase().trim()] = c;
+    const mapaCargas: Record<string, any> = {};
+    for (const p of (produtividadeLocal as any[])) {
+      if (p.email) mapaCargas[p.email.toLowerCase().trim()] = p;
+      if (p.name) mapaCargas[p.name.toLowerCase().trim()] = p;
     }
 
     const onlineZproMap = new Map<number, any>();
@@ -631,13 +654,15 @@ export class DistributionService {
 
       // 2. Filtrar quem está ONLINE no Z-PRO
       const candidatosOnline = membrosNoTurno.filter((m: any) => {
-        const zId = m.user.zproId ? Number(m.user.zproId) : null;
+        const zId = m.user.zproId
+          ? Number(m.user.zproId)
+          : (m.user.id_atendente && !isNaN(Number(m.user.id_atendente)) ? Number(m.user.id_atendente) : null);
         if (zId && onlineZproMap.has(zId)) return true;
 
-        const nomeClean = (m.user.name || "").toLowerCase().trim();
+        const nomeClean = normalizeName(m.user.name);
         const emailClean = (m.user.email || "").toLowerCase().trim();
         for (const [id, uOnline] of onlineZproMap.entries()) {
-          const uNome = (uOnline.name || "").toLowerCase().trim();
+          const uNome = normalizeName(uOnline.name || uOnline.nome);
           const uEmail = (uOnline.email || "").toLowerCase().trim();
           if (
             (uNome && (uNome.includes(nomeClean) || nomeClean.includes(uNome))) ||
@@ -657,40 +682,77 @@ export class DistributionService {
         const pontuados = candidatosOnline.map((m: any) => {
           const emailKey = (m.user.email || "").toLowerCase().trim();
           const nomeKey = (m.user.name || "").toLowerCase().trim();
-          const metrica = mapaCargas[emailKey] || mapaCargas[nomeKey];
+          let metrica = mapaCargas[emailKey] || mapaCargas[nomeKey];
 
-          const abertos = Number(metrica?.qtd_em_atendimento || 0);
+          if (!metrica) {
+            const normNome = normalizeName(m.user.name);
+            for (const [k, v] of Object.entries(mapaCargas)) {
+              const normK = normalizeName(k);
+              if (normK === normNome || (normK && normNome && (normK.includes(normNome) || normNome.includes(normK)))) {
+                metrica = v;
+                break;
+              }
+            }
+          }
+
           const pendentes = Number(metrica?.qtd_pendentes || 0);
-          const fechados = Number(metrica?.qtd_resolvidos || metrica?.qtd_por_usuario || 0);
+          const fechados = Number(metrica?.qtd_resolvidos || 0);
+          const total = Number(metrica?.qtd_por_usuario || pendentes + fechados);
 
-          const score =
-            abertos * this.PESO_ABERTOS +
-            pendentes * this.PESO_PENDENTES +
-            fechados * this.PESO_TOTAL_DIA;
+          const score = pendentes * this.PESO_PENDENTES + fechados * this.PESO_TOTAL_DIA;
 
           return {
             membro: m,
-            abertos,
+            abertos: pendentes,
             pendentes,
             fechados,
+            total,
             score,
             prioridade: m.pesoPrioridade || 0,
           };
         });
 
-        // Ordenar por score ascendente (menor carga primeiro), depois por ordemSequencial
-        pontuados.sort((a: any, b: any) => {
-          if (a.score !== b.score) return a.score - b.score;
-          return (a.membro.ordemSequencial || 0) - (b.membro.ordemSequencial || 0);
-        });
+        const altaPrioridade = pontuados.filter((p: any) => p.prioridade > 0);
+        const normais = pontuados.filter((p: any) => p.prioridade === 0);
+        const ultimoRecurso = pontuados.filter((p: any) => p.prioridade < 0);
 
-        escolhido = pontuados[0]?.membro;
-        metricasEscolhidas = {
-          abertos: pontuados[0]?.abertos || 0,
-          pendentes: pontuados[0]?.pendentes || 0,
-          fechados: pontuados[0]?.fechados || 0,
-          score: pontuados[0]?.score || 0,
-        };
+        let grupoAlvo = normais;
+        let modoFila = "pontuacao_ponderada";
+
+        if (altaPrioridade.length > 0) {
+          grupoAlvo = altaPrioridade;
+          modoFila = "prioridade_membro";
+        } else if (normais.length === 0 && ultimoRecurso.length > 0) {
+          grupoAlvo = ultimoRecurso;
+          modoFila = "ultimo_recurso";
+        }
+
+        if (grupoAlvo.length > 0) {
+          const menorScore = Math.min(...grupoAlvo.map((p: any) => p.score));
+          const empatados = grupoAlvo.filter((p: any) => p.score === menorScore);
+
+          // Desempate igual ao motor real: quem atendeu há mais tempo, depois ordemSequencial
+          empatados.sort((a: any, b: any) => {
+            if (!a.membro.ultimoAtendimentoEm && b.membro.ultimoAtendimentoEm) return -1;
+            if (a.membro.ultimoAtendimentoEm && !b.membro.ultimoAtendimentoEm) return 1;
+            if (a.membro.ultimoAtendimentoEm && b.membro.ultimoAtendimentoEm) {
+              const diff =
+                new Date(a.membro.ultimoAtendimentoEm).getTime() -
+                new Date(b.membro.ultimoAtendimentoEm).getTime();
+              if (diff !== 0) return diff;
+            }
+            return (a.membro.ordemSequencial || 0) - (b.membro.ordemSequencial || 0);
+          });
+
+          escolhido = empatados[0]?.membro;
+          modo = modoFila;
+          metricasEscolhidas = {
+            abertos: empatados[0]?.pendentes || 0,
+            pendentes: empatados[0]?.pendentes || 0,
+            fechados: empatados[0]?.fechados || 0,
+            score: empatados[0]?.score || 0,
+          };
+        }
       }
 
       const proximo = escolhido?.user

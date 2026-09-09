@@ -32,7 +32,8 @@ export class UserController {
       // 3. Regra de Atendente: somente atendentes possuem ID Z-PRO e dados de plantão
       const isAtendente = finalTypeUser === "atendente";
       const finalIdAtendente = isAtendente && id_atendente ? String(id_atendente).trim() : null;
-      const finalZproId = isAtendente && zproId ? Number(zproId) : null;
+      const parsedIdAtendenteNum = finalIdAtendente && !isNaN(Number(finalIdAtendente)) ? Number(finalIdAtendente) : null;
+      const finalZproId = isAtendente ? (zproId ? Number(zproId) : parsedIdAtendenteNum) : null;
       const finalSlackId = isAtendente && slackId ? String(slackId).trim() : null;
       const finalIsPlantonista = isAtendente ? Boolean(isPlantonista) : false;
       const finalPosicao = isAtendente && finalIsPlantonista ? (Number(posicao) || 0) : 0;
@@ -169,7 +170,12 @@ export class UserController {
       if (email !== undefined) dataToUpdate.email = email.trim();
       if (role !== undefined) dataToUpdate.role = role;
       if (typeUser !== undefined) dataToUpdate.typeUser = typeUser;
-      if (id_atendente !== undefined) dataToUpdate.id_atendente = id_atendente ? String(id_atendente).trim() : null;
+      if (id_atendente !== undefined) {
+        dataToUpdate.id_atendente = id_atendente ? String(id_atendente).trim() : null;
+        if (zproId === undefined && dataToUpdate.id_atendente && !isNaN(Number(dataToUpdate.id_atendente))) {
+          dataToUpdate.zproId = Number(dataToUpdate.id_atendente);
+        }
+      }
       if (zproId !== undefined) dataToUpdate.zproId = zproId ? Number(zproId) : null;
       if (slackId !== undefined) dataToUpdate.slackId = slackId ? String(slackId).trim() : null;
       if (isPlantonista !== undefined) dataToUpdate.isPlantonista = Boolean(isPlantonista);

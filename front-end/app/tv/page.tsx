@@ -234,11 +234,26 @@ export default function ModoTvFullscreenPage() {
     carregarDadosCompletos();
   }, [carregarDadosCompletos]);
 
-  // Conexão SSE em Tempo Real
+  // Conexão SSE em Tempo Real e Polling de Resiliência
   useEffect(() => {
     const sseUrl = `${env.NEXT_PUBLIC_API_URL}/dashboard/stream`;
     const sse = new EventSource(sseUrl, { withCredentials: true });
     eventSourceRef.current = sse;
+
+    const handleSseUpdate = (event: MessageEvent) => {
+      try {
+        if (event.data) {
+          const data = JSON.parse(event.data);
+          const entityName = (data.entity || data.eventType || "UPDATE").toUpperCase();
+          setLastSseEvent(`${entityName} • ${new Date().toLocaleTimeString()}`);
+        } else {
+          setLastSseEvent(`UPDATE • ${new Date().toLocaleTimeString()}`);
+        }
+      } catch {
+        setLastSseEvent(`LIVE • ${new Date().toLocaleTimeString()}`);
+      }
+      carregarDadosCompletos();
+    };
 
     sse.onopen = () => {
       setSseConnected(true);
@@ -246,24 +261,30 @@ export default function ModoTvFullscreenPage() {
 
     sse.addEventListener("connected", () => {
       setSseConnected(true);
+      carregarDadosCompletos();
     });
 
-    sse.addEventListener("dashboard_update", (event: MessageEvent) => {
-      try {
-        const data = JSON.parse(event.data);
-        setLastSseEvent(`${data.entity?.toUpperCase()} • ${new Date().toLocaleTimeString()}`);
-        carregarDadosCompletos();
-      } catch (err) {
-        console.error("Erro no parse SSE:", err);
-      }
-    });
+    sse.onmessage = handleSseUpdate;
+    sse.addEventListener("dashboard_update", handleSseUpdate);
+    sse.addEventListener("atendimento", handleSseUpdate);
+    sse.addEventListener("distribuicao", handleSseUpdate);
+    sse.addEventListener("registro", handleSseUpdate);
+    sse.addEventListener("equipe", handleSseUpdate);
+    sse.addEventListener("membro_equipe", handleSseUpdate);
+    sse.addEventListener("plantonista", handleSseUpdate);
 
     sse.onerror = () => {
       setSseConnected(false);
     };
 
+    // Polling de backup a cada 10 segundos para assegurar sincronia contínua de todas as telas
+    const backupInterval = setInterval(() => {
+      carregarDadosCompletos();
+    }, 10000);
+
     return () => {
       sse.close();
+      clearInterval(backupInterval);
     };
   }, [carregarDadosCompletos]);
 

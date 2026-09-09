@@ -246,7 +246,6 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
 
     // Converte para o formato de produtividade simplificado (apenas Pendente e Resolvido)
     const resultado = Array.from(mapaAnalistas.values())
-      .filter((acc) => acc.total > 0)
       .map((acc) => ({
         name: acc.name,
         email: acc.email,
@@ -277,16 +276,26 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
     const protocoloReal = dadosExtras?.protocolo ? String(dadosExtras.protocolo).trim() : null;
     const clienteIdReal = dadosExtras?.clienteId ? String(dadosExtras.clienteId).trim() : null;
 
-    const whereConditions: any[] = [];
-    if (ticketReal) whereConditions.push({ ticketZpro: ticketReal });
-    if (protocoloReal) whereConditions.push({ protocolo: protocoloReal });
-    if (clienteIdReal) whereConditions.push({ clienteId: clienteIdReal });
-
     let existente = null;
-    if (whereConditions.length > 0) {
+    if (ticketReal) {
+      existente = await prisma.atendimento.findFirst({
+        where: { ticketZpro: ticketReal },
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (protocoloReal) {
+      existente = await prisma.atendimento.findFirst({
+        where: { protocolo: protocoloReal },
+        orderBy: { createdAt: "desc" },
+      });
+    } else if (clienteIdReal) {
+      // Se não há ticketZpro nem protocolo, localiza atendimento pendente aberto hoje para este cliente
+      const inicioHoje = new Date();
+      inicioHoje.setHours(0, 0, 0, 0);
       existente = await prisma.atendimento.findFirst({
         where: {
-          OR: whereConditions,
+          clienteId: clienteIdReal,
+          createdAt: { gte: inicioHoje },
+          sincronizado: false,
         },
         orderBy: { createdAt: "desc" },
       });
