@@ -95,50 +95,82 @@ export class EquipeRepository extends BaseRepository<EquipePlantao> {
       },
     });
 
-    // 1. Match por queueId explícito
+    // Helper para verificar correspondência EXATA com a fila informada pelo usuário/webhook
+    const matchEquipeComFila = (e: any, filaStr: string): boolean => {
+      if (!filaStr) return false;
+      const f = filaStr.toLowerCase().trim();
+
+      const qName = (e.queueName || "").toLowerCase().trim();
+      const nome = (e.nome || "").toLowerCase().trim();
+
+      // 1. Comparação EXATA com queueName ou nome da equipe (sem regex ou substring)
+      if (qName && f === qName) return true;
+      if (nome && f === nome) return true;
+
+      // 2. Comparação EXATA com a lista de departamentos da equipe
+      if (
+        e.departamentos &&
+        e.departamentos.some((d: string) => d.toLowerCase().trim() === f)
+      ) {
+        return true;
+      }
+
+      return false;
+    };
+
+    // Helper para verificar correspondência EXATA com um departamento
+    const matchEquipeComDep = (e: any, depStr: string): boolean => {
+      if (!depStr) return false;
+      const d = depStr.toLowerCase().trim();
+
+      return Boolean(
+        e.departamentos &&
+        e.departamentos.some((item: string) => item.toLowerCase().trim() === d)
+      );
+    };
+
+    // 1. Prioridade 1: Match por queueId numérico explícito
     if (numQueueId) {
       const matchQueue = equipes.find((e) => e.queueId === numQueueId);
       if (matchQueue) return matchQueue;
     }
 
-    // 2. Match por departamento na lista de departamentos da equipe
-    if (cleanDep) {
-      const matchDep = equipes.find((e) =>
-        e.departamentos.some((d) => {
-          const normD = d.toLowerCase().trim();
-          return normD === cleanDep || normD.replace(/[-_]/g, "") === cleanDep.replace(/[-_]/g, "");
-        })
-      );
-      if (matchDep) return matchDep;
-    }
-
-    // 3. Match por fila na lista de departamentos
+    // 2. Prioridade 2: Match PRIMEIRO pela FILA informada (nome EXATO da fila)
+    // Como a pessoa selecionou aquela fila específica para ser atendida, escolhe os analistas dessa fila selecionada
     if (cleanFila) {
-      const matchFilaDep = equipes.find((e) =>
-        e.departamentos.some((d) => {
-          const normD = d.toLowerCase().trim();
-          return normD === cleanFila || normD.replace(/[-_]/g, "") === cleanFila.replace(/[-_]/g, "");
-        })
-      );
-      if (matchFilaDep) return matchFilaDep;
+      const equipeDaFila = equipes.find((e) => matchEquipeComFila(e, cleanFila));
+      if (equipeDaFila) {
+        return equipeDaFila;
+      }
     }
 
-    // 4. Match por queueName ou nome da equipe
-    const termos = [cleanFila, cleanDep].filter(Boolean);
-    for (const termo of termos) {
-      const termoNormalizado = termo.replace(/[-_\s]/g, "");
-      const matchName = equipes.find((e) => {
+    // 3. Prioridade 3: Se não encontrou pela fila (ou se não veio fila), busca pelo DEPARTAMENTO (nome EXATO)
+    if (cleanDep) {
+      const equipesPorDep = equipes.filter((e) => matchEquipeComDep(e, cleanDep));
+
+      if (equipesPorDep.length === 1) {
+        return equipesPorDep[0];
+      }
+
+      if (equipesPorDep.length > 1) {
+        // Se houver mais de uma equipe com o mesmo departamento, desempata pela fila exata se informada
+        if (cleanFila) {
+          const desempateFila = equipesPorDep.find((e) => matchEquipeComFila(e, cleanFila));
+          if (desempateFila) return desempateFila;
+        }
+
+        // Se não houver fila para desempate, prioriza a equipe que não for fallback
+        const naoFallback = equipesPorDep.find((e) => !e.isFallback);
+        return naoFallback || equipesPorDep[0];
+      }
+
+      // Match exato do departamento contra o nome ou queueName da equipe
+      const matchNomeDep = equipes.find((e) => {
         const qName = (e.queueName || "").toLowerCase().trim();
         const nome = (e.nome || "").toLowerCase().trim();
-        const qNorm = qName.replace(/[-_\s]/g, "");
-        const nomeNorm = nome.replace(/[-_\s]/g, "");
-
-        return (
-          (qName && (termo === qName || termo.startsWith(qName) || qName.startsWith(termo) || termoNormalizado.includes(qNorm) || qNorm.includes(termoNormalizado))) ||
-          (nome && (termo === nome || termo.startsWith(nome) || nome.startsWith(termo) || termoNormalizado.includes(nomeNorm) || nomeNorm.includes(termoNormalizado)))
-        );
+        return (qName && cleanDep === qName) || (nome && cleanDep === nome);
       });
-      if (matchName) return matchName;
+      if (matchNomeDep) return matchNomeDep;
     }
 
     return null;
