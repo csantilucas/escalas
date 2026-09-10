@@ -229,11 +229,19 @@ export class EquipeRepository extends BaseRepository<EquipePlantao> {
     });
   }
 
-  async updateUltimoAtendimento(membroId: string): Promise<void> {
-    await prisma.membroEquipe.update({
-      where: { id: membroId },
-      data: { ultimoAtendimentoEm: new Date() },
-    });
+  async updateUltimoAtendimento(membroId: string, userId?: string): Promise<void> {
+    const agora = new Date();
+    if (userId) {
+      await prisma.membroEquipe.updateMany({
+        where: { userId },
+        data: { ultimoAtendimentoEm: agora },
+      });
+    } else {
+      await prisma.membroEquipe.update({
+        where: { id: membroId },
+        data: { ultimoAtendimentoEm: agora },
+      });
+    }
   }
 
   async findMembro(equipeId: string, userId: string): Promise<MembroEquipe | null> {

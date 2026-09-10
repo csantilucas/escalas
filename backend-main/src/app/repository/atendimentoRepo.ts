@@ -268,6 +268,7 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
       protocolo?: string | null;
       nomeContato?: string | null;
       tipoAtendimento?: string | null;
+      numero?: string | null;
     }
   ): Promise<Atendimento | null> {
     const rawTicket = ticketZpro ? String(ticketZpro).trim() : null;
@@ -275,6 +276,7 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
     const ticketReal = rawTicket && !rawTicket.startsWith("DIST-") ? rawTicket : null;
     const protocoloReal = dadosExtras?.protocolo ? String(dadosExtras.protocolo).trim() : null;
     const clienteIdReal = dadosExtras?.clienteId ? String(dadosExtras.clienteId).trim() : null;
+    const numeroReal = dadosExtras?.numero ? String(dadosExtras.numero).trim() : null;
 
     let existente = null;
     if (ticketReal) {
@@ -299,6 +301,21 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
         },
         orderBy: { createdAt: "desc" },
       });
+    } else if (numeroReal) {
+      // Se não há ticketZpro, protocolo nem clienteId, localiza pelo número do WhatsApp pendente hoje
+      const inicioHoje = new Date();
+      inicioHoje.setHours(0, 0, 0, 0);
+      existente = await prisma.atendimento.findFirst({
+        where: {
+          OR: [
+            { clienteId: numeroReal },
+            { nomeContato: { contains: numeroReal } },
+          ],
+          createdAt: { gte: inicioHoje },
+          sincronizado: false,
+        },
+        orderBy: { createdAt: "desc" },
+      });
     }
 
     if (existente) {
@@ -311,28 +328,24 @@ export class AtendimentoRepository extends BaseRepository<Atendimento> {
           ...(ticketReal && (!existente.ticketZpro || existente.ticketZpro.startsWith("DIST-"))
             ? { ticketZpro: ticketReal }
             : {}),
-          ...(clienteIdReal ? { clienteId: clienteIdReal } : {}),
+          ...(clienteIdReal ? { clienteId: clienteIdReal } : (numeroReal && !existente.clienteId ? { clienteId: numeroReal } : {})),
           ...(dadosExtras?.cnpj ? { cnpj: String(dadosExtras.cnpj) } : {}),
           ...(protocoloReal ? { protocolo: protocoloReal } : {}),
-          ...(dadosExtras?.nomeContato ? { nomeContato: String(dadosExtras.nomeContato) } : {}),
+          ...(dadosExtras?.nomeContato ? { nomeContato: String(dadosExtras.nomeContato) } : (numeroReal && !existente.nomeContato ? { nomeContato: `WhatsApp ${numeroReal}` } : {})),
           ...(dadosExtras?.tipoAtendimento ? { tipoAtendimento: String(dadosExtras.tipoAtendimento) } : {}),
         },
       });
     }
 
-    // Se não existir e não temos nem ticketZpro real nem protocolo nem clienteId, não cria registro avulso
-    if (!ticketReal && !protocoloReal && !clienteIdReal) {
-      return null;
-    }
-
+    // Cria registro de atendimento registrando o atendente escolhido para tracking de carga
     return await prisma.atendimento.create({
       data: {
         ticketZpro: ticketReal, // Mantém estritamente o ticket do Z-PRO (ou null). NUNCA grava DIST-...
         atendente: atendenteNome,
-        clienteId: clienteIdReal,
+        clienteId: clienteIdReal || numeroReal || null,
         cnpj: dadosExtras?.cnpj ? String(dadosExtras.cnpj) : null,
         protocolo: protocoloReal,
-        nomeContato: dadosExtras?.nomeContato ? String(dadosExtras.nomeContato) : null,
+        nomeContato: dadosExtras?.nomeContato || (numeroReal ? `WhatsApp ${numeroReal}` : null),
         tipoAtendimento: dadosExtras?.tipoAtendimento ? String(dadosExtras.tipoAtendimento) : null,
         sincronizado: false,
       },

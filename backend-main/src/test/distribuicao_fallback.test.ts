@@ -519,9 +519,108 @@ describe("Testes da Nova Regra de Distribuição, Turnos e Fallback Entre Filas"
     expect(r3.atendenteNome).toBe("Geneses");
 
     // 4º Previsão de Filas -> Reflete que o próximo na vez do N2 agora é Gustavo
-    const previsoes = await service.getPrevisaoFilas();
+    const previsoes = await service.getPrevisaoFilas(540);
     const prevN2 = previsoes.find((p) => p.queueId === 7);
     expect(prevN2).toBeDefined();
     expect(prevN2.proximoDaFila?.nome).toBe("Gustavo");
+  });
+
+  it("Revezamento Estrito 1-a-1: Quando analistas possuem cargas desiguais e ticketId é nulo, alterna rigorosamente sem favorecer repetidamente o mesmo atendente", async () => {
+    const equipesN2Test = JSON.parse(JSON.stringify(mockEquipes));
+    const eqN2 = equipesN2Test.find((e: any) => e.queueId === 7);
+    const mGeneses = eqN2.membros.find((m: any) => m.user.name === "Geneses");
+    const mGustavo = eqN2.membros.find((m: any) => m.user.name === "Gustavo");
+
+    // Simulando que Geneses já tinha 3 atendimentos pendentes no banco e Gustavo tinha 0
+    const produtividadeMock = [
+      { name: "Geneses", email: "geneses@alphasoftware.com.br", qtd_pendentes: "3", qtd_resolvidos: "0", qtd_por_usuario: "3" },
+      { name: "Gustavo", email: "gustavo@alphasoftware.com.br", qtd_pendentes: "0", qtd_resolvidos: "0", qtd_por_usuario: "0" },
+    ];
+
+    const mockEquipeRepo: any = {
+      findAllWithMembers: vi.fn().mockResolvedValue(equipesN2Test),
+      findByDepartamentoOuFila: vi.fn().mockImplementation((dep, fila) => {
+        if (fila === "N2" || fila === "N2-Suporte" || dep === "suporte_fiscal") {
+          return eqN2;
+        }
+        return null;
+      }),
+      updateUltimoAtendimento: vi.fn().mockImplementation((membroId: string) => {
+        const target = eqN2.membros.find((m: any) => m.id === membroId);
+        if (target) {
+          target.ultimoAtendimentoEm = new Date();
+        }
+        return Promise.resolve();
+      }),
+    };
+
+    const service = new DistributionService(
+      mockEquipeRepo,
+      { create: vi.fn().mockResolvedValue({ id: "log-1" }) } as any,
+      {
+        getProdutividadePorPeriodo: vi.fn().mockResolvedValue(produtividadeMock),
+        upsertAtendentePorTicket: vi.fn().mockResolvedValue({ id: "atend-1" }),
+      } as any
+    );
+
+    // Geneses e Gustavo online no Z-PRO
+    vi.spyOn(externalApiService, "listZproUsers").mockResolvedValue([
+      { id: 9, name: "Geneses", email: "geneses@alphasoftware.com.br", isOnline: true },
+      { id: 7, name: "Gustavo", email: "gustavo@alphasoftware.com.br", isOnline: true },
+    ]);
+
+    // Reseta timestamps iniciais
+    mGeneses.ultimoAtendimentoEm = null;
+    mGustavo.ultimoAtendimentoEm = null;
+
+    // 1º Chamado -> Ambos null. Gustavo tem menos pendentes (0 vs 3) -> Gustavo recebe
+    const c1 = await service.distribuir({
+      fila: "N2-Suporte",
+      ticketId: null,
+      numero: "556999990001",
+      horarioMinutosOverride: 540,
+    });
+    expect(c1.userId).toBe(7);
+    expect(c1.atendenteNome).toBe("Gustavo");
+
+    // Simula passagem de tempo para o próximo chamado
+    mGustavo.ultimoAtendimentoEm = new Date(Date.now() - 5000);
+
+    // 2º Chamado -> Gustavo acabou de atender. Geneses ainda é null -> Geneses DEVE RECEBER (não pode repetir Gustavo!)
+    const c2 = await service.distribuir({
+      fila: "N2-Suporte",
+      ticketId: null,
+      numero: "556999990002",
+      horarioMinutosOverride: 540,
+    });
+    expect(c2.userId).toBe(9);
+    expect(c2.atendenteNome).toBe("Geneses");
+
+    // Simula timestamps: Gustavo atendeu às 11:00:00, Geneses atendeu às 11:00:05
+    mGustavo.ultimoAtendimentoEm = new Date("2026-09-10T11:00:00.000Z");
+    mGeneses.ultimoAtendimentoEm = new Date("2026-09-10T11:00:05.000Z");
+
+    // 3º Chamado -> Gustavo atendeu há mais tempo (11:00:00 vs 11:00:05) -> Gustavo recebe
+    const c3 = await service.distribuir({
+      fila: "N2-Suporte",
+      ticketId: null,
+      numero: "556999990003",
+      horarioMinutosOverride: 540,
+    });
+    expect(c3.userId).toBe(7);
+    expect(c3.atendenteNome).toBe("Gustavo");
+
+    // Atualiza timestamp do Gustavo para o mais recente (11:00:10)
+    mGustavo.ultimoAtendimentoEm = new Date("2026-09-10T11:00:10.000Z");
+
+    // 4º Chamado -> Geneses atendeu há mais tempo (11:00:05 vs 11:00:10) -> Geneses recebe!
+    const c4 = await service.distribuir({
+      fila: "N2-Suporte",
+      ticketId: null,
+      numero: "556999990004",
+      horarioMinutosOverride: 540,
+    });
+    expect(c4.userId).toBe(9);
+    expect(c4.atendenteNome).toBe("Geneses");
   });
 });

@@ -165,7 +165,7 @@ class ExternalApiService {
       console.log(`🌐 [ExternalApi - Z-PRO] Conectando a ${url}...`);
 
       const response = await axios.get(url, {
-        params: { pageNumber: 1 },
+        params: { pageNumber: 1, pageSize: 100, limit: 100 },
         headers: {
           ...(config.token && { Authorization: `Bearer ${config.token}` }),
         },

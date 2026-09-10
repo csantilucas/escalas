@@ -297,29 +297,35 @@ export class DistributionService {
 
     if (grupoAlvo.length === 0) return null;
 
-    const menorScore = Math.min(...grupoAlvo.map((p: any) => p.score));
-    const empatados = grupoAlvo.filter((p: any) => p.score === menorScore);
-
-    // Desempate: quem atendeu há mais tempo (ultimoAtendimentoEm ASC, nulls primeiro), depois ordemSequencial ASC
-    empatados.sort((a: any, b: any) => {
+    // Revezamento Estrito 1-a-1 (Round-Robin Equitativo)
+    // 1. Soberania do Revezamento: quem atendeu há mais tempo (ou nunca atendeu: nulls primeiro) é SEMPRE selecionado primeiro.
+    // Isso garante alternância contínua entre todos os analistas disponíveis da fila (A -> B -> C -> A -> B -> C...)
+    grupoAlvo.sort((a: any, b: any) => {
       if (!a.membro.ultimoAtendimentoEm && b.membro.ultimoAtendimentoEm) return -1;
       if (a.membro.ultimoAtendimentoEm && !b.membro.ultimoAtendimentoEm) return 1;
       if (a.membro.ultimoAtendimentoEm && b.membro.ultimoAtendimentoEm) {
-        const diff =
+        const diffTempo =
           new Date(a.membro.ultimoAtendimentoEm).getTime() -
           new Date(b.membro.ultimoAtendimentoEm).getTime();
-        if (diff !== 0) return diff;
+        if (diffTempo !== 0) return diffTempo;
       }
+
+      // 2. Desempate se ambos nunca atenderam (ou mesmo timestamp): menor quantidade de chamados pendentes
+      const diffPendentes = a.pendentes - b.pendentes;
+      if (diffPendentes !== 0) return diffPendentes;
+
+      // 3. Desempate por menor pontuação de carga (score)
+      const diffScore = a.score - b.score;
+      if (diffScore !== 0) return diffScore;
+
+      // 4. Desempate final por ordem sequencial cadastrada na equipe
       return (a.membro.ordemSequencial || 0) - (b.membro.ordemSequencial || 0);
     });
 
-    const escolhido = empatados[0];
+    const escolhido = grupoAlvo[0];
 
     if (modo === "pontuacao_ponderada") {
-      modo =
-        empatados.length > 1
-          ? "ponderado_menor_carga_desempate_antiguidade"
-          : "ponderado_menor_carga";
+      modo = "ponderado_menor_carga";
     }
 
     return {
@@ -402,7 +408,15 @@ export class DistributionService {
         if (!isApiFailure && Array.isArray(usuariosZpro)) {
           onlineZproMap = new Map<number, any>();
           for (const u of usuariosZpro) {
-            if (u.isOnline === true || u.isOnline === "true" || u.isOnline === 1) {
+            const isOnlineVal =
+              u.isOnline === true ||
+              u.isOnline === "true" ||
+              u.isOnline === 1 ||
+              u.online === true ||
+              u.online === "true" ||
+              u.online === 1 ||
+              String(u.status || "").toLowerCase() === "online";
+            if (isOnlineVal) {
               onlineZproMap.set(Number(u.id), u);
             }
           }
@@ -543,7 +557,7 @@ export class DistributionService {
     }
 
     // 6. Atendente encontrado com sucesso! Atualizar último atendimento e persistir log
-    await this.equipeRepo.updateUltimoAtendimento(analistaEscolhido.id);
+    await this.equipeRepo.updateUltimoAtendimento(analistaEscolhido.id, analistaEscolhido.user?.id || analistaEscolhido.userId);
 
     const zproUserId =
       analistaEscolhido.user.zproId !== null && analistaEscolhido.user.zproId !== undefined
@@ -587,6 +601,7 @@ export class DistributionService {
             protocolo: input.protocolo ? String(input.protocolo) : null,
             nomeContato: input.pushName ? String(input.pushName) : null,
             tipoAtendimento: input.departamento ? String(input.departamento) : null,
+            numero: input.numero ? String(input.numero) : null,
           }
         );
         if (atendAtualizado) {
@@ -614,9 +629,9 @@ export class DistributionService {
     return result;
   }
 
-  async getPrevisaoFilas(): Promise<any[]> {
+  async getPrevisaoFilas(horarioMinutosOverride?: number): Promise<any[]> {
     const equipes = await this.equipeRepo.findAllWithMembers();
-    const minutosAtuais = getCurrentManausMinutes();
+    const minutosAtuais = horarioMinutosOverride !== undefined ? horarioMinutosOverride : getCurrentManausMinutes();
 
     let usuariosZpro: any[] = [];
     let produtividadeLocal: any[] = [];
@@ -638,7 +653,15 @@ export class DistributionService {
 
     const onlineZproMap = new Map<number, any>();
     for (const u of usuariosZpro) {
-      if (u.isOnline === true || u.isOnline === "true" || u.isOnline === 1) {
+      const isOnlineVal =
+        u.isOnline === true ||
+        u.isOnline === "true" ||
+        u.isOnline === 1 ||
+        u.online === true ||
+        u.online === "true" ||
+        u.online === 1 ||
+        String(u.status || "").toLowerCase() === "online";
+      if (isOnlineVal) {
         onlineZproMap.set(Number(u.id), u);
       }
     }
@@ -728,29 +751,33 @@ export class DistributionService {
         }
 
         if (grupoAlvo.length > 0) {
-          const menorScore = Math.min(...grupoAlvo.map((p: any) => p.score));
-          const empatados = grupoAlvo.filter((p: any) => p.score === menorScore);
-
-          // Desempate igual ao motor real: quem atendeu há mais tempo, depois ordemSequencial
-          empatados.sort((a: any, b: any) => {
+          // Revezamento Estrito 1-a-1 (Round-Robin Equitativo) idêntico ao motor de distribuição
+          grupoAlvo.sort((a: any, b: any) => {
             if (!a.membro.ultimoAtendimentoEm && b.membro.ultimoAtendimentoEm) return -1;
             if (a.membro.ultimoAtendimentoEm && !b.membro.ultimoAtendimentoEm) return 1;
             if (a.membro.ultimoAtendimentoEm && b.membro.ultimoAtendimentoEm) {
-              const diff =
+              const diffTempo =
                 new Date(a.membro.ultimoAtendimentoEm).getTime() -
                 new Date(b.membro.ultimoAtendimentoEm).getTime();
-              if (diff !== 0) return diff;
+              if (diffTempo !== 0) return diffTempo;
             }
+
+            const diffPendentes = a.pendentes - b.pendentes;
+            if (diffPendentes !== 0) return diffPendentes;
+
+            const diffScore = a.score - b.score;
+            if (diffScore !== 0) return diffScore;
+
             return (a.membro.ordemSequencial || 0) - (b.membro.ordemSequencial || 0);
           });
 
-          escolhido = empatados[0]?.membro;
-          modo = modoFila;
+          escolhido = grupoAlvo[0]?.membro;
+          modo = modoFila === "pontuacao_ponderada" ? "ponderado_menor_carga" : modoFila;
           metricasEscolhidas = {
-            abertos: empatados[0]?.pendentes || 0,
-            pendentes: empatados[0]?.pendentes || 0,
-            fechados: empatados[0]?.fechados || 0,
-            score: empatados[0]?.score || 0,
+            abertos: grupoAlvo[0]?.pendentes || 0,
+            pendentes: grupoAlvo[0]?.pendentes || 0,
+            fechados: grupoAlvo[0]?.fechados || 0,
+            score: grupoAlvo[0]?.score || 0,
           };
         }
       }
